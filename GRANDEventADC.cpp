@@ -3,6 +3,7 @@
 //
 
 #include "GRANDEventADC.h"
+#include <iostream>
 
 GRANDEventADC::GRANDEventADC() {}
 
@@ -171,16 +172,19 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[EVT_TRIGGER+6*3+i]);
 		// ToDo: What is it?
 		ioff.push_back(evdu[EVT_HDRLEN]);
-		int ioff1 = ioff.back();
-		vector<short> tmpv;
-		for(int i=0;i<evdu[EVT_TOT_SAMPLES+1];i++){
-			tmpv.push_back((int16_t)evdu[ioff1++]);}
 
-//		adc_track0.push_back(vector<short>(evdu[ioff.back()], evdu[ioff.back()+EVT_TOT_SAMPLES+1]));
-		adc_track0.push_back(tmpv);
-		adc_track1.push_back(vector<short>(ioff.back()+evdu[EVT_TOT_SAMPLES+1], evdu[EVT_TOT_SAMPLES+2]));
-		adc_track2.push_back(vector<short>(ioff.back()+evdu[EVT_TOT_SAMPLES+2], evdu[EVT_TOT_SAMPLES+3]));
-		adc_track3.push_back(vector<short>(ioff.back()+evdu[EVT_TOT_SAMPLES+3], evdu[EVT_TOT_SAMPLES+4]));
+		int start_addr = ioff.back();
+		int end_addr = start_addr+evdu[EVT_TOT_SAMPLES+1];
+		adc_track0.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		start_addr+=evdu[EVT_TOT_SAMPLES+1];
+		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+2];
+		adc_track1.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		start_addr+=evdu[EVT_TOT_SAMPLES+2];
+		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+3];
+		adc_track2.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		start_addr+=evdu[EVT_TOT_SAMPLES+3];
+		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+4];
+		adc_track3.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 
 		idu +=(evdu[EVT_LENGTH]);
 	}

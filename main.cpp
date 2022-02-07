@@ -37,8 +37,9 @@ int main(int argc, char **argv)
 	}
 	if (fp != NULL) fclose(fp); // close the file
 
-	g->teventadc->Scan("run_number:event_number:event_type:adc_track0[0][0]");
+	//g->teventadc->Scan("run_number:event_number:event_type:adc_track0[0]:adc_track1[0]:adc_track2[0]:adc_track3[0]");
 
+	g->teventadc->Write();
 	tree_file->Close();
 
     return 0;
