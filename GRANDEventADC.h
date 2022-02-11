@@ -9,6 +9,7 @@
 #include "scope.h"
 #include "Traces.h"
 #include "TTree.h"
+#include "TTimeStamp.h"
 
 using namespace std;
 
@@ -33,8 +34,8 @@ public:
 	// As number of triggered antennas is variable, we need vectors here
 	vector<unsigned short> event_id;
 	vector<unsigned short> du_id;
-	vector<unsigned short> du_second;
-	vector<unsigned short> du_nanosecond;
+	vector<unsigned int> du_second;
+	vector<unsigned int> du_nanosecond;
 	vector<unsigned short> trigger_position;
 	vector<unsigned short> trigger_flag;
 	vector<unsigned short> atm_temperature;
@@ -58,18 +59,17 @@ public:
 	vector<unsigned short> trigger_pattern;
 	vector<unsigned short> trigger_rate;
 	vector<unsigned short> clock_tick;
-	vector<unsigned short> clock_tics_per_second;
-	vector<unsigned short> gps_offset;
+	vector<unsigned int> clock_tics_per_second;
+	vector<float> gps_offset;
 	vector<unsigned short> gps_leap_second;
 	vector<unsigned short> gps_status;
 	vector<unsigned short> gps_alarms;
 	vector<unsigned short> gps_warnings;
-	vector<unsigned short> gps_date;
-	vector<unsigned short> gps_time;
-	vector<unsigned short> gps_long;
-	vector<unsigned short> gps_lat;
-	vector<unsigned short> gps_alt;
-	vector<unsigned short> gps_temp;
+	vector<unsigned int> gps_time;
+	vector<double> gps_long;
+	vector<double> gps_lat;
+	vector<double> gps_alt;
+	vector<float> gps_temp;
 	vector<vector<unsigned short>> digi_ctrl;
 	vector<vector<unsigned short>> digi_prepost_trig_windows;
 	vector<vector<unsigned short>> channel_properties0;

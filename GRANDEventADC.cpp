@@ -56,7 +56,6 @@ TTree *GRANDEventADC::CreateTree()
 	teventadc->Branch("gps_status", &gps_status);
 	teventadc->Branch("gps_alarms", &gps_alarms);
 	teventadc->Branch("gps_warnings", &gps_warnings);
-	teventadc->Branch("gps_date", &gps_date);
 	teventadc->Branch("gps_time", &gps_time);
 	teventadc->Branch("gps_long", &gps_long);
 	teventadc->Branch("gps_lat", &gps_lat);
@@ -92,6 +91,8 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 	int idu = EVENT_DU; //parameter indicating start of LS
 	int ev_end = ((int)(pevent[EVENT_HDR_LENGTH+1]<<16)+(int)(pevent[EVENT_HDR_LENGTH]))/SHORTSIZE;
 
+	uint16_t *evdu;
+
 	event_size = *evptr++;
 	run_number = *evptr++;
 	event_number = *evptr++;
@@ -99,19 +100,22 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 	first_du = *evptr++;
 	time_seconds = *evptr++;
 	time_nanoseconds = *evptr++;
-	event_type = *evptr++;
-	event_version = *evptr++;
-	du_count = *evptr++;
+	evdu = (uint16_t *)evptr;
+	event_type = evdu[0];
+	event_version = *evdu++;
+//	event_type = *evptr++;
+//	event_version = *evptr++;
+	evptr+=2;
+	du_count = *evptr;
 
-	uint16_t *evdu;
 	while(idu<ev_end)
 	{
 		evdu = (uint16_t *)(&pevent[idu]);
 
 		event_id.push_back(evdu[EVT_ID]);
 		du_id.push_back(evdu[EVT_HARDWARE]);
-		du_second.push_back(evdu[EVT_SECOND]);
-		du_nanosecond.push_back(evdu[EVT_NANOSEC]);
+		du_second.push_back(*(uint32_t *)&evdu[EVT_SECOND]);
+		du_nanosecond.push_back(*(uint32_t *)&evdu[EVT_NANOSEC]);
 		trigger_position.push_back(evdu[EVT_TRIGGERPOS]);
 		trigger_flag.push_back(evdu[EVT_T3FLAG]);
 		atm_temperature.push_back(evdu[EVT_ATM_TEMP]);
@@ -128,27 +132,29 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 		adc_input_channels.push_back(evdu[EVT_INP_SELECT]);
 		adc_enabled_channels.push_back(evdu[EVT_CH_ENABLE]);
 		adc_samples_count_total.push_back(16*evdu[EVT_TOT_SAMPLES]);
-		adc_samples_count_channel0.push_back(evdu[EVT_TOT_SAMPLES]);
-		adc_samples_count_channel1.push_back(evdu[EVT_TOT_SAMPLES+1]);
-		adc_samples_count_channel2.push_back(evdu[EVT_TOT_SAMPLES+2]);
-		adc_samples_count_channel3.push_back(evdu[EVT_TOT_SAMPLES+3]);
+		adc_samples_count_channel0.push_back(evdu[EVT_TOT_SAMPLES+1]);
+		adc_samples_count_channel1.push_back(evdu[EVT_TOT_SAMPLES+2]);
+		adc_samples_count_channel2.push_back(evdu[EVT_TOT_SAMPLES+3]);
+		adc_samples_count_channel3.push_back(evdu[EVT_TOT_SAMPLES+4]);
 		trigger_pattern.push_back(evdu[EVT_TRIG_PAT]);
 		trigger_rate.push_back(evdu[EVT_TRIG_RATE]);
 		clock_tick.push_back(evdu[EVT_CTD]);
-		clock_tics_per_second.push_back(evdu[EVT_CTP]);
-		gps_offset.push_back(evdu[EVT_PPS_OFFSET]);
+		clock_tics_per_second.push_back(*(uint32_t *)&evdu[EVT_CTP]);
+		gps_offset.push_back(*(float *)&evdu[EVT_PPS_OFFSET]);
 		gps_leap_second.push_back(evdu[EVT_LEAP]);
 		gps_status.push_back(evdu[EVT_GPS_STATFLAG]);
 		gps_alarms.push_back(evdu[EVT_GPS_CRITICAL]);
 		gps_warnings.push_back(evdu[EVT_GPS_WARNING]);
-		// ToDo: Do I want to have one unix time here already, stuff as it comes from electronics (eg. DAYMONTH) or like it is in Charles' printout?
-		gps_date.push_back(0);
-		// ToDo: Do I want to have one unix time here already, stuff as it comes from electronics (eg. DAYMONTH) or like it is in Charles' printout?
-		gps_time.push_back(0);
-		gps_long.push_back(evdu[EVT_LONGITUDE]);
-		gps_lat.push_back(evdu[EVT_LATITUDE]);
-		gps_alt.push_back(evdu[EVT_ALTITUDE]);
-		gps_temp.push_back(evdu[EVT_GPS_TEMP]);
+
+		// Convert the GPS times into unix time. This assumes we get UTC from the GPS
+		TTimeStamp ts;
+		ts.Set(evdu[EVT_YEAR], (evdu[EVT_DAYMONTH]>>8)&0xff, evdu[EVT_DAYMONTH]&0xff, evdu[EVT_MINHOUR]&0xff,(evdu[EVT_MINHOUR]>>8)&0xff,evdu[EVT_STATSEC]&0xff, 0, true, 0);
+		gps_time.push_back(ts.GetSec());
+
+		gps_long.push_back(57.3*(*(double *)&evdu[EVT_LONGITUDE]));
+		gps_lat.push_back(57.3*(*(double *)&evdu[EVT_LATITUDE]));
+		gps_alt.push_back(*(double *)&evdu[EVT_ALTITUDE]);
+		gps_temp.push_back(*(float *)&evdu[EVT_GPS_TEMP]);
 		// Maybe this could be prettier with lambdas...
 		digi_ctrl.push_back(vector<unsigned short>());
 		for(int i=0;i<8;i++) digi_ctrl.back().push_back(evdu[EVT_CTRL+i]);
@@ -157,19 +163,19 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 		channel_properties0.push_back(vector<unsigned short>());
 		for(int i=0;i<6;i++) channel_properties0.back().push_back(evdu[EVT_CHANNEL+6*0+i]);
 		channel_properties1.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_properties0.back().push_back(evdu[EVT_CHANNEL+6*1+i]);
+		for(int i=0;i<6;i++) channel_properties1.back().push_back(evdu[EVT_CHANNEL+6*1+i]);
 		channel_properties2.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_properties0.back().push_back(evdu[EVT_CHANNEL+6*2+i]);
+		for(int i=0;i<6;i++) channel_properties2.back().push_back(evdu[EVT_CHANNEL+6*2+i]);
 		channel_properties3.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_properties0.back().push_back(evdu[EVT_CHANNEL+6*3+i]);
+		for(int i=0;i<6;i++) channel_properties3.back().push_back(evdu[EVT_CHANNEL+6*3+i]);
 		channel_trig_settings0.push_back(vector<unsigned short>());
 		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[EVT_TRIGGER+6*0+i]);
 		channel_trig_settings1.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[EVT_TRIGGER+6*1+i]);
+		for(int i=0;i<6;i++) channel_trig_settings1.back().push_back(evdu[EVT_TRIGGER+6*1+i]);
 		channel_trig_settings2.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[EVT_TRIGGER+6*2+i]);
+		for(int i=0;i<6;i++) channel_trig_settings2.back().push_back(evdu[EVT_TRIGGER+6*2+i]);
 		channel_trig_settings3.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[EVT_TRIGGER+6*3+i]);
+		for(int i=0;i<6;i++) channel_trig_settings3.back().push_back(evdu[EVT_TRIGGER+6*3+i]);
 		// ToDo: What is it?
 		ioff.push_back(evdu[EVT_HDRLEN]);
 
@@ -227,7 +233,6 @@ void GRANDEventADC::ClearVectors()
 	gps_status.clear();
 	gps_alarms.clear();
 	gps_warnings.clear();
-	gps_date.clear();
 	gps_time.clear();
 	gps_long.clear();
 	gps_lat.clear();
