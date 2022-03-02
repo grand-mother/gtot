@@ -5,7 +5,10 @@
 #include "GRANDEventADC.h"
 #include <iostream>
 
-GRANDEventADC::GRANDEventADC() {}
+GRANDEventADC::GRANDEventADC()
+{
+	CreateTree();
+}
 
 TTree *GRANDEventADC::CreateTree()
 {
@@ -26,8 +29,8 @@ TTree *GRANDEventADC::CreateTree()
 	// Vector branches
 	teventadc->Branch("event_id", &event_id);
 	teventadc->Branch("du_id", &du_id);
-	teventadc->Branch("du_second", &du_second);
-	teventadc->Branch("du_nanosecond", &du_nanosecond);
+	teventadc->Branch("du_seconds", &du_seconds);
+	teventadc->Branch("du_nanoseconds", &du_nanoseconds);
 	teventadc->Branch("trigger_position", &trigger_position);
 	teventadc->Branch("trigger_flag", &trigger_flag);
 	teventadc->Branch("atm_temperature", &atm_temperature);
@@ -114,8 +117,8 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 
 		event_id.push_back(evdu[EVT_ID]);
 		du_id.push_back(evdu[EVT_HARDWARE]);
-		du_second.push_back(*(uint32_t *)&evdu[EVT_SECOND]);
-		du_nanosecond.push_back(*(uint32_t *)&evdu[EVT_NANOSEC]);
+		du_seconds.push_back(*(uint32_t *)&evdu[EVT_SECOND]);
+		du_nanoseconds.push_back(*(uint32_t *)&evdu[EVT_NANOSEC]);
 		trigger_position.push_back(evdu[EVT_TRIGGERPOS]);
 		trigger_flag.push_back(evdu[EVT_T3FLAG]);
 		atm_temperature.push_back(evdu[EVT_ATM_TEMP]);
@@ -202,8 +205,8 @@ void GRANDEventADC::ClearVectors()
 {
 	event_id.clear();
 	du_id.clear();
-	du_second.clear();
-	du_nanosecond.clear();
+	du_seconds.clear();
+	du_nanoseconds.clear();
 	trigger_position.clear();
 	trigger_flag.clear();
 	atm_temperature.clear();

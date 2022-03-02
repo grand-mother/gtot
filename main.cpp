@@ -4,6 +4,7 @@
 #include "TInterpreter.h"
 
 #include "GRANDEventADC.h"
+#include "GRANDEventVoltage.h"
 
 int main(int argc, char **argv)
 {
@@ -12,9 +13,10 @@ int main(int argc, char **argv)
     // Need to define a dictionary so that ROOT can handle vector<vector<unsigned short> >
 	gInterpreter->GenerateDictionary("vector<vector<unsigned short> >", "vector");
 	gInterpreter->GenerateDictionary("vector<vector<short> >", "vector");
+	gInterpreter->GenerateDictionary("vector<vector<float> >", "vector");
 
     auto g = new GRANDEventADC();
-    g->CreateTree();
+//    g->CreateTree();
 
     //! File reading
 	FILE *fp;
@@ -31,7 +33,6 @@ int main(int argc, char **argv)
 		//print_file_header();
 		while (grand_read_event(fp, &event) >0 ) {
 			g->SetValuesFromPointers(event);
-			cout << "set" << endl;
 			g->teventadc->Fill();
 		}
 	}
@@ -39,7 +40,13 @@ int main(int argc, char **argv)
 
 	//g->teventadc->Scan("run_number:event_number:event_type:adc_track0[0]:adc_track1[0]:adc_track2[0]:adc_track3[0]");
 
+	g->teventadc->BuildIndex("run_number", "event_number");
 	g->teventadc->Write();
+
+	// Create the GRANDEventVoltage TTree
+	auto voltage = new GRANDEventVoltage(g);
+	voltage->teventvoltage->Write();
+
 	tree_file->Close();
 
     return 0;
