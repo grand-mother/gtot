@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Require CERN ROOT.
 find_package(ROOT REQUIRED)
 
-add_executable(gtot main.cpp GRANDEventADC.cpp GRANDEventADC.h Traces.h GRANDEventVoltage.cpp GRANDEventVoltage.h)
+add_executable(gtot main.cpp GRANDEventADC.cpp GRANDEventADC.h Traces.h GRANDEventVoltage.cpp GRANDEventVoltage.h GRANDRun.cpp GRANDRun.h)
 
 # This is the "manual" way to add ROOT, the old "make" style, in case one does not source root (like me)
 exec_program(root-config ARGS --cflags OUTPUT_VARIABLE ROOT_CXX_FLAGS)

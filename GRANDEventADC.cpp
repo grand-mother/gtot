@@ -41,7 +41,7 @@ TTree *GRANDEventADC::CreateTree()
 	teventadc->Branch("acceleration_y", &acceleration_y);
 	teventadc->Branch("acceleration_z", &acceleration_z);
 	teventadc->Branch("battery_adc", &battery_adc);
-	teventadc->Branch("event_version_in", &event_version_in);
+	teventadc->Branch("firmware_version", &firmware_version);
 	teventadc->Branch("adc_sampling_frequency", &adc_sampling_frequency);
 	teventadc->Branch("adc_sampling_resolution", &adc_sampling_resolution);
 	teventadc->Branch("adc_input_channels", &adc_input_channels);

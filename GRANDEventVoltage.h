@@ -23,6 +23,7 @@ public:
 	// Better have local storage for all the variables if one day we don't init from the structure
 	// Common for the whole event
 //	unsigned int event_size;
+	//! Run number
 	unsigned int run_number;
 	unsigned int event_number;
 	// ?

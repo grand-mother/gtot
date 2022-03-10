@@ -3,6 +3,7 @@
 #include "TFile.h"
 #include "TInterpreter.h"
 
+#include "GRANDRun.h"
 #include "GRANDEventADC.h"
 #include "GRANDEventVoltage.h"
 
@@ -15,13 +16,14 @@ int main(int argc, char **argv)
 	gInterpreter->GenerateDictionary("vector<vector<short> >", "vector");
 	gInterpreter->GenerateDictionary("vector<vector<float> >", "vector");
 
-    auto g = new GRANDEventADC();
-//    g->CreateTree();
+	// The whole Run class
+	auto run = new GRANDRun();
+	// The ADC event class
+    auto ADC = new GRANDEventADC();
 
     //! File reading
 	FILE *fp;
 	int i,ich,ib;
-	char fname[100],hname[100];
 
 	fp = fopen(argv[1],"r");
 	if(fp == NULL) printf("Error opening file %s\n",argv[1]);
@@ -29,24 +31,40 @@ int main(int argc, char **argv)
 	int *filehdr=NULL;
 	unsigned short *event=NULL;
 
-	if(grand_read_file_header(fp, &filehdr) ){ //lets read events
-		//print_file_header();
-		while (grand_read_event(fp, &event) >0 ) {
-			g->SetValuesFromPointers(event);
-			g->teventadc->Fill();
+	// Read the file from the detector and fill in the TTrees with the read-out data
+	if(grand_read_file_header(fp, &filehdr))
+	{
+		// Read the file header and fill the Run TTree
+		run->SetValuesFromPointers(filehdr);
+		// Write the Run TTree
+		run->trun->Fill();
+		run->trun->BuildIndex("run_number");
+		run->trun->Write();
+
+		// Loop-read the events
+		while(grand_read_event(fp, &event)>0)
+		{
+			ADC->SetValuesFromPointers(event);
+			ADC->teventadc->Fill();
 		}
 	}
 	if (fp != NULL) fclose(fp); // close the file
 
-	//g->teventadc->Scan("run_number:event_number:event_type:adc_track0[0]:adc_track1[0]:adc_track2[0]:adc_track3[0]");
-
-	g->teventadc->BuildIndex("run_number", "event_number");
-	g->teventadc->Write();
+	// Build the run_number/event_number index for ADC TTree
+	ADC->teventadc->BuildIndex("run_number", "event_number");
+	// Add the Run TTree as a friend
+	ADC->teventadc->AddFriend(run->trun);
+	// Write out the ADC TTree to the file
+	ADC->teventadc->Write();
 
 	// Create the GRANDEventVoltage TTree
-	auto voltage = new GRANDEventVoltage(g);
+	auto voltage = new GRANDEventVoltage(ADC);
+	// Add the Run TTree as a friend
+	voltage->teventvoltage->AddFriend(run->trun);
+	// Write out the Voltage TTree to the file
 	voltage->teventvoltage->Write();
 
+	// Close the TFile with the TTrees
 	tree_file->Close();
 
     return 0;
