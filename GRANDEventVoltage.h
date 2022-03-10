@@ -1,6 +1,7 @@
 //
 // Created by lewhoo on 17/02/2022.
 //
+// The main class for holding the Voltage traces and some other data relative to them
 
 #ifndef GTOT_GRANDEVENTVOLTAGE_H
 #define GTOT_GRANDEVENTVOLTAGE_H
@@ -53,7 +54,7 @@ public:
 	vector<unsigned short> acceleration_z;
 //	vector<unsigned short> battery_adc;
 	// ToDo: Is this the same as event_version for the whole event?
-	vector<unsigned short> event_version_in;
+	vector<unsigned short> firmware_version;
 //	vector<unsigned short> adc_sampling_frequency;
 //	vector<unsigned short> adc_sampling_resolution;
 //	vector<unsigned short> adc_input_channels;

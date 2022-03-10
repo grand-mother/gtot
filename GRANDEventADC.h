@@ -1,6 +1,7 @@
 //
 // Created by lewhoo on 19/01/2022.
 //
+// The main class for holding the ADC counts and other data coming from the detectors
 
 #ifndef GTOT_GRANDEVENTADC_H
 #define GTOT_GRANDEVENTADC_H
@@ -25,33 +26,33 @@ public:
 	unsigned int run_number;
 	//! Event in the run number
 	unsigned int event_number;
-	//! ?? Unknown
+	//! Trigger number from T3 maker
 	unsigned int t3_number;
-	//! ?? First data unit that triggered in the event?
+	//! First detector unit that triggered in the event
 	unsigned int first_du;
-	//! ?? Event unix time, but what does it correspond to really?
+	//! Unix time corresponding to the GPS seconds of the trigger
 	unsigned int time_seconds;
-	//! ?? Event nanoseconds
+	//! GPS nanoseconds corresponding to the trigger of the first triggered station
 	unsigned int time_nanoseconds;
-	//! ?? Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
+	//! Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
 	unsigned int event_type;
-	//! ?? Event version - version of exactly what?
+	//! Event format version of the DAQ
 	unsigned int event_version;
-	//! Number of Digitizer Units in the event - basically the antennas count
+	//! Number of detector units in the event - basically the antennas count
 	unsigned int du_count;
 	// Separate for each DU (antenna) in the event
 	// As number of triggered antennas is variable, we need vectors here
-	//! ?? What is it? The same as event_num above?
+	//! The T3 trigger number
 	vector<unsigned short> event_id;
-	//! Data Unit (antenna) ID
+	//! Detector unit (antenna) ID
 	vector<unsigned short> du_id;
-	//! ?? Unix time of... the start of the traces for this DU?
+	//! Unix time of the trigger for this DU
 	vector<unsigned int> du_seconds;
-	//! Nanoseconds for this DU
+	//! Nanoseconds of the trigger for this DU
 	vector<unsigned int> du_nanoseconds;
-	//! ?? Trigger position (sample number of trigger) - is it the trigger position in the trace?
+	//! Trigger position in the trace (trigger start = nanoseconds - 2*sample number)
 	vector<unsigned short> trigger_position;
-	//! ?? What is it? Labeled as T3 flag
+	//! Same as event_type, but event_type could consist of different triggered DUs
 	vector<unsigned short> trigger_flag;
 	//! Atmospheric temperature (read via I2C)
 	vector<unsigned short> atm_temperature;
@@ -65,17 +66,17 @@ public:
 	vector<unsigned short> acceleration_y;
 	//! Acceleration of the antenna in Z
 	vector<unsigned short> acceleration_z;
-	//! ?? Battery voltage - but is it really a voltage, or needs to be recalculated to such? Because labelled as ADC
+	//! Battery voltage in ADC
 	vector<unsigned short> battery_adc;
-	//! ?? Event version Is this the same as event_version for the whole event?
-	vector<unsigned short> event_version_in;
+	//! Firmware version
+	vector<unsigned short> firmware_version;
 	//! ADC sampling frequency in MHz
 	vector<unsigned short> adc_sampling_frequency;
 	//! ADC sampling resolution in bits
 	vector<unsigned short> adc_sampling_resolution;
-	//! ?? ADC input channels - how to interpret this values?
+	//! ADC input channels - > 16 BIT WORD (4*4 BITS) LOWEST IS CHANNEL 1, HIGHEST CHANNEL 4. FOR EACH CHANNEL IN THE EVENT WE HAVE: 0: ADC1, 1: ADC2, 2:ADC3, 3:ADC4 4:FILTERED ADC1, 5:FILTERED ADC 2, 6:FILTERED ADC3, 7:FILTERED ADC4. ToDo: decode this?
 	vector<unsigned short> adc_input_channels;
-	//! ?? ADC enabled channels - how to interpret this values?
+	//! ADC enabled channels - LOWEST 4 BITS STATE WHICH CHANNEL IS READ OUT ToDo: Decode this?
 	vector<unsigned short> adc_enabled_channels;
 	//! ADC samples callected in all channels
 	vector<unsigned short> adc_samples_count_total;
@@ -87,15 +88,15 @@ public:
 	vector<unsigned short> adc_samples_count_channel2;
 	//! ADC samples callected in channel 3
 	vector<unsigned short> adc_samples_count_channel3;
-	//! ?? Trigger pattern - which of the trigger sources (more than one may be present) fired to actually the trigger the digitizer - but what format is it?
+	//! Trigger pattern - which of the trigger sources (more than one may be present) fired to actually the trigger the digitizer - explained in the docs. ToDo: Decode this?
 	vector<unsigned short> trigger_pattern;
-	//! ?? Trigger rate (stamp by last PPS) - what does it mean?
+	//! Trigger rate - the number of triggers recorded in the second preceding the event
 	vector<unsigned short> trigger_rate;
-	//! ?? Internal clock tick of the trigger?
+	//! Clock tick at which the event was triggered (used to calculate the trigger time)
 	vector<unsigned short> clock_tick;
-	//! ?? Clock ticks per second
+	//! Clock ticks per second
 	vector<unsigned int> clock_tics_per_second;
-	//! GPS offset - is this GALILEO to GPS offset? Do we need to include it somehow in the final time?
+	//! GPS offset - offset between the PPS and the real second (in GPS). ToDo: is it already included in the time calculations?
 	vector<float> gps_offset;
 	//! GPS leap second
 	vector<unsigned short> gps_leap_second;
@@ -115,25 +116,25 @@ public:
 	vector<double> gps_alt;
 	//! GPS temperature
 	vector<float> gps_temp;
-	//! ?? Control parameters - what are they?
+	//! Control parameters - the list of general parameters that can set the mode of operation, select trigger sources and preset the common coincidence read out time window (Digitizer mode parameters in the manual). ToDo: Decode?
 	vector<vector<unsigned short>> digi_ctrl;
-	//! ?? Window parameters - what do they mean?
+	//! Window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). ToDo: Decode?
 	vector<vector<unsigned short>> digi_prepost_trig_windows;
-	//! ?? Channel 0 properties - what are they?
+	//! Channel 0 properties - described in Channel property parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_properties0;
-	//! ?? Channel 1 properties - what are they?
+	//! Channel 1 properties - described in Channel property parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_properties1;
-	//! ?? Channel 2 properties - what are they?
+	//! Channel 2 properties - described in Channel property parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_properties2;
-	//! ?? Channel 3 properties - what are they?
+	//! Channel 3 properties - described in Channel property parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_properties3;
-	//! ?? Channel 0 trigger settings - what are they?
+	//! Channel 0 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_trig_settings0;
-	//! ?? Channel 1 trigger settings - what are they?
+	//! Channel 1 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_trig_settings1;
-	//! ?? Channel 2 trigger settings - what are they?
+	//! Channel 2 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_trig_settings2;
-	//! ?? Channel 3 trigger settings - what are they?
+	//! Channel 3 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_trig_settings3;
 	//! ?? What is it? Some kind of the adc track offset?
 	vector<unsigned short> ioff;

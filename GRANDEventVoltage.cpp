@@ -1,6 +1,7 @@
 //
 // Created by lewhoo on 17/02/2022.
 //
+// The main class for holding the Voltage traces and some other data relative to them
 
 #include <iostream>
 #include <iomanip>
@@ -138,7 +139,7 @@ TTree *GRANDEventVoltage::CreateTree()
 	teventvoltage->Branch("acceleration_y", &acceleration_y);
 	teventvoltage->Branch("acceleration_z", &acceleration_z);
 //	teventvoltage->Branch("battery_adc", &battery_adc);
-	teventvoltage->Branch("event_version_in", &event_version_in);
+	teventvoltage->Branch("firmware_version", &firmware_version);
 //	teventvoltage->Branch("adc_sampling_frequency", &adc_sampling_frequency);
 //	teventvoltage->Branch("adc_sampling_resolution", &adc_sampling_resolution);
 //	teventvoltage->Branch("adc_input_channels", &adc_input_channels);
@@ -198,7 +199,7 @@ void GRANDEventVoltage::ClearVectors()
 	acceleration_z.clear();
 //	battery_adc.clear();
 	// ToDo: Is this the same as event_version for the whole event?
-	event_version_in.clear();
+	firmware_version.clear();
 //	adc_sampling_frequency.clear();
 //	adc_sampling_resolution.clear();
 //	adc_input_channels.clear();

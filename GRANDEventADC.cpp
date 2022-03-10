@@ -1,6 +1,7 @@
 //
 // Created by lewhoo on 19/01/2022.
 //
+// The main class for holding the ADC counts and other data coming from the detectors
 
 #include "GRANDEventADC.h"
 #include <iostream>
@@ -129,7 +130,7 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 		acceleration_z.push_back(evdu[EVT_ACCEL_Z]);
 		battery_adc.push_back(evdu[EVT_ACCEL_Z]);
 		// ToDo: Is this the same as event_version for the whole event?
-		event_version_in.push_back(evdu[EVT_VERSION]);
+		firmware_version.push_back(evdu[EVT_VERSION]);
 		adc_sampling_frequency.push_back(evdu[EVT_MSPS]);
 		adc_sampling_resolution.push_back(evdu[EVT_ADC_RES]);
 		adc_input_channels.push_back(evdu[EVT_INP_SELECT]);
@@ -217,7 +218,7 @@ void GRANDEventADC::ClearVectors()
 	acceleration_z.clear();
 	battery_adc.clear();
 	// ToDo: Is this the same as event_version for the whole event?
-	event_version_in.clear();
+	firmware_version.clear();
 	adc_sampling_frequency.clear();
 	adc_sampling_resolution.clear();
 	adc_input_channels.clear();
