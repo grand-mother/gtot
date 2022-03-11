@@ -19,7 +19,7 @@ TTree *GRANDRun::CreateTree()
 	// Int branches
 	trun->Branch("run_number", &run_number, "run_number/i");
 	trun->Branch("run_mode", &run_mode, "run_mode/i");
-	trun->Branch("file_serial_number", &file_serial_number, "file_serial_number/i");
+//	trun->Branch("file_serial_number", &file_serial_number, "file_serial_number/i");
 	trun->Branch("first_event", &first_event, "first_event/i");
 	trun->Branch("first_event_time", &first_event_time, "first_event_time/i");
 	trun->Branch("last_event", &last_event, "last_event/i");
@@ -40,7 +40,7 @@ int GRANDRun::SetValuesFromPointers(int *pheader)
 {
 	run_number = pheader[FILE_HDR_RUNNR];
 	run_mode = pheader[FILE_HDR_RUN_MODE];
-	file_serial_number = pheader[FILE_HDR_SERIAL];
+//	file_serial_number = pheader[FILE_HDR_SERIAL];
 	first_event = pheader[FILE_HDR_FIRST_EVENT];
 	first_event_time = pheader[FILE_HDR_FIRST_EVENT_SEC];
 	last_event = pheader[FILE_HDR_LAST_EVENT];

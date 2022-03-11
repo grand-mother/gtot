@@ -20,10 +20,10 @@ public:
 	// These are coming from the hardware
 	//! Run number
 	unsigned int run_number;
-	//! ?? Run mode - what is it?
+	//! Run mode - calibration/test/physics. ToDo: should get enum description for that, but I don't think it exists at the moment
 	unsigned int run_mode;
-	//! ?? File serial number - what is it? just kind of a file ID? How is it going to be controlled?
-	unsigned int file_serial_number;
+	//! File serial number for this specific Run in hardware generated binary files -- makes no sense in "Run" TTree, as it is not run specific, but file specific. Could move into an event, but I guess we can ignore
+//	unsigned int file_serial_number;
 	//! Run's first event
 	unsigned int first_event;
 	//! First event time
