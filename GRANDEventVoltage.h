@@ -53,7 +53,7 @@ public:
 	vector<unsigned short> acceleration_x;
 	vector<unsigned short> acceleration_y;
 	vector<unsigned short> acceleration_z;
-//	vector<unsigned short> battery_adc;
+//	vector<unsigned short> battery_level;
 	// ToDo: Is this the same as event_version for the whole event?
 	vector<unsigned short> firmware_version;
 //	vector<unsigned short> adc_sampling_frequency;
@@ -80,7 +80,7 @@ public:
 	vector<double> gps_long;
 	vector<double> gps_lat;
 	vector<double> gps_alt;
-//	vector<float> gps_temp;
+	vector<float> gps_temp;
 //	vector<vector<unsigned short>> digi_ctrl;
 	// ?
 	vector<vector<unsigned short>> digi_prepost_trig_windows;
@@ -115,11 +115,13 @@ private:
 	void ClearVectors();
 
 	//! Converts the ADC traces from teventadc into Voltage traces
-	void ADCs2Voltages(GRANDEventADC *adc);
+	void ADCs2Real(GRANDEventADC *adc);
 
 	//! Converts a specific ADC trace from teventadc into a Voltage trace
-	void ADC2Voltage(int du_num, GRANDEventADC *adc);
+	void TraceADC2Voltage(int du_num, GRANDEventADC *adc);
 
+	//! Converts a specific GPS ADC values from teventadc into a real values
+	void GPSADC2Real(int du_num, GRANDEventADC *adc);
 };
 
 

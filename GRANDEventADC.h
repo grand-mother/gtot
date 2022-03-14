@@ -66,8 +66,8 @@ public:
 	vector<unsigned short> acceleration_y;
 	//! Acceleration of the antenna in Z
 	vector<unsigned short> acceleration_z;
-	//! Battery voltage in ADC
-	vector<unsigned short> battery_adc;
+	//! Battery voltage
+	vector<unsigned short> battery_level;
 	//! Firmware version
 	vector<unsigned short> firmware_version;
 	//! ADC sampling frequency in MHz
@@ -109,13 +109,13 @@ public:
 	//! GPS time
 	vector<unsigned int> gps_time;
 	//! Longitude
-	vector<double> gps_long;
+	vector<unsigned short> gps_long;
 	//! Latitude
-	vector<double> gps_lat;
+	vector<unsigned short> gps_lat;
 	//! Altitude
-	vector<double> gps_alt;
+	vector<unsigned short> gps_alt;
 	//! GPS temperature
-	vector<float> gps_temp;
+	vector<unsigned short> gps_temp;
 	//! Control parameters - the list of general parameters that can set the mode of operation, select trigger sources and preset the common coincidence read out time window (Digitizer mode parameters in the manual). ToDo: Decode?
 	vector<vector<unsigned short>> digi_ctrl;
 	//! Window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). ToDo: Decode?

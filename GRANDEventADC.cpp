@@ -40,7 +40,7 @@ TTree *GRANDEventADC::CreateTree()
 	teventadc->Branch("acceleration_x", &acceleration_x);
 	teventadc->Branch("acceleration_y", &acceleration_y);
 	teventadc->Branch("acceleration_z", &acceleration_z);
-	teventadc->Branch("battery_adc", &battery_adc);
+	teventadc->Branch("battery_level", &battery_level);
 	teventadc->Branch("firmware_version", &firmware_version);
 	teventadc->Branch("adc_sampling_frequency", &adc_sampling_frequency);
 	teventadc->Branch("adc_sampling_resolution", &adc_sampling_resolution);
@@ -128,7 +128,7 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 		acceleration_x.push_back(evdu[EVT_ACCEL_X]);
 		acceleration_y.push_back(evdu[EVT_ACCEL_Y]);
 		acceleration_z.push_back(evdu[EVT_ACCEL_Z]);
-		battery_adc.push_back(evdu[EVT_ACCEL_Z]);
+		battery_level.push_back(evdu[EVT_ACCEL_Z]);
 		// ToDo: Is this the same as event_version for the whole event?
 		firmware_version.push_back(evdu[EVT_VERSION]);
 		adc_sampling_frequency.push_back(evdu[EVT_MSPS]);
@@ -155,10 +155,14 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 		ts.Set(evdu[EVT_YEAR], (evdu[EVT_DAYMONTH]>>8)&0xff, evdu[EVT_DAYMONTH]&0xff, evdu[EVT_MINHOUR]&0xff,(evdu[EVT_MINHOUR]>>8)&0xff,evdu[EVT_STATSEC]&0xff, 0, true, 0);
 		gps_time.push_back(ts.GetSec());
 
-		gps_long.push_back(57.3*(*(double *)&evdu[EVT_LONGITUDE]));
-		gps_lat.push_back(57.3*(*(double *)&evdu[EVT_LATITUDE]));
-		gps_alt.push_back(*(double *)&evdu[EVT_ALTITUDE]);
-		gps_temp.push_back(*(float *)&evdu[EVT_GPS_TEMP]);
+//		gps_long.push_back(57.3*(*(double *)&evdu[EVT_LONGITUDE]));
+//		gps_lat.push_back(57.3*(*(double *)&evdu[EVT_LATITUDE]));
+//		gps_alt.push_back(*(double *)&evdu[EVT_ALTITUDE]);
+//		gps_temp.push_back(*(float *)&evdu[EVT_GPS_TEMP]);
+		gps_long.push_back(evdu[EVT_LONGITUDE]);
+		gps_lat.push_back(evdu[EVT_LATITUDE]);
+		gps_alt.push_back(evdu[EVT_ALTITUDE]);
+		gps_temp.push_back(evdu[EVT_GPS_TEMP]);
 		// Maybe this could be prettier with lambdas...
 		digi_ctrl.push_back(vector<unsigned short>());
 		for(int i=0;i<8;i++) digi_ctrl.back().push_back(evdu[EVT_CTRL+i]);
@@ -216,7 +220,7 @@ void GRANDEventADC::ClearVectors()
 	acceleration_x.clear();
 	acceleration_y.clear();
 	acceleration_z.clear();
-	battery_adc.clear();
+	battery_level.clear();
 	// ToDo: Is this the same as event_version for the whole event?
 	firmware_version.clear();
 	adc_sampling_frequency.clear();

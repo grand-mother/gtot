@@ -28,10 +28,12 @@ GRANDEventVoltage::GRANDEventVoltage(GRANDEventADC *adc) : GRANDEventVoltage()
 
 	teventvoltage->Print();
 
+	// Exclude these branches from copying
+	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp"};
+
 	// *** Transform the teventadc events into teventvoltage events ***
 
 	// Loop through teventvoltage branches and set their addresses to teventadc branches
-	vector<string> copy_columns_names;
 	for (auto br : TRangeDynCast<TBranch>( teventvoltage->GetListOfBranches() ))
 	{
 		if (!br) continue;
@@ -39,23 +41,13 @@ GRANDEventVoltage::GRANDEventVoltage(GRANDEventADC *adc) : GRANDEventVoltage()
 		// Attempt to get the branch from teventadc
 		auto adc_br = teventadc->FindBranch(br->GetName());
 
-		// If the branch exists in teventadc
-		if(adc_br)
+		// If the branch exists in teventadc and not on excluded list
+		if(adc_br && find(excluded_branches.begin(), excluded_branches.end(), adc_br->GetName())==end(excluded_branches))
 		{
-			// Add to the list of branches to be copied
-			copy_columns_names.push_back(adc_br->GetName());
 			// Set the teventvoltage branch address to the teventadc branch address
 			br->SetAddress(adc_br->GetAddress());
 		}
 	}
-
-	// *** Use the RDataFrame for copying ***
-
-	// Initialise the teventadc RDataFrame
-//	RDataFrame deventadc(*teventadc, *(teventadc->GetCurrentFile()));
-
-	// Copy parts of the teventadc to teventvoltage with RDataFrame::Snapshot
-//	auto deventvoltage = deventadc.Snapshot("teventvoltage", *)
 
 	// Loop through the teventadc events and fill the teventvoltage with the corresponding values
 	for(int entry_no=0; entry_no<teventadc->GetEntries(); ++entry_no)
@@ -63,8 +55,7 @@ GRANDEventVoltage::GRANDEventVoltage(GRANDEventADC *adc) : GRANDEventVoltage()
 		teventadc->GetEntry(entry_no);
 
 		// *** Calculate the values not existing in GRANDEventADC ***
-		ADCs2Voltages(adc);
-//		exit(0);
+		ADCs2Real(adc);
 		teventvoltage->Fill();
 	}
 	teventvoltage->BuildIndex("run_number", "event_number");
@@ -72,12 +63,19 @@ GRANDEventVoltage::GRANDEventVoltage(GRANDEventADC *adc) : GRANDEventVoltage()
 }
 
 
-void GRANDEventVoltage::ADCs2Voltages(GRANDEventADC *adc)
+void GRANDEventVoltage::ADCs2Real(GRANDEventADC *adc)
 {
 	// Clear the traces vectors
 	x.clear();
 	y.clear();
 	z.clear();
+
+	// Clear the GPS vectors
+	gps_long.clear();
+	gps_lat.clear();
+	gps_alt.clear();
+	gps_temp.clear();
+
 	// Loop through the DUs
 	for (size_t i=0; i<adc->du_count; ++i)
 	{
@@ -86,25 +84,32 @@ void GRANDEventVoltage::ADCs2Voltages(GRANDEventADC *adc)
 		y.push_back(vector<float>());
 		z.push_back(vector<float>());
 		// Convert this specific DU's ADCs to Voltage
-		ADC2Voltage(i, adc);
+		TraceADC2Voltage(i, adc);
+		// Convert GPS ADC to real values
+		GPSADC2Real(i, adc);
 	}
 }
 
-void GRANDEventVoltage::ADC2Voltage(int du_num, GRANDEventADC *adc)
+void GRANDEventVoltage::TraceADC2Voltage(int du_num, GRANDEventADC *adc)
 {
 	// Probably in the future adc2voltageconst will be replaced in the transform by some array_x/y/z[du_id], or corresponding function in some non-linear case
 	// Also, at the moment I assume adc_track0/1/2 are x/y/z - this may also change in the future
 	// The conversion factor is just taken from the information for XiHu data, that "For currently ADC, the differential input voltage range is 1.8V (Vpp), that is -0.9V to 0.9V corresponding to ADC value -8192 to 8192"
 	float adc2voltageconst=0.9/8192;
-//	cerr << "tutej0 " << adc->adc_track0[du_num][0] << endl;
 	x[du_num].resize(adc->adc_track0[du_num].size());
 	transform(adc->adc_track0[du_num].begin(), adc->adc_track0[du_num].end(), x[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
 	y[du_num].resize(adc->adc_track1[du_num].size());
 	transform(adc->adc_track1[du_num].begin(), adc->adc_track1[du_num].end(), y[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
 	z[du_num].resize(adc->adc_track2[du_num].size());
 	transform(adc->adc_track2[du_num].begin(), adc->adc_track2[du_num].end(), z[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
-//	cerr << "tutej " << adc->adc_track0[du_num][0] << " " << x[du_num][0] << endl;
-//	exit(0);
+}
+
+void GRANDEventVoltage::GPSADC2Real(int du_num, GRANDEventADC *adc)
+{
+		gps_long.push_back(57.3*(double)(adc->gps_long[du_num]));
+		gps_lat.push_back(57.3*(double)adc->gps_lat[du_num]);
+		gps_alt.push_back(adc->gps_alt[du_num]);
+		gps_temp.push_back(adc->gps_temp[du_num]);
 }
 
 TTree *GRANDEventVoltage::CreateTree()
@@ -138,7 +143,7 @@ TTree *GRANDEventVoltage::CreateTree()
 	teventvoltage->Branch("acceleration_x", &acceleration_x);
 	teventvoltage->Branch("acceleration_y", &acceleration_y);
 	teventvoltage->Branch("acceleration_z", &acceleration_z);
-//	teventvoltage->Branch("battery_adc", &battery_adc);
+//	teventvoltage->Branch("battery_level", &battery_level);
 	teventvoltage->Branch("firmware_version", &firmware_version);
 //	teventvoltage->Branch("adc_sampling_frequency", &adc_sampling_frequency);
 //	teventvoltage->Branch("adc_sampling_resolution", &adc_sampling_resolution);
@@ -162,7 +167,7 @@ TTree *GRANDEventVoltage::CreateTree()
 	teventvoltage->Branch("gps_long", &gps_long);
 	teventvoltage->Branch("gps_lat", &gps_lat);
 	teventvoltage->Branch("gps_alt", &gps_alt);
-//	teventvoltage->Branch("gps_temp", &gps_temp);
+	teventvoltage->Branch("gps_temp", &gps_temp);
 //	teventvoltage->Branch("digi_ctrl", &digi_ctrl);
 	teventvoltage->Branch("digi_prepost_trig_windows", &digi_prepost_trig_windows);
 //	teventvoltage->Branch("channel_properties0", &channel_properties0);
@@ -197,7 +202,7 @@ void GRANDEventVoltage::ClearVectors()
 	acceleration_x.clear();
 	acceleration_y.clear();
 	acceleration_z.clear();
-//	battery_adc.clear();
+//	battery_level.clear();
 	// ToDo: Is this the same as event_version for the whole event?
 	firmware_version.clear();
 //	adc_sampling_frequency.clear();
@@ -222,7 +227,7 @@ void GRANDEventVoltage::ClearVectors()
 	gps_long.clear();
 	gps_lat.clear();
 	gps_alt.clear();
-//	gps_temp.clear();
+	gps_temp.clear();
 //	digi_ctrl.clear();
 	digi_prepost_trig_windows.clear();
 //	channel_properties0.clear();
