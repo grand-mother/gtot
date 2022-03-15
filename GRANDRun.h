@@ -47,7 +47,7 @@ public:
 	//! Site latitude
 	float site_lat=0;
 	//! Origin of the coordinate system used for the array
-	float origin_geoid[3]={0,0,0};
+	double origin_geoid[3]={0,0,0};
 
 	//! The TTree for holding the data
 	TTree *trun;
