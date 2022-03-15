@@ -76,10 +76,10 @@ TTree *GRANDEventADC::CreateTree()
 	teventadc->Branch("channel_trig_settings2", &channel_trig_settings2);
 	teventadc->Branch("channel_trig_settings3", &channel_trig_settings3);
 	teventadc->Branch("ioff", &ioff);
-	teventadc->Branch("adc_track0", &adc_track0);
-	teventadc->Branch("adc_track1", &adc_track1);
-	teventadc->Branch("adc_track2", &adc_track2);
-	teventadc->Branch("adc_track3", &adc_track3);
+	teventadc->Branch("trace_0", &trace_0);
+	teventadc->Branch("trace_1", &trace_1);
+	teventadc->Branch("trace_2", &trace_2);
+	teventadc->Branch("trace_3", &trace_3);
 
 
 	return teventadc;
@@ -189,16 +189,16 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 
 		int start_addr = ioff.back();
 		int end_addr = start_addr+evdu[EVT_TOT_SAMPLES+1];
-		adc_track0.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		trace_0.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		start_addr+=evdu[EVT_TOT_SAMPLES+1];
 		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+2];
-		adc_track1.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		trace_1.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		start_addr+=evdu[EVT_TOT_SAMPLES+2];
 		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+3];
-		adc_track2.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		trace_2.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		start_addr+=evdu[EVT_TOT_SAMPLES+3];
 		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+4];
-		adc_track3.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		trace_3.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 
 		idu +=(evdu[EVT_LENGTH]);
 	}
@@ -258,8 +258,8 @@ void GRANDEventADC::ClearVectors()
 	channel_trig_settings3.clear();
 	// ToDo: What is it?
 	ioff.clear();
-	adc_track0.clear();
-	adc_track1.clear();
-	adc_track2.clear();
-	adc_track3.clear();
+	trace_0.clear();
+	trace_1.clear();
+	trace_2.clear();
+	trace_3.clear();
 }

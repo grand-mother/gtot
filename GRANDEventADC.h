@@ -136,16 +136,16 @@ public:
 	vector<vector<unsigned short>> channel_trig_settings2;
 	//! Channel 3 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
 	vector<vector<unsigned short>> channel_trig_settings3;
-	//! ?? What is it? Some kind of the adc track offset?
+	//! ?? What is it? Some kind of the adc trace offset?
 	vector<unsigned short> ioff;
-	//! ADC track 0
-	vector<vector<short>> adc_track0;
-	//! ADC track 1
-	vector<vector<short>> adc_track1;
-	//! ADC track 2
-	vector<vector<short>> adc_track2;
-	//! ADC track 3
-	vector<vector<short>> adc_track3;
+	//! ADC trace 0
+	vector<vector<short>> trace_0;
+	//! ADC trace 1
+	vector<vector<short>> trace_1;
+	//! ADC trace 2
+	vector<vector<short>> trace_2;
+	//! ADC trace 3
+	vector<vector<short>> trace_3;
 
 	//! The TTree for holding the data
 	TTree *teventadc;
