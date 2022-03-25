@@ -26,7 +26,7 @@ GRANDEventVoltage::GRANDEventVoltage(GRANDEventADC *adc) : GRANDEventVoltage()
 {
 	auto teventadc = adc->teventadc;
 
-	teventvoltage->Print();
+//	teventvoltage->Print();
 
 	// Exclude these branches from copying
 	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp"};
@@ -77,7 +77,8 @@ void GRANDEventVoltage::ADCs2Real(GRANDEventADC *adc)
 	gps_temp.clear();
 
 	// Loop through the DUs
-	for (size_t i=0; i<adc->du_count; ++i)
+//	for (size_t i=0; i<adc->du_count; ++i)
+	for (size_t i=0; i<adc->trace_0.size(); ++i)
 	{
 		// Create this DU's vectors
 		trace_x.push_back(vector<float>());

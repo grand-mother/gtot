@@ -110,6 +110,7 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 //	event_type = *evptr++;
 //	event_version = *evptr++;
 	evptr+=2;
+	// This value is rubbish now. Need to check the traces vector sizes
 	du_count = *evptr;
 
 	while(idu<ev_end)

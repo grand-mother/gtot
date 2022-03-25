@@ -10,6 +10,8 @@
 int main(int argc, char **argv)
 {
     auto tree_file = new TFile("test.root", "recreate");
+	// Just for debugging for now
+	tree_file->SetCompressionLevel(0);
 
     // Need to define a dictionary so that ROOT can handle vector<vector<unsigned short> >
 	gInterpreter->GenerateDictionary("vector<vector<unsigned short> >", "vector");
@@ -44,6 +46,7 @@ int main(int argc, char **argv)
 		// Loop-read the events
 		while(grand_read_event(fp, &event)>0)
 		{
+			cout << "New event" << endl;
 			ADC->SetValuesFromPointers(event);
 			ADC->teventadc->Fill();
 		}
@@ -55,6 +58,7 @@ int main(int argc, char **argv)
 	// Add the Run TTree as a friend
 	ADC->teventadc->AddFriend(run->trun);
 	// Write out the ADC TTree to the file
+	cout << "Writing ADCEvent tree" << endl;
 	ADC->teventadc->Write();
 
 	// Create the GRANDEventVoltage TTree
@@ -62,10 +66,13 @@ int main(int argc, char **argv)
 	// Add the Run TTree as a friend
 	voltage->teventvoltage->AddFriend(run->trun);
 	// Write out the Voltage TTree to the file
+	cout << "Writing VoltageEvent tree" << endl;
 	voltage->teventvoltage->Write();
 
 	// Close the TFile with the TTrees
 	tree_file->Close();
+
+	cout << "Finished, quitting" << endl;
 
     return 0;
 }
