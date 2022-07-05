@@ -54,7 +54,7 @@ TTree *GRANDEventADC::CreateTree()
 	teventadc->Branch("trigger_pattern", &trigger_pattern);
 	teventadc->Branch("trigger_rate", &trigger_rate);
 	teventadc->Branch("clock_tick", &clock_tick);
-	teventadc->Branch("clock_tics_per_second", &clock_tics_per_second);
+	teventadc->Branch("clock_ticks_per_second", &clock_ticks_per_second);
 	teventadc->Branch("gps_offset", &gps_offset);
 	teventadc->Branch("gps_leap_second", &gps_leap_second);
 	teventadc->Branch("gps_status", &gps_status);
@@ -144,7 +144,7 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 		trigger_pattern.push_back(evdu[EVT_TRIG_PAT]);
 		trigger_rate.push_back(evdu[EVT_TRIG_RATE]);
 		clock_tick.push_back(evdu[EVT_CTD]);
-		clock_tics_per_second.push_back(*(uint32_t *)&evdu[EVT_CTP]);
+		clock_ticks_per_second.push_back(*(uint32_t *)&evdu[EVT_CTP]);
 		gps_offset.push_back(*(float *)&evdu[EVT_PPS_OFFSET]);
 		gps_leap_second.push_back(evdu[EVT_LEAP]);
 		gps_status.push_back(evdu[EVT_GPS_STATFLAG]);
@@ -236,7 +236,7 @@ void GRANDEventADC::ClearVectors()
 	trigger_pattern.clear();
 	trigger_rate.clear();
 	clock_tick.clear();
-	clock_tics_per_second.clear();
+	clock_ticks_per_second.clear();
 	gps_offset.clear();
 	gps_leap_second.clear();
 	gps_status.clear();

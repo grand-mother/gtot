@@ -30,9 +30,9 @@ public:
 	unsigned int t3_number;
 	//! First detector unit that triggered in the event
 	unsigned int first_du;
-	//! Unix time corresponding to the GPS seconds of the trigger
+	//! Unix time corresponding to the GPS seconds of the earliest trigger time of all the stations
 	unsigned int time_seconds;
-	//! GPS nanoseconds corresponding to the trigger of the first triggered station
+	//! GPS nanoseconds corresponding to the earliest trigger time of all the stations
 	unsigned int time_nanoseconds;
 	//! Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
 	unsigned int event_type;
@@ -95,7 +95,7 @@ public:
 	//! Clock tick at which the event was triggered (used to calculate the trigger time)
 	vector<unsigned short> clock_tick;
 	//! Clock ticks per second
-	vector<unsigned int> clock_tics_per_second;
+	vector<unsigned short> clock_ticks_per_second;
 	//! GPS offset - offset between the PPS and the real second (in GPS). ToDo: is it already included in the time calculations?
 	vector<float> gps_offset;
 	//! GPS leap second

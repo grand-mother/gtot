@@ -51,6 +51,10 @@ public:
 	vector<unsigned int> du_seconds;
 	//! Nanoseconds of the trigger for this DU
 	vector<unsigned int> du_nanoseconds;
+	//! Unix time of the start of the trace for this DU
+	vector<unsigned int> du_t0_seconds;
+	//! Nanoseconds of the start of the trace for this DU
+	vector<unsigned int> du_t0_nanoseconds;
 	//! Trigger position in the trace (trigger start = nanoseconds - 2*sample number)
 	vector<unsigned short> trigger_position;
 	//! Same as event_type, but event_type could consist of different triggered DUs
@@ -96,7 +100,7 @@ public:
 	//! Clock tick at which the event was triggered (used to calculate the trigger time)
 	vector<unsigned short> clock_tick;
 	//! Clock ticks per second
-	vector<unsigned int> clock_tics_per_second;
+	vector<unsigned int> clock_ticks_per_second;
 	//! GPS offset - offset between the PPS and the real second (in GPS). ToDo: is it already included in the time calculations?
 	vector<float> gps_offset;
 	//! GPS leap second
@@ -117,6 +121,13 @@ public:
 	vector<float> gps_alt;
 	//! GPS temperature
 	vector<float> gps_temp;
+	//! X position in site's referential
+	// ToDo: need to convert all the geodetic to the site's referential!
+	vector<float> pos_x;
+	//! Y position in site's referential
+	vector<float> pos_y;
+	//! Z position in site's referential
+	vector<float> pos_z;
 	//! Control parameters - the list of general parameters that can set the mode of operation, select trigger sources and preset the common coincidence read out time window (Digitizer mode parameters in the manual). ToDo: Decode?
 	vector<vector<unsigned short>> digi_ctrl;
 	//! Window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). ToDo: Decode?
@@ -166,6 +177,13 @@ private:
 
 	//! Converts a specific GPS ADC values from teventadc into a real values
 	void GPSADC2Real(int du_num, GRANDEventADC *adc);
+
+	//! Calculate the absolute start times - t0 - of all the traces
+	void CalculateT0s(GRANDEventADC *adc);
+
+	//! Calculate the absolute start time of a trace - t0
+	pair<unsigned int, unsigned int> CalculateT0(unsigned int seconds, unsigned int nanoseconds, unsigned int trigger_pos_ns);
+
 };
 
 

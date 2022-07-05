@@ -55,7 +55,9 @@ GRANDEventVoltage::GRANDEventVoltage(GRANDEventADC *adc) : GRANDEventVoltage()
 		teventadc->GetEntry(entry_no);
 
 		// *** Calculate the values not existing in GRANDEventADC ***
+		// ToDo: Calling to separate functions results in two loops over traces. Definitely not optimal, but maybe fast enough for now.
 		ADCs2Real(adc);
+//		CalculateT0s(adc);
 		teventvoltage->Fill();
 	}
 	teventvoltage->BuildIndex("run_number", "event_number");
@@ -113,6 +115,52 @@ void GRANDEventVoltage::GPSADC2Real(int du_num, GRANDEventADC *adc)
 		gps_temp.push_back(adc->gps_temp[du_num]);
 }
 
+void GRANDEventVoltage::CalculateT0s(GRANDEventADC *adc)
+{
+	// Clear the t0s vectors
+	du_t0_seconds.clear();
+	du_t0_nanoseconds.clear();
+
+	// Resize the vectors, as the size is known
+	du_t0_seconds.resize(adc->du_seconds.size());
+	du_t0_nanoseconds.resize(adc->du_nanoseconds.size());
+
+	// Loop through the DUs
+//	for (size_t i=0; i<adc->du_count; ++i)
+	for (size_t i=0; i<adc->trace_0.size(); ++i)
+	{
+		1000/adc->adc_sampling_frequency[i];
+
+		// Trigger position in the trace in ns
+		auto trigger_pos_ns = adc->trigger_position[i]*(1000/adc->adc_sampling_frequency[i]); // adc_sampling_frequency is in MHz, we want ns
+		// Calculate this DU's t0s
+		tie(du_t0_seconds[i], du_t0_nanoseconds[i]) = CalculateT0(adc->du_seconds[i], adc->du_nanoseconds[i], trigger_pos_ns);
+//		du_t0_seconds.push_back(t0_seconds);
+//		du_t0_nanoseconds.push_back(t0_nanoseconds);
+
+	}
+}
+
+pair<unsigned int, unsigned int> GRANDEventVoltage::CalculateT0(unsigned int seconds, unsigned int nanoseconds, unsigned int trigger_pos_ns)
+{
+	unsigned int t0_seconds=seconds, t0_nanoseconds=nanoseconds;
+	// If nanoseconds of the trigger are greater/equal than trigger_pos_ns
+	if(nanoseconds>=trigger_pos_ns)
+	{
+		// Just reduce the nanoseconds
+		t0_nanoseconds-=trigger_pos_ns;
+	}
+		// Nanoseconds are lower than trigger_pos_ns
+	else
+	{
+		// Reduce the seconds by 1 (assuming the trigger position in the trace is not >1 s)
+		t0_seconds-=1;
+		// Calculate the nanoseconds below 1
+		t0_nanoseconds=1e9-(trigger_pos_ns-nanoseconds);
+	}
+	return pair<unsigned int, unsigned int>(t0_seconds, t0_nanoseconds);
+}
+
 TTree *GRANDEventVoltage::CreateTree()
 {
 	teventvoltage = new TTree("teventvoltage", "Event with Voltage traces and other information");
@@ -133,6 +181,8 @@ TTree *GRANDEventVoltage::CreateTree()
 	teventvoltage->Branch("du_id", &du_id);
 	teventvoltage->Branch("du_seconds", &du_seconds);
 	teventvoltage->Branch("du_nanoseconds", &du_nanoseconds);
+//	teventvoltage->Branch("du_t0_seconds", &du_t0_seconds);
+//	teventvoltage->Branch("du_t0_nanoseconds", &du_t0_nanoseconds);
 	teventvoltage->Branch("trigger_position", &trigger_position);
 	teventvoltage->Branch("trigger_flag", &trigger_flag);
 	teventvoltage->Branch("atm_temperature", &atm_temperature);
@@ -155,7 +205,7 @@ TTree *GRANDEventVoltage::CreateTree()
 	teventvoltage->Branch("trigger_pattern", &trigger_pattern);
 	teventvoltage->Branch("trigger_rate", &trigger_rate);
 	teventvoltage->Branch("clock_tick", &clock_tick);
-	teventvoltage->Branch("clock_tics_per_second", &clock_tics_per_second);
+	teventvoltage->Branch("clock_ticks_per_second", &clock_ticks_per_second);
 	teventvoltage->Branch("gps_offset", &gps_offset);
 	teventvoltage->Branch("gps_leap_second", &gps_leap_second);
 	teventvoltage->Branch("gps_status", &gps_status);
@@ -166,6 +216,9 @@ TTree *GRANDEventVoltage::CreateTree()
 	teventvoltage->Branch("gps_lat", &gps_lat);
 	teventvoltage->Branch("gps_alt", &gps_alt);
 	teventvoltage->Branch("gps_temp", &gps_temp);
+	teventvoltage->Branch("pos_x", &pos_x);
+	teventvoltage->Branch("pos_y", &pos_y);
+	teventvoltage->Branch("pos_z", &pos_z);
 	teventvoltage->Branch("digi_ctrl", &digi_ctrl);
 	teventvoltage->Branch("digi_prepost_trig_windows", &digi_prepost_trig_windows);
 	teventvoltage->Branch("channel_properties0", &channel_properties0);
@@ -215,7 +268,7 @@ void GRANDEventVoltage::ClearVectors()
 	trigger_pattern.clear();
 	trigger_rate.clear();
 	clock_tick.clear();
-	clock_tics_per_second.clear();
+	clock_ticks_per_second.clear();
 	gps_offset.clear();
 	gps_leap_second.clear();
 	gps_status.clear();
@@ -226,6 +279,9 @@ void GRANDEventVoltage::ClearVectors()
 	gps_lat.clear();
 	gps_alt.clear();
 	gps_temp.clear();
+	pos_x.clear();
+	pos_y.clear();
+	pos_z.clear();
 	digi_ctrl.clear();
 	digi_prepost_trig_windows.clear();
 	channel_properties0.clear();
