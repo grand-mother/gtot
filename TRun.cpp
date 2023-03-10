@@ -28,10 +28,20 @@ TTree *TRun::CreateTree()
 	trun->Branch("data_source", &data_source);
 	trun->Branch("data_generator", &data_generator);
 	trun->Branch("data_generator_version", &data_generator_version);
+	trun->Branch("event_type", &event_type, "event_type/i");
+	trun->Branch("event_version", &event_version, "event_version/i");
 	trun->Branch("site", &site);
-	trun->Branch("site_long", &site_long, "site_long/F");
-	trun->Branch("site_lat", &site_lat, "site_lat/F");
-	trun->Branch("origin_geoid", &origin_geoid, "origin_geoid[3]/D");
+//	trun->Branch("site_long", &site_long, "site_long/F");
+//	trun->Branch("site_lat", &site_lat, "site_lat/F");
+	trun->Branch("origin_geoid", &origin_geoid, "origin_geoid[3]/F");
+	trun->Branch("du_id", &du_id);
+	trun->Branch("du_geoid", &du_geoid);
+	trun->Branch("du_xyz", &du_xyz);
+	trun->Branch("du_type", &du_type);
+	trun->Branch("du_tilt", &du_tilt);
+	trun->Branch("du_ground_tilt", &du_ground_tilt);
+	trun->Branch("du_nut", &du_nut);
+	trun->Branch("du_feb", &du_feb);
 
 	return trun;
 }
