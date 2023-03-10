@@ -3,15 +3,15 @@
 //
 // The main class for storing the Run information
 
-#include "GRANDRun.h"
+#include "TRun.h"
 #include "Traces.h"
 
-GRANDRun::GRANDRun()
+TRun::TRun()
 {
 	CreateTree();
 }
 
-TTree *GRANDRun::CreateTree()
+TTree *TRun::CreateTree()
 {
 	trun = new TTree("trun", "Run information");
 
@@ -36,7 +36,7 @@ TTree *GRANDRun::CreateTree()
 	return trun;
 }
 
-int GRANDRun::SetValuesFromPointers(int *pheader)
+int TRun::SetValuesFromPointers(int *pheader)
 {
 	run_number = pheader[FILE_HDR_RUNNR];
 	run_mode = pheader[FILE_HDR_RUN_MODE];

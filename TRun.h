@@ -3,15 +3,15 @@
 //
 // The main class for storing the Run information
 
-#ifndef GTOT_GRANDRUN_H
-#define GTOT_GRANDRUN_H
+#ifndef GTOT_TRUN_H
+#define GTOT_TRUN_H
 
 #include <string>
 #include "TTree.h"
 
 using namespace std;
 
-class GRANDRun
+class TRun
 {
 	// I assume we don't need getters and setters for these properties, because they are simple values
 public:
@@ -59,9 +59,9 @@ public:
 	int SetValuesFromPointers(int *pheader);
 
 	//! The default constructor
-	GRANDRun();
+	TRun();
 
 };
 
 
-#endif //GTOT_GRANDRUN_H
+#endif //GTOT_TRUN_H

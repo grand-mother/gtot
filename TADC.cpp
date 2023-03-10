@@ -3,89 +3,89 @@
 //
 // The main class for holding the ADC counts and other data coming from the detectors
 
-#include "GRANDEventADC.h"
+#include "TADC.h"
 #include <iostream>
 
-GRANDEventADC::GRANDEventADC()
+TADC::TADC()
 {
 	CreateTree();
 }
 
-TTree *GRANDEventADC::CreateTree()
+TTree *TADC::CreateTree()
 {
-	teventadc = new TTree("teventadc", "Event with ADC counts and information");
+	tadc = new TTree("tadc", "Event with ADC counts and information");
 
 	// Create Branches for all stored data
 	// Int branches
-	teventadc->Branch("event_size", &event_size, "event_size/i");
-	teventadc->Branch("run_number", &run_number, "run_number/i");
-	teventadc->Branch("event_number", &event_number, "event_number/i");
-	teventadc->Branch("t3_number", &t3_number, "t3_number/i");
-	teventadc->Branch("first_du", &first_du, "first_du/i");
-	teventadc->Branch("time_seconds", &time_seconds, "time_seconds/i");
-	teventadc->Branch("time_nanoseconds", &time_nanoseconds, "time_nanoseconds/i");
-	teventadc->Branch("event_type", &event_type, "event_type/i");
-	teventadc->Branch("event_version", &event_version, "event_version/i");
-	teventadc->Branch("du_count", &du_count, "du_count/i");
+	tadc->Branch("event_size", &event_size, "event_size/i");
+	tadc->Branch("run_number", &run_number, "run_number/i");
+	tadc->Branch("event_number", &event_number, "event_number/i");
+	tadc->Branch("t3_number", &t3_number, "t3_number/i");
+	tadc->Branch("first_du", &first_du, "first_du/i");
+	tadc->Branch("time_seconds", &time_seconds, "time_seconds/i");
+	tadc->Branch("time_nanoseconds", &time_nanoseconds, "time_nanoseconds/i");
+	tadc->Branch("event_type", &event_type, "event_type/i");
+	tadc->Branch("event_version", &event_version, "event_version/i");
+	tadc->Branch("du_count", &du_count, "du_count/i");
 	// Vector branches
-	teventadc->Branch("event_id", &event_id);
-	teventadc->Branch("du_id", &du_id);
-	teventadc->Branch("du_seconds", &du_seconds);
-	teventadc->Branch("du_nanoseconds", &du_nanoseconds);
-	teventadc->Branch("trigger_position", &trigger_position);
-	teventadc->Branch("trigger_flag", &trigger_flag);
-	teventadc->Branch("atm_temperature", &atm_temperature);
-	teventadc->Branch("atm_pressure", &atm_pressure);
-	teventadc->Branch("atm_humidity", &atm_humidity);
-	teventadc->Branch("acceleration_x", &acceleration_x);
-	teventadc->Branch("acceleration_y", &acceleration_y);
-	teventadc->Branch("acceleration_z", &acceleration_z);
-	teventadc->Branch("battery_level", &battery_level);
-	teventadc->Branch("firmware_version", &firmware_version);
-	teventadc->Branch("adc_sampling_frequency", &adc_sampling_frequency);
-	teventadc->Branch("adc_sampling_resolution", &adc_sampling_resolution);
-	teventadc->Branch("adc_input_channels", &adc_input_channels);
-	teventadc->Branch("adc_enabled_channels", &adc_enabled_channels);
-	teventadc->Branch("adc_samples_count_total", &adc_samples_count_total);
-	teventadc->Branch("adc_samples_count_channel0", &adc_samples_count_channel0);
-	teventadc->Branch("adc_samples_count_channel1", &adc_samples_count_channel1);
-	teventadc->Branch("adc_samples_count_channel2", &adc_samples_count_channel2);
-	teventadc->Branch("adc_samples_count_channel3", &adc_samples_count_channel3);
-	teventadc->Branch("trigger_pattern", &trigger_pattern);
-	teventadc->Branch("trigger_rate", &trigger_rate);
-	teventadc->Branch("clock_tick", &clock_tick);
-	teventadc->Branch("clock_ticks_per_second", &clock_ticks_per_second);
-	teventadc->Branch("gps_offset", &gps_offset);
-	teventadc->Branch("gps_leap_second", &gps_leap_second);
-	teventadc->Branch("gps_status", &gps_status);
-	teventadc->Branch("gps_alarms", &gps_alarms);
-	teventadc->Branch("gps_warnings", &gps_warnings);
-	teventadc->Branch("gps_time", &gps_time);
-	teventadc->Branch("gps_long", &gps_long);
-	teventadc->Branch("gps_lat", &gps_lat);
-	teventadc->Branch("gps_alt", &gps_alt);
-	teventadc->Branch("gps_temp", &gps_temp);
-	teventadc->Branch("digi_ctrl", &digi_ctrl);
-	teventadc->Branch("digi_prepost_trig_windows", &digi_prepost_trig_windows);
-	teventadc->Branch("channel_properties0", &channel_properties0);
-	teventadc->Branch("channel_properties1", &channel_properties1);
-	teventadc->Branch("channel_properties2", &channel_properties2);
-	teventadc->Branch("channel_properties3", &channel_properties3);
-	teventadc->Branch("channel_trig_settings0", &channel_trig_settings0);
-	teventadc->Branch("channel_trig_settings1", &channel_trig_settings1);
-	teventadc->Branch("channel_trig_settings2", &channel_trig_settings2);
-	teventadc->Branch("channel_trig_settings3", &channel_trig_settings3);
-	teventadc->Branch("ioff", &ioff);
-	teventadc->Branch("trace_0", &trace_0);
-	teventadc->Branch("trace_1", &trace_1);
-	teventadc->Branch("trace_2", &trace_2);
-	teventadc->Branch("trace_3", &trace_3);
+	tadc->Branch("event_id", &event_id);
+	tadc->Branch("du_id", &du_id);
+	tadc->Branch("du_seconds", &du_seconds);
+	tadc->Branch("du_nanoseconds", &du_nanoseconds);
+	tadc->Branch("trigger_position", &trigger_position);
+	tadc->Branch("trigger_flag", &trigger_flag);
+	tadc->Branch("atm_temperature", &atm_temperature);
+	tadc->Branch("atm_pressure", &atm_pressure);
+	tadc->Branch("atm_humidity", &atm_humidity);
+	tadc->Branch("acceleration_x", &acceleration_x);
+	tadc->Branch("acceleration_y", &acceleration_y);
+	tadc->Branch("acceleration_z", &acceleration_z);
+	tadc->Branch("battery_level", &battery_level);
+	tadc->Branch("firmware_version", &firmware_version);
+	tadc->Branch("adc_sampling_frequency", &adc_sampling_frequency);
+	tadc->Branch("adc_sampling_resolution", &adc_sampling_resolution);
+	tadc->Branch("adc_input_channels", &adc_input_channels);
+	tadc->Branch("adc_enabled_channels", &adc_enabled_channels);
+	tadc->Branch("adc_samples_count_total", &adc_samples_count_total);
+	tadc->Branch("adc_samples_count_channel0", &adc_samples_count_channel0);
+	tadc->Branch("adc_samples_count_channel1", &adc_samples_count_channel1);
+	tadc->Branch("adc_samples_count_channel2", &adc_samples_count_channel2);
+	tadc->Branch("adc_samples_count_channel3", &adc_samples_count_channel3);
+	tadc->Branch("trigger_pattern", &trigger_pattern);
+	tadc->Branch("trigger_rate", &trigger_rate);
+	tadc->Branch("clock_tick", &clock_tick);
+	tadc->Branch("clock_ticks_per_second", &clock_ticks_per_second);
+	tadc->Branch("gps_offset", &gps_offset);
+	tadc->Branch("gps_leap_second", &gps_leap_second);
+	tadc->Branch("gps_status", &gps_status);
+	tadc->Branch("gps_alarms", &gps_alarms);
+	tadc->Branch("gps_warnings", &gps_warnings);
+	tadc->Branch("gps_time", &gps_time);
+	tadc->Branch("gps_long", &gps_long);
+	tadc->Branch("gps_lat", &gps_lat);
+	tadc->Branch("gps_alt", &gps_alt);
+	tadc->Branch("gps_temp", &gps_temp);
+	tadc->Branch("digi_ctrl", &digi_ctrl);
+	tadc->Branch("digi_prepost_trig_windows", &digi_prepost_trig_windows);
+	tadc->Branch("channel_properties0", &channel_properties0);
+	tadc->Branch("channel_properties1", &channel_properties1);
+	tadc->Branch("channel_properties2", &channel_properties2);
+	tadc->Branch("channel_properties3", &channel_properties3);
+	tadc->Branch("channel_trig_settings0", &channel_trig_settings0);
+	tadc->Branch("channel_trig_settings1", &channel_trig_settings1);
+	tadc->Branch("channel_trig_settings2", &channel_trig_settings2);
+	tadc->Branch("channel_trig_settings3", &channel_trig_settings3);
+	tadc->Branch("ioff", &ioff);
+	tadc->Branch("trace_0", &trace_0);
+	tadc->Branch("trace_1", &trace_1);
+	tadc->Branch("trace_2", &trace_2);
+	tadc->Branch("trace_3", &trace_3);
 
 
-	return teventadc;
+	return tadc;
 }
 
-int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
+int TADC::SetValuesFromPointers(unsigned short *pevent)
 {
 	// Clear the vectors
 	ClearVectors();
@@ -207,7 +207,7 @@ int GRANDEventADC::SetValuesFromPointers(unsigned short *pevent)
 	return 0;
 }
 
-void GRANDEventADC::ClearVectors()
+void TADC::ClearVectors()
 {
 	event_id.clear();
 	du_id.clear();

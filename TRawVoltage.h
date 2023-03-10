@@ -1,20 +1,21 @@
 //
-// Created by lewhoo on 19/01/2022.
+// Created by lewhoo on 17/02/2022.
 //
-// The main class for holding the ADC counts and other data coming from the detectors
+// The main class for holding the Voltage traces and some other data relative to them
 
-#ifndef GTOT_GRANDEVENTADC_H
-#define GTOT_GRANDEVENTADC_H
+#ifndef GTOT_TRAWVOLTAGE_H
+#define GTOT_TRAWVOLTAGE_H
 
 #include <vector>
-#include "scope.h"
 #include "Traces.h"
 #include "TTree.h"
 #include "TTimeStamp.h"
+#include "TLeaf.h"
+#include "TADC.h"
 
 using namespace std;
 
-class GRANDEventADC
+class TRawVoltage
 {
 	// I assume we don't need getters and setters for these properties, because they are simple values
 public:
@@ -30,9 +31,9 @@ public:
 	unsigned int t3_number;
 	//! First detector unit that triggered in the event
 	unsigned int first_du;
-	//! Unix time corresponding to the GPS seconds of the earliest trigger time of all the stations
+	//! Unix time corresponding to the GPS seconds of the trigger
 	unsigned int time_seconds;
-	//! GPS nanoseconds corresponding to the earliest trigger time of all the stations
+	//! GPS nanoseconds corresponding to the trigger of the first triggered station
 	unsigned int time_nanoseconds;
 	//! Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
 	unsigned int event_type;
@@ -50,24 +51,28 @@ public:
 	vector<unsigned int> du_seconds;
 	//! Nanoseconds of the trigger for this DU
 	vector<unsigned int> du_nanoseconds;
+	//! Unix time of the start of the trace for this DU
+	vector<unsigned int> du_t0_seconds;
+	//! Nanoseconds of the start of the trace for this DU
+	vector<unsigned int> du_t0_nanoseconds;
 	//! Trigger position in the trace (trigger start = nanoseconds - 2*sample number)
 	vector<unsigned short> trigger_position;
 	//! Same as event_type, but event_type could consist of different triggered DUs
 	vector<unsigned short> trigger_flag;
 	//! Atmospheric temperature (read via I2C)
-	vector<unsigned short> atm_temperature;
+	vector<float> atm_temperature;
 	//! Atmospheric pressure
-	vector<unsigned short> atm_pressure;
+	vector<float> atm_pressure;
 	//! Atmospheric humidity
-	vector<unsigned short> atm_humidity;
+	vector<float> atm_humidity;
 	//! Acceleration of the antenna in X
-	vector<unsigned short> acceleration_x;
+	vector<float> acceleration_x;
 	//! Acceleration of the antenna in Y
-	vector<unsigned short> acceleration_y;
+	vector<float> acceleration_y;
 	//! Acceleration of the antenna in Z
-	vector<unsigned short> acceleration_z;
+	vector<float> acceleration_z;
 	//! Battery voltage
-	vector<unsigned short> battery_level;
+	vector<float> battery_level;
 	//! Firmware version
 	vector<unsigned short> firmware_version;
 	//! ADC sampling frequency in MHz
@@ -95,7 +100,7 @@ public:
 	//! Clock tick at which the event was triggered (used to calculate the trigger time)
 	vector<unsigned short> clock_tick;
 	//! Clock ticks per second
-	vector<unsigned short> clock_ticks_per_second;
+	vector<unsigned int> clock_ticks_per_second;
 	//! GPS offset - offset between the PPS and the real second (in GPS). ToDo: is it already included in the time calculations?
 	vector<float> gps_offset;
 	//! GPS leap second
@@ -109,13 +114,20 @@ public:
 	//! GPS time
 	vector<unsigned int> gps_time;
 	//! Longitude
-	vector<unsigned short> gps_long;
+	vector<float> gps_long;
 	//! Latitude
-	vector<unsigned short> gps_lat;
+	vector<float> gps_lat;
 	//! Altitude
-	vector<unsigned short> gps_alt;
+	vector<float> gps_alt;
 	//! GPS temperature
-	vector<unsigned short> gps_temp;
+	vector<float> gps_temp;
+	//! X position in site's referential
+	// ToDo: need to convert all the geodetic to the site's referential!
+	vector<float> pos_x;
+	//! Y position in site's referential
+	vector<float> pos_y;
+	//! Z position in site's referential
+	vector<float> pos_z;
 	//! Control parameters - the list of general parameters that can set the mode of operation, select trigger sources and preset the common coincidence read out time window (Digitizer mode parameters in the manual). ToDo: Decode?
 	vector<vector<unsigned short>> digi_ctrl;
 	//! Window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). ToDo: Decode?
@@ -138,32 +150,42 @@ public:
 	vector<vector<unsigned short>> channel_trig_settings3;
 	//! ?? What is it? Some kind of the adc trace offset?
 	vector<unsigned short> ioff;
-	//! ADC trace 0
-	vector<vector<short>> trace_0;
-	//! ADC trace 1
-	vector<vector<short>> trace_1;
-	//! ADC trace 2
-	vector<vector<short>> trace_2;
-	//! ADC trace 3
-	vector<vector<short>> trace_3;
+	vector<vector<float>> trace_x;
+	vector<vector<float>> trace_y;
+	vector<vector<float>> trace_z;
 
 	//! The TTree for holding the data
-	TTree *teventadc;
+	TTree *trawvoltage;
 
 	//! Create the TTree and its branches
 	TTree *CreateTree();
 
-	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
-	int SetValuesFromPointers(unsigned short *pevent);
-
-	//! The default constructor
-	GRANDEventADC();
+	//! General constructor
+	TRawVoltage();
+	//! Constructor computing values from TADC
+	TRawVoltage(TADC *adc);
 
 private:
 	//! Clear the vectors for another fill
 	void ClearVectors();
 
+	//! Converts the ADC traces from tadc into Voltage traces
+	void ADCs2Real(TADC *adc);
+
+	//! Converts a specific ADC trace from tadc into a Voltage trace
+	void TraceADC2Voltage(int du_num, TADC *adc);
+
+	//! Converts a specific GPS ADC values from tadc into a real values
+	void GPSADC2Real(int du_num, TADC *adc);
+
+	//! Calculate the absolute start times - t0 - of all the traces
+	void CalculateT0s(TADC *adc);
+
+	//! Calculate the absolute start time of a trace - t0
+	pair<unsigned int, unsigned int> CalculateT0(unsigned int seconds, unsigned int nanoseconds, unsigned int trigger_pos_ns);
+
 };
 
 
-#endif //GTOT_GRANDEVENTADC_H
+
+#endif //GTOT_TRAWVOLTAGE_H

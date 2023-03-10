@@ -3,9 +3,9 @@
 #include "TFile.h"
 #include "TInterpreter.h"
 
-#include "GRANDRun.h"
-#include "GRANDEventADC.h"
-#include "GRANDEventVoltage.h"
+#include "TRun.h"
+#include "TADC.h"
+#include "TRawVoltage.h"
 
 int main(int argc, char **argv)
 {
@@ -19,9 +19,9 @@ int main(int argc, char **argv)
 	gInterpreter->GenerateDictionary("vector<vector<float> >", "vector");
 
 	// The whole Run class
-	auto run = new GRANDRun();
+	auto run = new TRun();
 	// The ADC event class
-    auto ADC = new GRANDEventADC();
+    auto ADC = new TADC();
 
     //! File reading
 	FILE *fp;
@@ -48,26 +48,26 @@ int main(int argc, char **argv)
 		{
 			cout << "New event" << endl;
 			ADC->SetValuesFromPointers(event);
-			ADC->teventadc->Fill();
+			ADC->tadc->Fill();
 		}
 	}
 	if (fp != NULL) fclose(fp); // close the file
 
 	// Build the run_number/event_number index for ADC TTree
-	ADC->teventadc->BuildIndex("run_number", "event_number");
+	ADC->tadc->BuildIndex("run_number", "event_number");
 	// Add the Run TTree as a friend
-	ADC->teventadc->AddFriend(run->trun);
+	ADC->tadc->AddFriend(run->trun);
 	// Write out the ADC TTree to the file
-	cout << "Writing ADCEvent tree" << endl;
-	ADC->teventadc->Write();
+	cout << "Writing TADC tree" << endl;
+	ADC->tadc->Write();
 
-	// Create the GRANDEventVoltage TTree
-	auto voltage = new GRANDEventVoltage(ADC);
+	// Create the TRawVoltage TTree
+	auto voltage = new TRawVoltage(ADC);
 	// Add the Run TTree as a friend
-	voltage->teventvoltage->AddFriend(run->trun);
+	voltage->trawvoltage->AddFriend(run->trun);
 	// Write out the Voltage TTree to the file
-	cout << "Writing VoltageEvent tree" << endl;
-	voltage->teventvoltage->Write();
+	cout << "Writing TRawVoltage tree" << endl;
+	voltage->trawvoltage->Write();
 
 	// Close the TFile with the TTrees
 	tree_file->Close();
