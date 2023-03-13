@@ -11,12 +11,12 @@ int main(int argc, char **argv)
 {
     auto tree_file = new TFile("test.root", "recreate");
 	// Just for debugging for now
-	tree_file->SetCompressionLevel(0);
+//	tree_file->SetCompressionLevel(0);
 
     // Need to define a dictionary so that ROOT can handle vector<vector<unsigned short> >
-	gInterpreter->GenerateDictionary("vector<vector<unsigned short> >", "vector");
-	gInterpreter->GenerateDictionary("vector<vector<short> >", "vector");
-	gInterpreter->GenerateDictionary("vector<vector<float> >", "vector");
+//	gInterpreter->GenerateDictionary("vector<vector<unsigned short> >", "vector");
+//	gInterpreter->GenerateDictionary("vector<vector<short> >", "vector");
+//	gInterpreter->GenerateDictionary("vector<vector<float> >", "vector");
 
 	// The whole Run class
 	auto run = new TRun();
