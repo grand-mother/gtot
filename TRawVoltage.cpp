@@ -8,7 +8,6 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include "ROOT/RDataFrame.hxx"
 #include "TRawVoltage.h"
 
 using namespace std;
@@ -29,7 +28,7 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 //	trawvoltage->Print();
 
 	// Exclude these branches from copying
-	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp"};
+	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3"};
 
 	// *** Transform the tadc events into trawvoltage events ***
 
@@ -113,10 +112,10 @@ void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
 
 void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
 {
-		gps_long.push_back(57.3*(double)(adc->gps_long[du_num]));
-		gps_lat.push_back(57.3*(double)adc->gps_lat[du_num]);
-		gps_alt.push_back(adc->gps_alt[du_num]);
-		gps_temp.push_back(adc->gps_temp[du_num]);
+		gps_long.push_back(57.3*(*(double*)&adc->gps_long[du_num]));
+		gps_lat.push_back(57.3*(*(double*)&adc->gps_lat[du_num]));
+		gps_alt.push_back(*(double*)&adc->gps_alt[du_num]);
+		gps_temp.push_back(*(double*)&adc->gps_temp[du_num]);
 }
 
 //void TRawVoltage::CalculateT0s(TADC *adc)
@@ -144,26 +143,26 @@ void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
 //
 //	}
 //}
-
-pair<unsigned int, unsigned int> TRawVoltage::CalculateT0(unsigned int seconds, unsigned int nanoseconds, unsigned int trigger_pos_ns)
-{
-	unsigned int t0_seconds=seconds, t0_nanoseconds=nanoseconds;
-	// If nanoseconds of the trigger are greater/equal than trigger_pos_ns
-	if(nanoseconds>=trigger_pos_ns)
-	{
-		// Just reduce the nanoseconds
-		t0_nanoseconds-=trigger_pos_ns;
-	}
-		// Nanoseconds are lower than trigger_pos_ns
-	else
-	{
-		// Reduce the seconds by 1 (assuming the trigger position in the trace is not >1 s)
-		t0_seconds-=1;
-		// Calculate the nanoseconds below 1
-		t0_nanoseconds=1e9-(trigger_pos_ns-nanoseconds);
-	}
-	return pair<unsigned int, unsigned int>(t0_seconds, t0_nanoseconds);
-}
+//
+//pair<unsigned int, unsigned int> TRawVoltage::CalculateT0(unsigned int seconds, unsigned int nanoseconds, unsigned int trigger_pos_ns)
+//{
+//	unsigned int t0_seconds=seconds, t0_nanoseconds=nanoseconds;
+//	// If nanoseconds of the trigger are greater/equal than trigger_pos_ns
+//	if(nanoseconds>=trigger_pos_ns)
+//	{
+//		// Just reduce the nanoseconds
+//		t0_nanoseconds-=trigger_pos_ns;
+//	}
+//		// Nanoseconds are lower than trigger_pos_ns
+//	else
+//	{
+//		// Reduce the seconds by 1 (assuming the trigger position in the trace is not >1 s)
+//		t0_seconds-=1;
+//		// Calculate the nanoseconds below 1
+//		t0_nanoseconds=1e9-(trigger_pos_ns-nanoseconds);
+//	}
+//	return pair<unsigned int, unsigned int>(t0_seconds, t0_nanoseconds);
+//}
 
 TTree *TRawVoltage::CreateTree()
 {
@@ -245,65 +244,65 @@ TTree *TRawVoltage::CreateTree()
 	return trawvoltage;
 }
 
-void TRawVoltage::ClearVectors()
-{
-//	event_id.clear();
-	du_id.clear();
-	du_seconds.clear();
-	du_nanoseconds.clear();
-//	trigger_position.clear();
-	trigger_flag.clear();
-	atm_temperature.clear();
-	atm_pressure.clear();
-	atm_humidity.clear();
-	du_acceleration.clear();
-//	acceleration_x.clear();
-//	acceleration_y.clear();
-//	acceleration_z.clear();
-	battery_level.clear();
-	// ToDo: Is this the same as event_version for the whole event?
-//	firmware_version.clear();
-//	adc_sampling_frequency.clear();
-//	adc_sampling_resolution.clear();
-//	adc_input_channels.clear();
-//	adc_enabled_channels.clear();
-//	adc_samples_count_total.clear();
-	adc_samples_count_channel.clear();
-//	adc_samples_count_channel0.clear();
-//	adc_samples_count_channel1.clear();
-//	adc_samples_count_channel2.clear();
-//	adc_samples_count_channel3.clear();
-	trigger_pattern.clear();
-	trigger_rate.clear();
-	clock_tick.clear();
-	clock_ticks_per_second.clear();
-	gps_offset.clear();
-	gps_leap_second.clear();
-	gps_status.clear();
-	gps_alarms.clear();
-	gps_warnings.clear();
-	gps_time.clear();
-	gps_long.clear();
-	gps_lat.clear();
-	gps_alt.clear();
-	gps_temp.clear();
-//	pos_x.clear();
-//	pos_y.clear();
-//	pos_z.clear();
-//	digi_ctrl.clear();
-//	digi_prepost_trig_windows.clear();
-//	channel_properties0.clear();
-//	channel_properties1.clear();
-//	channel_properties2.clear();
-//	channel_properties3.clear();
-//	channel_trig_settings0.clear();
-//	channel_trig_settings1.clear();
-//	channel_trig_settings2.clear();
-//	channel_trig_settings3.clear();
-	// ToDo: What is it?
-	ioff.clear();
-	trace_0.clear();
-	trace_1.clear();
-	trace_2.clear();
-	trace_3.clear();
-}
+//void TRawVoltage::ClearVectors()
+//{
+////	event_id.clear();
+//	du_id.clear();
+//	du_seconds.clear();
+//	du_nanoseconds.clear();
+////	trigger_position.clear();
+//	trigger_flag.clear();
+//	atm_temperature.clear();
+//	atm_pressure.clear();
+//	atm_humidity.clear();
+//	du_acceleration.clear();
+////	acceleration_x.clear();
+////	acceleration_y.clear();
+////	acceleration_z.clear();
+//	battery_level.clear();
+//	// ToDo: Is this the same as event_version for the whole event?
+////	firmware_version.clear();
+////	adc_sampling_frequency.clear();
+////	adc_sampling_resolution.clear();
+////	adc_input_channels.clear();
+////	adc_enabled_channels.clear();
+////	adc_samples_count_total.clear();
+//	adc_samples_count_channel.clear();
+////	adc_samples_count_channel0.clear();
+////	adc_samples_count_channel1.clear();
+////	adc_samples_count_channel2.clear();
+////	adc_samples_count_channel3.clear();
+//	trigger_pattern.clear();
+//	trigger_rate.clear();
+//	clock_tick.clear();
+//	clock_ticks_per_second.clear();
+//	gps_offset.clear();
+//	gps_leap_second.clear();
+//	gps_status.clear();
+//	gps_alarms.clear();
+//	gps_warnings.clear();
+//	gps_time.clear();
+//	gps_long.clear();
+//	gps_lat.clear();
+//	gps_alt.clear();
+//	gps_temp.clear();
+////	pos_x.clear();
+////	pos_y.clear();
+////	pos_z.clear();
+////	digi_ctrl.clear();
+////	digi_prepost_trig_windows.clear();
+////	channel_properties0.clear();
+////	channel_properties1.clear();
+////	channel_properties2.clear();
+////	channel_properties3.clear();
+////	channel_trig_settings0.clear();
+////	channel_trig_settings1.clear();
+////	channel_trig_settings2.clear();
+////	channel_trig_settings3.clear();
+//	// ToDo: What is it?
+//	ioff.clear();
+//	trace_0.clear();
+//	trace_1.clear();
+//	trace_2.clear();
+//	trace_3.clear();
+//}

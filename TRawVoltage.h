@@ -171,8 +171,8 @@ public:
 	TRawVoltage(TADC *adc);
 
 private:
-	//! Clear the vectors for another fill
-	void ClearVectors();
+//	//! Clear the vectors for another fill
+//	void ClearVectors();
 
 	//! Converts the ADC traces from tadc into Voltage traces
 	void ADCs2Real(TADC *adc);
@@ -183,11 +183,11 @@ private:
 	//! Converts a specific GPS ADC values from tadc into a real values
 	void GPSADC2Real(int du_num, TADC *adc);
 
-	//! Calculate the absolute start times - t0 - of all the traces
-	void CalculateT0s(TADC *adc);
-
-	//! Calculate the absolute start time of a trace - t0
-	pair<unsigned int, unsigned int> CalculateT0(unsigned int seconds, unsigned int nanoseconds, unsigned int trigger_pos_ns);
+//	//! Calculate the absolute start times - t0 - of all the traces
+//	void CalculateT0s(TADC *adc);
+//
+//	//! Calculate the absolute start time of a trace - t0
+//	pair<unsigned int, unsigned int> CalculateT0(unsigned int seconds, unsigned int nanoseconds, unsigned int trigger_pos_ns);
 
 };
 

@@ -160,10 +160,10 @@ int TADC::SetValuesFromPointers(unsigned short *pevent)
 //		gps_lat.push_back(57.3*(*(double *)&evdu[EVT_LATITUDE]));
 //		gps_alt.push_back(*(double *)&evdu[EVT_ALTITUDE]);
 //		gps_temp.push_back(*(float *)&evdu[EVT_GPS_TEMP]);
-		gps_long.push_back(evdu[EVT_LONGITUDE]);
-		gps_lat.push_back(evdu[EVT_LATITUDE]);
-		gps_alt.push_back(evdu[EVT_ALTITUDE]);
-		gps_temp.push_back(evdu[EVT_GPS_TEMP]);
+		gps_long.push_back(*(unsigned long long*)&evdu[EVT_LONGITUDE]);
+		gps_lat.push_back(*(unsigned long long*)&evdu[EVT_LATITUDE]);
+		gps_alt.push_back(*(unsigned long long*)&evdu[EVT_ALTITUDE]);
+		gps_temp.push_back(*(unsigned long long*)&evdu[EVT_GPS_TEMP]);
 		// Maybe this could be prettier with lambdas...
 		digi_ctrl.push_back(vector<unsigned short>());
 		for(int i=0;i<8;i++) digi_ctrl.back().push_back(evdu[EVT_CTRL+i]);

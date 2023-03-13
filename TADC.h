@@ -109,13 +109,16 @@ public:
 	//! GPS time
 	vector<unsigned int> gps_time;
 	//! Longitude
-	vector<unsigned short> gps_long;
+//	vector<unsigned short> gps_long;
+	vector<unsigned long long> gps_long;
 	//! Latitude
-	vector<unsigned short> gps_lat;
+//	vector<unsigned short> gps_lat;
+	vector<unsigned long long> gps_lat;
 	//! Altitude
-	vector<unsigned short> gps_alt;
+//	vector<unsigned short> gps_alt;
+	vector<unsigned long long> gps_alt;
 	//! GPS temperature
-	vector<unsigned short> gps_temp;
+	vector<unsigned long long> gps_temp;
 	//! Control parameters - the list of general parameters that can set the mode of operation, select trigger sources and preset the common coincidence read out time window (Digitizer mode parameters in the manual). ToDo: Decode?
 	vector<vector<unsigned short>> digi_ctrl;
 	//! Window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). ToDo: Decode?
