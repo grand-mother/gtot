@@ -2,12 +2,12 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 cmake_minimum_required(VERSION 3.16)
 project(gtot)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Require CERN ROOT.
 find_package(ROOT CONFIG REQUIRED)
 
-add_executable(gtot main.cpp TADC.cpp TADC.h Traces.h TRawVoltage.cpp TRawVoltage.h TRun.cpp TRun.h)
+add_executable(gtot main.cpp TADC.cpp TADC.h Traces.h TRawVoltage.cpp TRawVoltage.h TRun.cpp TRun.h LinkDef.h)
 
 # If includes are not set, set them the old way
 # This is the "manual" way to add ROOT, the old "make" style, in case one does not source root (like me)
@@ -19,4 +19,8 @@ if(NOT CMAKE_CXX_FLAGS MATCHES "-I")
     set (CMAKE_EXE_LINKER_FLAGS ${ROOT_CXX_LIBS})
 endif()
 
-target_link_libraries(gtot PUBLIC ROOT::Tree)
+# A dictionary is needed for vector<vector<short>> etc.
+root_generate_dictionary(gtot_vectors gtot_vector_link.h LINKDEF LinkDef.h)
+add_library(gtot_vectors_lib SHARED gtot_vectors.cxx)
+target_include_directories(gtot_vectors_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(gtot PUBLIC ROOT::Core gtot_vectors_lib)
