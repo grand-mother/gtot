@@ -7,9 +7,69 @@
 #include "TADC.h"
 #include "TRawVoltage.h"
 
+// Prints help in the command line
+void print_help()
+{
+	cout << "GRAND TO TTrees (gtot), program for converting GRAND experiment binary files in raw hardware format to CERN ROOT TTrees.\nMade by Lech Wiktor Piotrowski <lech.piotrowski@fuw.edu.pl>, University of Warsaw, Poland." << endl << endl;
+	cout << "Usage: gtot <options> hardware_file_name" << endl;
+	cout << "Options:" << endl;
+	cout << "\t-h, --help\t\t\tdisplay this help" << endl;
+	cout << "\t-g1, --gp13v1\t\t\tthe input file is a GP13 v1 file" << endl;
+	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
+}
+
+string filename;
+string output_filename="";
+bool gp13v1 = false;
+string file_format = "";
+
+// Analyse the command line parameters
+void analyse_command_line_params(int argc, char **argv)
+{
+	if(argc<2)
+	{
+		cout << "Please provide the name of the binary file in raw hardware format!\nAdd -h to display help." << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	for(int i=1; i<argc; ++i)
+	{
+		// Help requested
+		if((strlen(argv[i])>=2 && strstr(argv[i],"-h")) || strstr(argv[i],"--help"))
+		{
+			print_help();
+			exit(0);
+		}
+		else if((strlen(argv[i])>=2 && strstr(argv[i],"-o")) || strstr(argv[i],"--output_filename"))
+		{
+			output_filename = argv[i+1];
+			++i;
+		}
+		else if((strlen(argv[i])>=2 && strstr(argv[i],"-g1")) || strstr(argv[i],"--gp13v1"))
+		{
+			gp13v1 = true;
+			file_format = "gp13v1";
+		}
+	}
+}
+
+
 int main(int argc, char **argv)
 {
-    auto tree_file = new TFile("test.root", "recreate");
+	analyse_command_line_params(argc, argv);
+
+	// Assume the file to analyse is the last parameter
+	filename = argv[argc-1];
+	cout << "Analysing " << filename << endl;
+
+	// If no output was provided, replace the file extension with ".root"
+	if(output_filename=="")
+	{
+		output_filename = filename;
+		output_filename = output_filename.replace(output_filename.find_last_of("."), output_filename.size()-output_filename.find_last_of("."), ".root");
+	}
+	auto tree_file = new TFile(output_filename.c_str(), "recreate");
+
 	// Just for debugging for now
 //	tree_file->SetCompressionLevel(0);
 
@@ -27,7 +87,7 @@ int main(int argc, char **argv)
 	FILE *fp;
 	int i,ich,ib;
 
-	fp = fopen(argv[1],"r");
+	fp = fopen(filename.c_str(),"r");
 	if(fp == NULL) printf("Error opening file %s\n",argv[1]);
 
 	int *filehdr=NULL;
@@ -43,11 +103,13 @@ int main(int argc, char **argv)
 		run->trun->BuildIndex("run_number");
 		run->trun->Write();
 
+		// For GP13 move in the file
+		if(gp13v1) fseek(fp, 256, 0);
 		// Loop-read the events
-		while(grand_read_event(fp, &event)>0)
+		while(grand_read_event(fp, &event, file_format.c_str())>0)
 		{
 			cout << "New event" << endl;
-			ADC->SetValuesFromPointers(event);
+			ADC->SetValuesFromPointers(event, file_format);
 			ADC->tadc->Fill();
 		}
 	}

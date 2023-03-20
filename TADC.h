@@ -159,7 +159,7 @@ public:
 	TTree *CreateTree();
 
 	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
-	int SetValuesFromPointers(unsigned short *pevent);
+	int SetValuesFromPointers(unsigned short *pevent, string file_format="");
 
 	//! The default constructor
 	TADC();

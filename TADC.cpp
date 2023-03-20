@@ -85,8 +85,18 @@ TTree *TADC::CreateTree()
 	return tadc;
 }
 
-int TADC::SetValuesFromPointers(unsigned short *pevent)
+int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 {
+	int file_shift = 0;
+
+	// A bool means a lot of bools for more formats, but hopefully it won't come to that
+	bool gp13v1 = false;
+	if(strstr(file_format.c_str(),"gp13v1"))
+	{
+		gp13v1 = true;
+		file_shift = 8;
+	}
+
 	// Clear the vectors
 	ClearVectors();
 
@@ -94,114 +104,143 @@ int TADC::SetValuesFromPointers(unsigned short *pevent)
 
 	int idu = EVENT_DU; //parameter indicating start of LS
 	int ev_end = ((int)(pevent[EVENT_HDR_LENGTH+1]<<16)+(int)(pevent[EVENT_HDR_LENGTH]))/SHORTSIZE;
+	if(gp13v1)
+	{
+		idu = 0;
+	}
 
 	uint16_t *evdu;
+	char Event_ID[4];
+	char TriggerDuNumber[4];
+	char HitId[4];
 
 	event_size = *evptr++;
-	run_number = *evptr++;
-	event_number = *evptr++;
-	t3_number = *evptr++;
-	first_du = *evptr++;
-	time_seconds = *evptr++;
-	time_nanoseconds = *evptr++;
-	evdu = (uint16_t *)evptr;
-	event_type = evdu[0];
-	event_version = *evdu++;
-//	event_type = *evptr++;
-//	event_version = *evptr++;
-	evptr+=2;
-	// This value is rubbish now. Need to check the traces vector sizes
-	du_count = *evptr;
+	if(gp13v1)
+	{
+		run_number=event_size;
+		printf("event_size is %lld\n", event_size);
+		printf("msg_type is %lld\n", *evptr++);
+		du_id.push_back(*evptr++);
+		printf("duID is %d\n", du_id[0]);
+		//memcpy(HitId, (char*)evptr++, 4);
+		//printf("hit id is %lld\n",*evptr++);
+		event_number = *evptr++;
+		cout << "Event number " << event_number << endl;
+	}
+	else
+	{
+		run_number = *evptr++;
+		event_number = *evptr++;
+		t3_number = *evptr++;
+		first_du = *evptr++;
+		time_seconds = *evptr++;
+		time_nanoseconds = *evptr++;
+		evdu = (uint16_t *) evptr;
+		event_type = evdu[0];
+		event_version = *evdu++;
+		evptr += 2;
+		// This value is rubbish now. Need to check the traces vector sizes
+		du_count = *evptr;
+	}
+
+	int NewDataAdded = 8;//Byte
+	if (gp13v1) 
+	{
+		ev_end = event_size/sizeof(uint16_t);
+		cout<<"Test "<<event_size/sizeof(uint16_t)<<endl;
+	}
 
 	while(idu<ev_end)
 	{
 		evdu = (uint16_t *)(&pevent[idu]);
+		if(gp13v1) cout<<"EVT_LENGTH "<<evdu[file_shift + EVT_LENGTH]<<endl;
 
-		event_id.push_back(evdu[EVT_ID]);
-		du_id.push_back(evdu[EVT_HARDWARE]);
-		du_seconds.push_back(*(uint32_t *)&evdu[EVT_SECOND]);
-		du_nanoseconds.push_back(*(uint32_t *)&evdu[EVT_NANOSEC]);
-		trigger_position.push_back(evdu[EVT_TRIGGERPOS]);
-		trigger_flag.push_back(evdu[EVT_T3FLAG]);
-		atm_temperature.push_back(evdu[EVT_ATM_TEMP]);
-		atm_pressure.push_back(evdu[EVT_ATM_PRES]);
-		atm_humidity.push_back(evdu[EVT_ATM_HUM]);
-		acceleration_x.push_back(evdu[EVT_ACCEL_X]);
-		acceleration_y.push_back(evdu[EVT_ACCEL_Y]);
-		acceleration_z.push_back(evdu[EVT_ACCEL_Z]);
-		battery_level.push_back(evdu[EVT_ACCEL_Z]);
+		event_id.push_back(evdu[file_shift + EVT_ID]);
+		if(!gp13v1) du_id.push_back(evdu[file_shift + EVT_HARDWARE]);
+		du_seconds.push_back(*(uint32_t *)&evdu[file_shift + EVT_SECOND]);
+		du_nanoseconds.push_back(*(uint32_t *)&evdu[file_shift + EVT_NANOSEC]);
+		trigger_position.push_back(evdu[file_shift + EVT_TRIGGERPOS]);
+		trigger_flag.push_back(evdu[file_shift + EVT_T3FLAG]);
+		atm_temperature.push_back(evdu[file_shift + EVT_ATM_TEMP]);
+		atm_pressure.push_back(evdu[file_shift + EVT_ATM_PRES]);
+		atm_humidity.push_back(evdu[file_shift + EVT_ATM_HUM]);
+		acceleration_x.push_back(evdu[file_shift + EVT_ACCEL_X]);
+		acceleration_y.push_back(evdu[file_shift + EVT_ACCEL_Y]);
+		acceleration_z.push_back(evdu[file_shift + EVT_ACCEL_Z]);
+		battery_level.push_back(evdu[file_shift + EVT_ACCEL_Z]);
 		// ToDo: Is this the same as event_version for the whole event?
-		firmware_version.push_back(evdu[EVT_VERSION]);
-		adc_sampling_frequency.push_back(evdu[EVT_MSPS]);
-		adc_sampling_resolution.push_back(evdu[EVT_ADC_RES]);
-		adc_input_channels.push_back(evdu[EVT_INP_SELECT]);
-		adc_enabled_channels.push_back(evdu[EVT_CH_ENABLE]);
-		adc_samples_count_total.push_back(16*evdu[EVT_TOT_SAMPLES]);
-		adc_samples_count_channel0.push_back(evdu[EVT_TOT_SAMPLES+1]);
-		adc_samples_count_channel1.push_back(evdu[EVT_TOT_SAMPLES+2]);
-		adc_samples_count_channel2.push_back(evdu[EVT_TOT_SAMPLES+3]);
-		adc_samples_count_channel3.push_back(evdu[EVT_TOT_SAMPLES+4]);
-		trigger_pattern.push_back(evdu[EVT_TRIG_PAT]);
-		trigger_rate.push_back(evdu[EVT_TRIG_RATE]);
-		clock_tick.push_back(*(uint32_t *)&evdu[EVT_CTD]);
-		clock_ticks_per_second.push_back(*(uint32_t *)&evdu[EVT_CTP]);
-		gps_offset.push_back(*(float *)&evdu[EVT_PPS_OFFSET]);
-		gps_leap_second.push_back(evdu[EVT_LEAP]);
-		gps_status.push_back(evdu[EVT_GPS_STATFLAG]);
-		gps_alarms.push_back(evdu[EVT_GPS_CRITICAL]);
-		gps_warnings.push_back(evdu[EVT_GPS_WARNING]);
+		firmware_version.push_back(evdu[file_shift + EVT_VERSION]);
+		adc_sampling_frequency.push_back(evdu[file_shift + EVT_MSPS]);
+		adc_sampling_resolution.push_back(evdu[file_shift + EVT_ADC_RES]);
+		adc_input_channels.push_back(evdu[file_shift + EVT_INP_SELECT]);
+		adc_enabled_channels.push_back(evdu[file_shift + EVT_CH_ENABLE]);
+		adc_samples_count_total.push_back(16*evdu[file_shift + EVT_TOT_SAMPLES]);
+		adc_samples_count_channel0.push_back(evdu[file_shift + EVT_TOT_SAMPLES+1]);
+		adc_samples_count_channel1.push_back(evdu[file_shift + EVT_TOT_SAMPLES+2]);
+		adc_samples_count_channel2.push_back(evdu[file_shift + EVT_TOT_SAMPLES+3]);
+		adc_samples_count_channel3.push_back(evdu[file_shift + EVT_TOT_SAMPLES+4]);
+		trigger_pattern.push_back(evdu[file_shift + EVT_TRIG_PAT]);
+		trigger_rate.push_back(evdu[file_shift + EVT_TRIG_RATE]);
+		clock_tick.push_back(*(uint32_t *)&evdu[file_shift + EVT_CTD]);
+		clock_ticks_per_second.push_back(*(uint32_t *)&evdu[file_shift + EVT_CTP]);
+		gps_offset.push_back(*(float *)&evdu[file_shift + EVT_PPS_OFFSET]);
+		gps_leap_second.push_back(evdu[file_shift + EVT_LEAP]);
+		gps_status.push_back(evdu[file_shift + EVT_GPS_STATFLAG]);
+		gps_alarms.push_back(evdu[file_shift + EVT_GPS_CRITICAL]);
+		gps_warnings.push_back(evdu[file_shift + EVT_GPS_WARNING]);
 
 		// Convert the GPS times into unix time. This assumes we get UTC from the GPS
 		TTimeStamp ts;
-		ts.Set(evdu[EVT_YEAR], (evdu[EVT_DAYMONTH]>>8)&0xff, evdu[EVT_DAYMONTH]&0xff, evdu[EVT_MINHOUR]&0xff,(evdu[EVT_MINHOUR]>>8)&0xff,evdu[EVT_STATSEC]&0xff, 0, true, 0);
+		ts.Set(evdu[file_shift + EVT_YEAR], (evdu[file_shift + EVT_DAYMONTH]>>8)&0xff, evdu[file_shift + EVT_DAYMONTH]&0xff, evdu[file_shift + EVT_MINHOUR]&0xff,(evdu[file_shift + EVT_MINHOUR]>>8)&0xff,evdu[file_shift + EVT_STATSEC]&0xff, 0, true, 0);
 		gps_time.push_back(ts.GetSec());
 
 //		gps_long.push_back(57.3*(*(double *)&evdu[EVT_LONGITUDE]));
 //		gps_lat.push_back(57.3*(*(double *)&evdu[EVT_LATITUDE]));
 //		gps_alt.push_back(*(double *)&evdu[EVT_ALTITUDE]);
 //		gps_temp.push_back(*(float *)&evdu[EVT_GPS_TEMP]);
-		gps_long.push_back(*(unsigned long long*)&evdu[EVT_LONGITUDE]);
-		gps_lat.push_back(*(unsigned long long*)&evdu[EVT_LATITUDE]);
-		gps_alt.push_back(*(unsigned long long*)&evdu[EVT_ALTITUDE]);
-		gps_temp.push_back(*(unsigned long long*)&evdu[EVT_GPS_TEMP]);
+		gps_long.push_back(*(unsigned long long*)&evdu[file_shift + EVT_LONGITUDE]);
+		gps_lat.push_back(*(unsigned long long*)&evdu[file_shift + EVT_LATITUDE]);
+		gps_alt.push_back(*(unsigned long long*)&evdu[file_shift + EVT_ALTITUDE]);
+		gps_temp.push_back(*(unsigned long long*)&evdu[file_shift + EVT_GPS_TEMP]);
 		// Maybe this could be prettier with lambdas...
 		digi_ctrl.push_back(vector<unsigned short>());
-		for(int i=0;i<8;i++) digi_ctrl.back().push_back(evdu[EVT_CTRL+i]);
+		for(int i=0;i<8;i++) digi_ctrl.back().push_back(evdu[file_shift + EVT_CTRL+i]);
 		digi_prepost_trig_windows.push_back(vector<unsigned short>());
-		for(int i=0;i<8;i++) digi_prepost_trig_windows.back().push_back(evdu[EVT_WINDOWS+i]);
+		for(int i=0;i<8;i++) digi_prepost_trig_windows.back().push_back(evdu[file_shift + EVT_WINDOWS+i]);
 		channel_properties0.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_properties0.back().push_back(evdu[EVT_CHANNEL+6*0+i]);
+		for(int i=0;i<6;i++) channel_properties0.back().push_back(evdu[file_shift + EVT_CHANNEL+6*0+i]);
 		channel_properties1.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_properties1.back().push_back(evdu[EVT_CHANNEL+6*1+i]);
+		for(int i=0;i<6;i++) channel_properties1.back().push_back(evdu[file_shift + EVT_CHANNEL+6*1+i]);
 		channel_properties2.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_properties2.back().push_back(evdu[EVT_CHANNEL+6*2+i]);
+		for(int i=0;i<6;i++) channel_properties2.back().push_back(evdu[file_shift + EVT_CHANNEL+6*2+i]);
 		channel_properties3.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_properties3.back().push_back(evdu[EVT_CHANNEL+6*3+i]);
+		for(int i=0;i<6;i++) channel_properties3.back().push_back(evdu[file_shift + EVT_CHANNEL+6*3+i]);
 		channel_trig_settings0.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[EVT_TRIGGER+6*0+i]);
+		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[file_shift + EVT_TRIGGER+6*0+i]);
 		channel_trig_settings1.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_trig_settings1.back().push_back(evdu[EVT_TRIGGER+6*1+i]);
+		for(int i=0;i<6;i++) channel_trig_settings1.back().push_back(evdu[file_shift + EVT_TRIGGER+6*1+i]);
 		channel_trig_settings2.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_trig_settings2.back().push_back(evdu[EVT_TRIGGER+6*2+i]);
+		for(int i=0;i<6;i++) channel_trig_settings2.back().push_back(evdu[file_shift + EVT_TRIGGER+6*2+i]);
 		channel_trig_settings3.push_back(vector<unsigned short>());
-		for(int i=0;i<6;i++) channel_trig_settings3.back().push_back(evdu[EVT_TRIGGER+6*3+i]);
+		for(int i=0;i<6;i++) channel_trig_settings3.back().push_back(evdu[file_shift + EVT_TRIGGER+6*3+i]);
 		// ToDo: What is it?
-		ioff.push_back(evdu[EVT_HDRLEN]);
+		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
 
 		int start_addr = ioff.back();
-		int end_addr = start_addr+evdu[EVT_TOT_SAMPLES+1];
+		int end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+1];
 		trace_0.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
-		start_addr+=evdu[EVT_TOT_SAMPLES+1];
-		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+2];
+		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+1];
+		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+2];
 		trace_1.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
-		start_addr+=evdu[EVT_TOT_SAMPLES+2];
-		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+3];
+		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+2];
+		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+3];
 		trace_2.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
-		start_addr+=evdu[EVT_TOT_SAMPLES+3];
-		end_addr = start_addr+evdu[EVT_TOT_SAMPLES+4];
+		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+3];
+		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+4];
 		trace_3.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 
-		idu +=(evdu[EVT_LENGTH]);
+		if(gp13v1) idu +=(evdu[file_shift + EVT_LENGTH] + NewDataAdded);
+		else idu +=(evdu[file_shift + EVT_LENGTH]);
 	}
 	// Merge the traces
 	trace_ch.push_back(trace_0);
