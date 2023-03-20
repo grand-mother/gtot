@@ -31,6 +31,7 @@ TTree *TRun::CreateTree()
 	trun->Branch("event_type", &event_type, "event_type/i");
 	trun->Branch("event_version", &event_version, "event_version/i");
 	trun->Branch("site", &site);
+	trun->Branch("site_layout", &site_layout);
 //	trun->Branch("site_long", &site_long, "site_long/F");
 //	trun->Branch("site_lat", &site_lat, "site_lat/F");
 	trun->Branch("origin_geoid", &origin_geoid, "origin_geoid[3]/F");

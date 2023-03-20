@@ -28,7 +28,7 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 //	trawvoltage->Print();
 
 	// Exclude these branches from copying
-	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3"};
+	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch"};
 
 	// *** Transform the tadc events into trawvoltage events ***
 
@@ -92,6 +92,11 @@ void TRawVoltage::ADCs2Real(TADC *adc)
 		// Convert GPS ADC to real values
 		GPSADC2Real(i, adc);
 	}
+	// Merge the traces
+	trace_ch.push_back(trace_0);
+	trace_ch.push_back(trace_1);
+	trace_ch.push_back(trace_2);
+	trace_ch.push_back(trace_3);
 }
 
 void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
@@ -196,6 +201,7 @@ TTree *TRawVoltage::CreateTree()
 //	trawvoltage->Branch("acceleration_y", &acceleration_y);
 //	trawvoltage->Branch("acceleration_z", &acceleration_z);
 	trawvoltage->Branch("battery_level", &battery_level);
+	trawvoltage->Branch("adc_samples_count_channel", &adc_samples_count_channel);
 //	trawvoltage->Branch("firmware_version", &firmware_version);
 //	trawvoltage->Branch("adc_sampling_frequency", &adc_sampling_frequency);
 //	trawvoltage->Branch("adc_sampling_resolution", &adc_sampling_resolution);
@@ -234,10 +240,11 @@ TTree *TRawVoltage::CreateTree()
 //	trawvoltage->Branch("channel_trig_settings2", &channel_trig_settings2);
 //	trawvoltage->Branch("channel_trig_settings3", &channel_trig_settings3);
 	trawvoltage->Branch("ioff", &ioff);
-	trawvoltage->Branch("trace_0", &trace_0);
-	trawvoltage->Branch("trace_1", &trace_1);
-	trawvoltage->Branch("trace_2", &trace_2);
-	trawvoltage->Branch("trace_3", &trace_3);
+//	trawvoltage->Branch("trace_0", &trace_0);
+//	trawvoltage->Branch("trace_1", &trace_1);
+//	trawvoltage->Branch("trace_2", &trace_2);
+//	trawvoltage->Branch("trace_3", &trace_3);
+	trawvoltage->Branch("trace_ch", &trace_ch);
 
 	this->trawvoltage = trawvoltage;
 

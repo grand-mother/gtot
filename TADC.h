@@ -93,9 +93,9 @@ public:
 	//! Trigger rate - the number of triggers recorded in the second preceding the event
 	vector<unsigned short> trigger_rate;
 	//! Clock tick at which the event was triggered (used to calculate the trigger time)
-	vector<unsigned short> clock_tick;
+	vector<unsigned int> clock_tick;
 	//! Clock ticks per second
-	vector<unsigned short> clock_ticks_per_second;
+	vector<unsigned int> clock_ticks_per_second;
 	//! GPS offset - offset between the PPS and the real second (in GPS). ToDo: is it already included in the time calculations?
 	vector<float> gps_offset;
 	//! GPS leap second
@@ -118,7 +118,7 @@ public:
 //	vector<unsigned short> gps_alt;
 	vector<unsigned long long> gps_alt;
 	//! GPS temperature
-	vector<unsigned long long> gps_temp;
+	vector<unsigned int> gps_temp;
 	//! Control parameters - the list of general parameters that can set the mode of operation, select trigger sources and preset the common coincidence read out time window (Digitizer mode parameters in the manual). ToDo: Decode?
 	vector<vector<unsigned short>> digi_ctrl;
 	//! Window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). ToDo: Decode?
@@ -149,6 +149,8 @@ public:
 	vector<vector<short>> trace_2;
 	//! ADC trace 3
 	vector<vector<short>> trace_3;
+	//! ADC traces for channels (0,1,2,3)
+	vector<vector<vector<short>>> trace_ch;
 
 	//! The TTree for holding the data
 	TTree *tadc;

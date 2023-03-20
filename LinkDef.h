@@ -6,6 +6,8 @@
 #define GTOT_LINKDEF_H
 
 //#ifdef __ROOTCLING__
+#pragma link C++ class vector < vector < vector<float> > > +;
+#pragma link C++ class vector < vector < vector<short> > > +;
 #pragma link C++ class vector < vector<unsigned short> > +;
 #pragma link C++ class vector < vector<short> > +;
 #pragma link C++ class vector < vector<float> > +;

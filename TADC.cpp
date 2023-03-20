@@ -17,9 +17,9 @@ TTree *TADC::CreateTree()
 
 	// Create Branches for all stored data
 	// Int branches
-	tadc->Branch("event_size", &event_size, "event_size/i");
 	tadc->Branch("run_number", &run_number, "run_number/i");
 	tadc->Branch("event_number", &event_number, "event_number/i");
+	tadc->Branch("event_size", &event_size, "event_size/i");
 	tadc->Branch("t3_number", &t3_number, "t3_number/i");
 	tadc->Branch("first_du", &first_du, "first_du/i");
 	tadc->Branch("time_seconds", &time_seconds, "time_seconds/i");
@@ -76,11 +76,11 @@ TTree *TADC::CreateTree()
 	tadc->Branch("channel_trig_settings2", &channel_trig_settings2);
 	tadc->Branch("channel_trig_settings3", &channel_trig_settings3);
 	tadc->Branch("ioff", &ioff);
-	tadc->Branch("trace_0", &trace_0);
-	tadc->Branch("trace_1", &trace_1);
-	tadc->Branch("trace_2", &trace_2);
-	tadc->Branch("trace_3", &trace_3);
-
+//	tadc->Branch("trace_0", &trace_0);
+//	tadc->Branch("trace_1", &trace_1);
+//	tadc->Branch("trace_2", &trace_2);
+//	tadc->Branch("trace_3", &trace_3);
+	tadc->Branch("trace_ch", &trace_ch);
 
 	return tadc;
 }
@@ -143,7 +143,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent)
 		adc_samples_count_channel3.push_back(evdu[EVT_TOT_SAMPLES+4]);
 		trigger_pattern.push_back(evdu[EVT_TRIG_PAT]);
 		trigger_rate.push_back(evdu[EVT_TRIG_RATE]);
-		clock_tick.push_back(evdu[EVT_CTD]);
+		clock_tick.push_back(*(uint32_t *)&evdu[EVT_CTD]);
 		clock_ticks_per_second.push_back(*(uint32_t *)&evdu[EVT_CTP]);
 		gps_offset.push_back(*(float *)&evdu[EVT_PPS_OFFSET]);
 		gps_leap_second.push_back(evdu[EVT_LEAP]);
@@ -203,6 +203,11 @@ int TADC::SetValuesFromPointers(unsigned short *pevent)
 
 		idu +=(evdu[EVT_LENGTH]);
 	}
+	// Merge the traces
+	trace_ch.push_back(trace_0);
+	trace_ch.push_back(trace_1);
+	trace_ch.push_back(trace_2);
+	trace_ch.push_back(trace_3);
 
 	return 0;
 }
@@ -263,4 +268,5 @@ void TADC::ClearVectors()
 	trace_1.clear();
 	trace_2.clear();
 	trace_3.clear();
+	trace_ch.clear();
 }

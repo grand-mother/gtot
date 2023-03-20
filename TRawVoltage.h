@@ -102,7 +102,7 @@ public:
 	//! Trigger rate - the number of triggers recorded in the second preceding the event
 	vector<unsigned short> trigger_rate;
 	//! Clock tick at which the event was triggered (used to calculate the trigger time)
-	vector<unsigned short> clock_tick;
+	vector<unsigned int> clock_tick;
 	//! Clock ticks per second
 	vector<unsigned int> clock_ticks_per_second;
 	//! GPS offset - offset between the PPS and the real second (in GPS). ToDo: is it already included in the time calculations?
@@ -118,11 +118,11 @@ public:
 	//! GPS time
 	vector<unsigned int> gps_time;
 	//! Longitude
-	vector<float> gps_long;
+	vector<double> gps_long;
 	//! Latitude
-	vector<float> gps_lat;
+	vector<double> gps_lat;
 	//! Altitude
-	vector<float> gps_alt;
+	vector<double> gps_alt;
 	//! GPS temperature
 	vector<float> gps_temp;
 //	//! X position in site's referential
@@ -158,6 +158,7 @@ public:
 	vector<vector<float>> trace_1;
 	vector<vector<float>> trace_2;
 	vector<vector<float>> trace_3;
+	vector<vector<vector<float>>> trace_ch;
 
 	//! The TTree for holding the data
 	TTree *trawvoltage;
