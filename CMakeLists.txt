@@ -20,7 +20,7 @@ if(NOT CMAKE_CXX_FLAGS MATCHES "-I")
 endif()
 
 # A dictionary is needed for vector<vector<short>> etc.
-root_generate_dictionary(gtot_vectors gtot_vector_link.h LINKDEF LinkDef.h)
-add_library(gtot_vectors_lib SHARED gtot_vectors.cxx)
-target_include_directories(gtot_vectors_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(gtot PUBLIC ROOT::Core ROOT::Tree gtot_vectors_lib)
+add_library(gtot_vectors SHARED)
+target_include_directories(gtot_vectors PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+root_generate_dictionary(G__gtot_vectors gtot_vector_link.h MODULE gtot_vectors LINKDEF LinkDef.h)
+target_link_libraries(gtot PUBLIC ROOT::Core ROOT::Tree gtot_vectors)
