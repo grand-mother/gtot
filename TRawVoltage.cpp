@@ -83,11 +83,17 @@ void TRawVoltage::ADCs2Real(TADC *adc)
 	for (size_t i=0; i<adc->trace_ch.size(); ++i)
 	{
 		// Create this DU's vectors
-		trace_ch.push_back(vector<vector<float>>());
-		trace_ch.back().push_back(vector<float>());
-		trace_ch.back().push_back(vector<float>());
-		trace_ch.back().push_back(vector<float>());
-		trace_ch.back().push_back(vector<float>());
+//		trace_ch.push_back(vector<vector<float>>());
+//		trace_ch.back().push_back(vector<float>());
+//		trace_ch.back().push_back(vector<float>());
+//		trace_ch.back().push_back(vector<float>());
+//		trace_ch.back().push_back(vector<float>());
+		trace_ch.emplace_back();
+		trace_ch.back().emplace_back();
+		trace_ch.back().emplace_back();
+		trace_ch.back().emplace_back();
+		trace_ch.back().emplace_back();
+
 
 		// Convert this specific DU's ADCs to Voltage
 		TraceADC2Voltage(i, adc);
@@ -131,7 +137,7 @@ void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
 		gps_long.push_back(57.3*(*(double*)&adc->gps_long[du_num]));
 		gps_lat.push_back(57.3*(*(double*)&adc->gps_lat[du_num]));
 		gps_alt.push_back(*(double*)&adc->gps_alt[du_num]);
-		gps_temp.push_back(*(double*)&adc->gps_temp[du_num]);
+		gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
 }
 
 //void TRawVoltage::CalculateT0s(TADC *adc)
