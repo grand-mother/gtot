@@ -227,26 +227,30 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
 
 		int start_addr = ioff.back();
+		if(gp13v1) start_addr+=NewDataAdded;
+
+		// Merge the traces
+		trace_ch.push_back(vector<vector<short>>());
 		int end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+1];
-		trace_0.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+//		trace_0.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		trace_ch.back().push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+//		trace_ch.back().push_back(trace_0.back());
 		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+1];
 		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+2];
-		trace_1.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+//		trace_1.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		trace_ch.back().push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+2];
 		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+3];
-		trace_2.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+//		trace_2.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		trace_ch.back().push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+3];
 		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+4];
-		trace_3.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+//		trace_3.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
+		trace_ch.back().push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 
 		if(gp13v1) idu +=(evdu[file_shift + EVT_LENGTH] + NewDataAdded);
 		else idu +=(evdu[file_shift + EVT_LENGTH]);
 	}
-	// Merge the traces
-	trace_ch.push_back(trace_0);
-	trace_ch.push_back(trace_1);
-	trace_ch.push_back(trace_2);
-	trace_ch.push_back(trace_3);
 
 	return 0;
 }

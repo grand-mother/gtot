@@ -47,7 +47,6 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 			br->SetAddress(adc_br->GetAddress());
 		}
 	}
-
 	// Loop through the tadc events and fill the trawvoltage with the corresponding values
 	for(int entry_no=0; entry_no<tadc->GetEntries(); ++entry_no)
 	{
@@ -67,10 +66,11 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 void TRawVoltage::ADCs2Real(TADC *adc)
 {
 	// Clear the traces vectors
-	trace_0.clear();
-	trace_1.clear();
-	trace_2.clear();
-	trace_3.clear();
+//	trace_0.clear();
+//	trace_1.clear();
+//	trace_2.clear();
+//	trace_3.clear();
+	trace_ch.clear();
 
 	// Clear the GPS vectors
 	gps_long.clear();
@@ -80,23 +80,25 @@ void TRawVoltage::ADCs2Real(TADC *adc)
 
 	// Loop through the DUs
 //	for (size_t i=0; i<adc->du_count; ++i)
-	for (size_t i=0; i<adc->trace_0.size(); ++i)
+	for (size_t i=0; i<adc->trace_ch.size(); ++i)
 	{
 		// Create this DU's vectors
-		trace_0.push_back(vector<float>());
-		trace_1.push_back(vector<float>());
-		trace_2.push_back(vector<float>());
-		trace_3.push_back(vector<float>());
+		trace_ch.push_back(vector<vector<float>>());
+		trace_ch.back().push_back(vector<float>());
+		trace_ch.back().push_back(vector<float>());
+		trace_ch.back().push_back(vector<float>());
+		trace_ch.back().push_back(vector<float>());
+
 		// Convert this specific DU's ADCs to Voltage
 		TraceADC2Voltage(i, adc);
 		// Convert GPS ADC to real values
 		GPSADC2Real(i, adc);
 	}
-	// Merge the traces
-	trace_ch.push_back(trace_0);
-	trace_ch.push_back(trace_1);
-	trace_ch.push_back(trace_2);
-	trace_ch.push_back(trace_3);
+//	// Merge the traces
+//	trace_ch.push_back(trace_0);
+//	trace_ch.push_back(trace_1);
+//	trace_ch.push_back(trace_2);
+//	trace_ch.push_back(trace_3);
 }
 
 void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
@@ -105,14 +107,23 @@ void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
 	// Also, at the moment I assume trace_0/1/2 are x/y/z - this may also change in the future
 	// The conversion factor is just taken from the information for XiHu data, that "For currently ADC, the differential input voltage range is 1.8V (Vpp), that is -0.9V to 0.9V corresponding to ADC value -8192 to 8192"
 	float adc2voltageconst=0.9/8192;
-	trace_0[du_num].resize(adc->trace_0[du_num].size());
-	transform(adc->trace_0[du_num].begin(), adc->trace_0[du_num].end(), trace_0[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
-	trace_1[du_num].resize(adc->trace_1[du_num].size());
-	transform(adc->trace_1[du_num].begin(), adc->trace_1[du_num].end(), trace_1[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
-	trace_2[du_num].resize(adc->trace_2[du_num].size());
-	transform(adc->trace_2[du_num].begin(), adc->trace_2[du_num].end(), trace_2[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
-	trace_3[du_num].resize(adc->trace_3[du_num].size());
-	transform(adc->trace_3[du_num].begin(), adc->trace_3[du_num].end(), trace_3[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+//	trace_0[du_num].resize(adc->trace_0[du_num].size());
+//	transform(adc->trace_0[du_num].begin(), adc->trace_0[du_num].end(), trace_0[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+//	trace_1[du_num].resize(adc->trace_1[du_num].size());
+//	transform(adc->trace_1[du_num].begin(), adc->trace_1[du_num].end(), trace_1[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+//	trace_2[du_num].resize(adc->trace_2[du_num].size());
+//	transform(adc->trace_2[du_num].begin(), adc->trace_2[du_num].end(), trace_2[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+//	trace_3[du_num].resize(adc->trace_3[du_num].size());
+//	transform(adc->trace_3[du_num].begin(), adc->trace_3[du_num].end(), trace_3[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+
+	trace_ch[du_num][0].resize(adc->trace_ch[du_num][0].size());
+	transform(adc->trace_ch[du_num][0].begin(), adc->trace_ch[du_num][0].end(), trace_ch[du_num][0].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+	trace_ch[du_num][1].resize(adc->trace_ch[du_num][1].size());
+	transform(adc->trace_ch[du_num][1].begin(), adc->trace_ch[du_num][1].end(), trace_ch[du_num][1].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+	trace_ch[du_num][2].resize(adc->trace_ch[du_num][2].size());
+	transform(adc->trace_ch[du_num][2].begin(), adc->trace_ch[du_num][2].end(), trace_ch[du_num][2].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+	trace_ch[du_num][3].resize(adc->trace_ch[du_num][3].size());
+	transform(adc->trace_ch[du_num][3].begin(), adc->trace_ch[du_num][3].end(), trace_ch[du_num][3].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
 }
 
 void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
