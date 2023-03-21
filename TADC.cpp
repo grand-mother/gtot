@@ -191,7 +191,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 
 		// Convert the GPS times into unix time. This assumes we get UTC from the GPS
 		TTimeStamp ts;
-		ts.Set(evdu[file_shift + EVT_YEAR], (evdu[file_shift + EVT_DAYMONTH]>>8)&0xff, evdu[file_shift + EVT_DAYMONTH]&0xff, evdu[file_shift + EVT_MINHOUR]&0xff,(evdu[file_shift + EVT_MINHOUR]>>8)&0xff,evdu[file_shift + EVT_STATSEC]&0xff, 0, true, 0);
+		ts.Set(evdu[file_shift + EVT_YEAR], evdu[file_shift + EVT_DAYMONTH]&0xff, (evdu[file_shift + EVT_DAYMONTH]>>8)&0xff, evdu[file_shift + EVT_MINHOUR]&0xff,(evdu[file_shift + EVT_MINHOUR]>>8)&0xff,evdu[file_shift + EVT_STATSEC]&0xff, 0, true, 0);
 		gps_time.push_back(ts.GetSec());
 
 //		gps_long.push_back(57.3*(*(double *)&evdu[EVT_LONGITUDE]));
