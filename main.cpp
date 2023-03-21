@@ -12,6 +12,7 @@ void print_help()
 {
 	cout << "GRAND TO TTrees (gtot), program for converting GRAND experiment binary files in raw hardware format to CERN ROOT TTrees.\nMade by Lech Wiktor Piotrowski <lech.piotrowski@fuw.edu.pl>, University of Warsaw, Poland." << endl << endl;
 	cout << "Usage: gtot <options> hardware_file_name" << endl;
+	cout << "!!! hardware_file_name has to be the last option on the command line !!!" << endl;
 	cout << "Options:" << endl;
 	cout << "\t-h, --help\t\t\tdisplay this help" << endl;
 	cout << "\t-g1, --gp13v1\t\t\tthe input file is a GP13 v1 file" << endl;
