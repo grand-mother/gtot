@@ -98,11 +98,10 @@ int main(int argc, char **argv)
 	if(grand_read_file_header(fp, &filehdr))
 	{
 		// Read the file header and fill the Run TTree
-		run->SetValuesFromPointers(filehdr);
-		// Write the Run TTree
-		run->trun->Fill();
-		run->trun->BuildIndex("run_number");
-		run->trun->Write();
+		run->SetValuesFromPointers(filehdr, filename);
+
+		// Event counter
+		int event_counter = 0;
 
 		// For GP13 move in the file
 		if(gp13v1) fseek(fp, 256, 0);
@@ -112,6 +111,20 @@ int main(int argc, char **argv)
 			cout << "New event" << endl;
 			ADC->SetValuesFromPointers(event, file_format);
 			ADC->tadc->Fill();
+
+			// For the first event, fill some trun values read by tadc
+			if(event_counter==0)
+			{
+				run->event_version = ADC->event_version;
+				run->event_type = ADC->event_type;
+
+				// Write the Run TTree
+				run->trun->Fill();
+				run->trun->BuildIndex("run_number");
+				run->trun->Write();
+			}
+
+			event_counter++;
 		}
 	}
 	if (fp != NULL) fclose(fp); // close the file

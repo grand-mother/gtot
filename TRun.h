@@ -40,7 +40,7 @@ public:
 	//! Data generator: gtot (in this case)
 	string data_generator="gtot";
 	//! Generator version: gtot version (in this case)
-	string data_generator_version="0.1.0";
+	string data_generator_version="0.2";
 	//! Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
 	unsigned int event_type=0;
 	//! Event format version of the DAQ
@@ -76,7 +76,7 @@ public:
 	TTree *CreateTree();
 
 	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
-	int SetValuesFromPointers(int *pheader);
+	int SetValuesFromPointers(int *pheader, string filename="");
 
 	//! The default constructor
 	TRun();

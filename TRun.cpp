@@ -47,7 +47,7 @@ TTree *TRun::CreateTree()
 	return trun;
 }
 
-int TRun::SetValuesFromPointers(int *pheader)
+int TRun::SetValuesFromPointers(int *pheader, string filename)
 {
 	run_number = pheader[FILE_HDR_RUNNR];
 	run_mode = pheader[FILE_HDR_RUN_MODE];
@@ -56,6 +56,11 @@ int TRun::SetValuesFromPointers(int *pheader)
 	first_event_time = pheader[FILE_HDR_FIRST_EVENT_SEC];
 	last_event = pheader[FILE_HDR_LAST_EVENT];
 	last_event_time = pheader[FILE_HDR_LAST_EVENT_SEC];
+
+	// GP13 case
+	if(strstr(filename.c_str(), "GP13") || strstr(filename.c_str(), "gp13") || strstr(filename.c_str(), "Gp13"))
+		site = "GP13";
+		site_layout = "GP13";
 
 	return 0;
 }
