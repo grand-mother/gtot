@@ -94,6 +94,8 @@ int main(int argc, char **argv)
 	int *filehdr=NULL;
 	unsigned short *event=NULL;
 
+	int ret_val = 0;
+
 	// Read the file from the detector and fill in the TTrees with the read-out data
 	if(grand_read_file_header(fp, &filehdr))
 	{
@@ -109,7 +111,8 @@ int main(int argc, char **argv)
 		while(grand_read_event(fp, &event, file_format.c_str())>0)
 		{
 			cout << "New event" << endl;
-			ADC->SetValuesFromPointers(event, file_format);
+			ret_val = ADC->SetValuesFromPointers(event, file_format);
+			if(ret_val<0) break;
 			ADC->tadc->Fill();
 
 			// For the first event, fill some trun values read by tadc
@@ -128,6 +131,13 @@ int main(int argc, char **argv)
 		}
 	}
 	if (fp != NULL) fclose(fp); // close the file
+
+	// In case of a bad return above, just close the file and exit
+	if(ret_val<0)
+	{
+		tree_file->Close();
+		return ret_val;
+	}
 
 	// Build the run_number/event_number index for ADC TTree
 	ADC->tadc->BuildIndex("run_number", "event_number");
