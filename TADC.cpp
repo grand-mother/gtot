@@ -172,7 +172,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		acceleration_x.push_back(evdu[file_shift + EVT_ACCEL_X]);
 		acceleration_y.push_back(evdu[file_shift + EVT_ACCEL_Y]);
 		acceleration_z.push_back(evdu[file_shift + EVT_ACCEL_Z]);
-		battery_level.push_back(evdu[file_shift + EVT_ACCEL_Z]);
+		battery_level.push_back(evdu[file_shift + EVT_BATTERY]);
 		// ToDo: Is this the same as event_version for the whole event?
 		firmware_version.push_back(evdu[file_shift + EVT_VERSION]);
 		adc_sampling_frequency.push_back(evdu[file_shift + EVT_MSPS]);
