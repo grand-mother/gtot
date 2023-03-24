@@ -87,6 +87,9 @@ TTree *TADC::CreateTree()
 
 int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 {
+	// The allowed amount of DUs in the event. If it is exceeded, probably the reading of the file went wrong.
+	int safe_du_amount = 10000;
+
 	int file_shift = 0;
 
 	// A bool means a lot of bools for more formats, but hopefully it won't come to that
@@ -149,6 +152,8 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		ev_end = event_size/sizeof(uint16_t);
 		cout<<"Test "<<event_size/sizeof(uint16_t)<<endl;
 	}
+
+	int du_counter=0;
 
 	while(idu<ev_end)
 	{
@@ -265,6 +270,16 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 
 		if(gp13v1) idu +=(evdu[file_shift + EVT_LENGTH] + NewDataAdded);
 		else idu +=(evdu[file_shift + EVT_LENGTH]);
+
+		du_counter++;
+		// Safety check of the amount of DUs in the event. If too big, the file reading most likely went wrong.
+		if(du_counter>=safe_du_amount)
+		{
+			cerr << "The amount of DUs in the event exceeded " << safe_du_amount << ". Too much!" << endl;
+			cerr << "Make sure that the file format is correct and the file is not corrupted." << endl;
+			cerr << "Exiting, to avoid a memory hog." << endl;
+			return -1;
+		}
 	}
 
 	return 0;
