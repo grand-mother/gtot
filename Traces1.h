@@ -5,6 +5,7 @@
 #include<time.h>
 #include<stdlib.h>
 #include<string.h>
+#include "gtot.h"
 
 #define INTSIZE 4
 #define SHORTSIZE 2
@@ -74,6 +75,8 @@ int grand_read_file_header(FILE *fp, int **pfilehdr)
 
 int grand_read_event(FILE *fp, unsigned short **pevent, const char *file_format)
 {
+	std::ostream &vout = *pvout;
+
 	// A bool means a lot of bools for more formats, but hopefully it won't come to that
 	bool gp13v1 = false;
 	if (strstr(file_format, "gp13v1")) gp13v1 = true;
@@ -81,13 +84,13 @@ int grand_read_event(FILE *fp, unsigned short **pevent, const char *file_format)
 	unsigned short *event = NULL;
 	int isize, return_code;
 
-	if (gp13v1) printf("Tag!!!\n");
+	if (gp13v1) vout << "Tag!!!\n";
 	if (!fread(&isize, INTSIZE, 1, fp))
 	{
 		printf("Cannot read the Event length\n");
 		return (0);                                                       //cannot read the header length
 	}
-	printf("The event length is %d bytes \n", isize);
+	vout << "The event length is " << isize << "bytes \n";
 	if (event != NULL)
 	{
 		if (event[0] != isize)

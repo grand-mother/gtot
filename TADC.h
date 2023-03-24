@@ -11,6 +11,7 @@
 #include "Traces.h"
 #include "TTree.h"
 #include "TTimeStamp.h"
+#include "gtot.h"
 
 using namespace std;
 

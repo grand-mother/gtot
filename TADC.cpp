@@ -6,6 +6,8 @@
 #include "TADC.h"
 #include <iostream>
 
+//extern std::ostream *pvout;
+
 TADC::TADC()
 {
 	CreateTree();
@@ -87,6 +89,8 @@ TTree *TADC::CreateTree()
 
 int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 {
+	std::ostream &vout = *pvout;
+
 	// The allowed amount of DUs in the event. If it is exceeded, probably the reading of the file went wrong.
 	int safe_du_amount = 10000;
 
@@ -121,14 +125,13 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 	if(gp13v1)
 	{
 		run_number=event_size;
-		printf("event_size is %lld\n", event_size);
-		printf("msg_type is %lld\n", *evptr++);
+		vout << "event_size is " << event_size << endl;
+		vout << "msg_type is " << *evptr++ << endl;
 		du_id.push_back(*evptr++);
-		printf("duID is %d\n", du_id[0]);
+		vout << "duID is " << du_id[0] << endl;
 		//memcpy(HitId, (char*)evptr++, 4);
 		//printf("hit id is %lld\n",*evptr++);
 		event_number = *evptr++;
-		cout << "Event number " << event_number << endl;
 	}
 	else
 	{
@@ -150,7 +153,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 	if (gp13v1) 
 	{
 		ev_end = event_size/sizeof(uint16_t);
-		cout<<"Test "<<event_size/sizeof(uint16_t)<<endl;
+		vout<<"Test "<<event_size/sizeof(uint16_t)<<endl;
 	}
 
 	int du_counter=0;
@@ -158,7 +161,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 	while(idu<ev_end)
 	{
 		evdu = (uint16_t *)(&pevent[idu]);
-		if(gp13v1) cout<<"EVT_LENGTH "<<evdu[file_shift + EVT_LENGTH]<<endl;
+		if(gp13v1) vout<<"EVT_LENGTH "<<evdu[file_shift + EVT_LENGTH]<<endl;
 
 		event_id.push_back(evdu[file_shift + EVT_ID]);
 		if(!gp13v1) du_id.push_back(evdu[file_shift + EVT_HARDWARE]);

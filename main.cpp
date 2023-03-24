@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "Traces1.h"
 #include "TFile.h"
 #include "TInterpreter.h"
@@ -6,6 +7,9 @@
 #include "TRun.h"
 #include "TADC.h"
 #include "TRawVoltage.h"
+#include "gtot.h"
+
+bool overbose = false;
 
 // Prints help in the command line
 void print_help()
@@ -17,6 +21,7 @@ void print_help()
 	cout << "\t-h, --help\t\t\tdisplay this help" << endl;
 	cout << "\t-g1, --gp13v1\t\t\tthe input file is a GP13 v1 file" << endl;
 	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
+	cout << "\t-v, --verbose\tswitch on verbose output" << endl;
 }
 
 string filename;
@@ -51,13 +56,26 @@ void analyse_command_line_params(int argc, char **argv)
 			gp13v1 = true;
 			file_format = "gp13v1";
 		}
+		else if((strlen(argv[i])==2 && strstr(argv[i],"-v")) || strstr(argv[i],"--verbose"))
+		{
+			cout << "Switching cout" << endl;
+			overbose = true;
+		}
 	}
 }
 
+std::ostream *pvout;
 
 int main(int argc, char **argv)
 {
 	analyse_command_line_params(argc, argv);
+
+	// Create verbose output stream if requested
+	std::ofstream dev_null("/dev/null");
+	pvout = (std::ostream*)&dev_null;
+	if(overbose)
+		pvout = &cout;
+	std::ostream &vout = *pvout;
 
 	// Assume the file to analyse is the last parameter
 	filename = argv[argc-1];
