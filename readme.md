@@ -11,16 +11,16 @@ gtot -h
 
 Standard usage:
 ```
-gtot <options> hardware_file_name
+gtot <options> <hardware_file_names>.dat/.f0*
 ```
 
 To convert GP13 v1 files, use option ```-g1```:
 ```
-gtot -g1 hardware_file_name
+gtot -g1 <hardware_file_names>.dat
 ```
 
 * By default, gtot will generate the ROOT file with the hardware_file_name extension replaced with ".root", in the place where the hardware file resides.
-* If you want to change the output file name, use option ```-o root_file_name```
+* If you want to change the output file name, use option ```-o root_file_name```, only if single file is analysed
 
 
 
