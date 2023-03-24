@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 		// Loop-read the events
 		while(grand_read_event(fp, &event, file_format.c_str())>0)
 		{
-			cout << "New event" << endl;
+			cout << "\rEvent " << event_counter;
 			ret_val = ADC->SetValuesFromPointers(event, file_format);
 			if(ret_val<0) break;
 			ADC->tadc->Fill();

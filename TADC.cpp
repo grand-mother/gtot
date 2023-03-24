@@ -125,7 +125,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 	if(gp13v1)
 	{
 		run_number=event_size;
-		vout << "event_size is " << event_size << endl;
+		vout << "\nevent_size is " << event_size << endl;
 		vout << "msg_type is " << *evptr++ << endl;
 		du_id.push_back(*evptr++);
 		vout << "duID is " << du_id[0] << endl;

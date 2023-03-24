@@ -22,26 +22,26 @@ int grand_read_file_header(FILE *fp, int **pfilehdr)
 
 	if (!fread(&isize, INTSIZE, 1, fp))
 	{
-		printf("Cannot read the header length\n");
+		printf("\nCannot read the header length\n");
 		return (0);                                                       //cannot read the header length
 	}
 	printf("The header length is %d bytes \n", isize);
 	if (isize < FILE_HDR_ADDITIONAL)
 	{
-		printf("The file header is too short, only %d integers\n", isize);
+		printf("\nThe file header is too short, only %d integers\n", isize);
 		return (0);                                                       //file header too short
 	}
 	if (filehdr != NULL) free((void *) filehdr);                         //in case we run several files
 	filehdr = (int *) malloc(isize + INTSIZE);                            //allocate memory for the file header
 	if (filehdr == NULL)
 	{
-		printf("Cannot allocate enough memory to save the file header!\n");
+		printf("\nCannot allocate enough memory to save the file header!\n");
 		return (0);                                                       //cannot allocate memory for file header
 	}
 	filehdr[0] = isize;                                                //put the size into the header
 	if ((return_code = fread(&(filehdr[1]), 1, isize, fp)) != (isize))
 	{
-		printf("Cannot read the full header (%d)\n", return_code);
+		printf("\nCannot read the full header (%d)\n", return_code);
 		return (0);                                                       //cannot read the full header
 	}
 	*pfilehdr = filehdr;
@@ -87,7 +87,7 @@ int grand_read_event(FILE *fp, unsigned short **pevent, const char *file_format)
 	if (gp13v1) vout << "Tag!!!\n";
 	if (!fread(&isize, INTSIZE, 1, fp))
 	{
-		printf("Cannot read the Event length\n");
+		printf("\nCannot read the Event length\n");
 		return (0);                                                       //cannot read the header length
 	}
 	vout << "The event length is " << isize << "bytes \n";
@@ -106,7 +106,7 @@ int grand_read_event(FILE *fp, unsigned short **pevent, const char *file_format)
 	}
 	if (event == NULL)
 	{
-		printf("Cannot allocate enough memory to save the event!\n");
+		printf("\nCannot allocate enough memory to save the event!\n");
 		return (0);                                                       //cannot allocate memory for event
 	}
 	event[0] = isize & 0xffff;                                                  //put the size into the event
@@ -116,7 +116,7 @@ int grand_read_event(FILE *fp, unsigned short **pevent, const char *file_format)
 
 	if ((!gp13v1 && return_code != (isize)) || (gp13v1 && (return_code != (isize - INTSIZE))))
 	{
-		printf("Cannot read the full event (%d)\n", return_code);
+		printf("\nCannot read the full event (%d)\n", return_code);
 		return (0);                                                       //cannot read the full event
 	}
 	*pevent = event;
