@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 		if (grand_read_file_header(fp, &filehdr))
 		{
 			// Read the file header and fill the Run TTree
-			run->SetValuesFromPointers(filehdr, filename);
+			run->SetValuesFromPointers(filehdr, file_format);
 
 			// Event counter
 			int event_counter = 0;

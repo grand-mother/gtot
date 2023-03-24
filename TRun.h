@@ -8,7 +8,9 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 #include "TTree.h"
+#include "gp13.h"
 
 using namespace std;
 
@@ -76,7 +78,7 @@ public:
 	TTree *CreateTree();
 
 	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
-	int SetValuesFromPointers(int *pheader, string filename="");
+	int SetValuesFromPointers(int *pheader, string file_format="");
 
 	//! The default constructor
 	TRun();

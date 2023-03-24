@@ -47,7 +47,7 @@ TTree *TRun::CreateTree()
 	return trun;
 }
 
-int TRun::SetValuesFromPointers(int *pheader, string filename)
+int TRun::SetValuesFromPointers(int *pheader, string file_format)
 {
 	run_number = pheader[FILE_HDR_RUNNR];
 	run_mode = pheader[FILE_HDR_RUN_MODE];
@@ -58,9 +58,23 @@ int TRun::SetValuesFromPointers(int *pheader, string filename)
 	last_event_time = pheader[FILE_HDR_LAST_EVENT_SEC];
 
 	// GP13 case
-	if(strstr(filename.c_str(), "GP13") || strstr(filename.c_str(), "gp13") || strstr(filename.c_str(), "Gp13"))
+	if(strstr(file_format.c_str(), "GP13") || strstr(file_format.c_str(), "gp13") || strstr(file_format.c_str(), "Gp13"))
+	{
 		site = "GP13";
 		site_layout = "GP13";
+
+		this->origin_geoid[0] = gp13::origin_geoid[0];
+		this->origin_geoid[1] = gp13::origin_geoid[1];
+		this->origin_geoid[2] = gp13::origin_geoid[2];
+		this->du_id = gp13::du_id;
+		this->du_geoid = gp13::du_geoid;
+		this->du_xyz = gp13::du_xyz;
+		this->du_type = gp13::du_type;
+		this->du_tilt = gp13::du_tilt;
+		this->du_ground_tilt = gp13::du_ground_tilt;
+		this->du_nut = gp13::du_nut;
+		this->du_feb = gp13::du_feb;
+	}
 
 	return 0;
 }
