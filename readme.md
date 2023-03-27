@@ -50,3 +50,4 @@ cd cmake-build-release
 cmake .. --fresh
 make clean; make all
 ```
+If you have cmake older than 3.24, `cmake --target clean; cmake ..` may be necessary instead of `cmake .. --fresh`.
