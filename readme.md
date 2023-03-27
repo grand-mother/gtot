@@ -47,7 +47,6 @@ make all
 This may be necessary sometimes, if the project configuration has changed:
 ```
 cd cmake-build-release
-rm -r *
-cmake ..
-make all
+cmake .. --fresh
+make clean; make all
 ```
