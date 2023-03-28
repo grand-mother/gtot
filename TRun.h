@@ -11,6 +11,7 @@
 #include <iostream>
 #include "TTree.h"
 #include "gp13.h"
+#include "TADC.h"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ public:
 	//! Data generator: gtot (in this case)
 	string data_generator="gtot";
 	//! Generator version: gtot version (in this case)
-	string data_generator_version="0.21";
+	string data_generator_version="0.22";
 	//! Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
 	unsigned int event_type=0;
 	//! Event format version of the DAQ
@@ -69,6 +70,8 @@ public:
 	vector<int> du_nut;
 	//! Detector unit (antenna) FrontEnd Board ID
 	vector<int> du_feb;
+	//! Time bin size in ns (computed as 1/adc_sampling_frequency)
+	vector<float> t_bin_size;
 
 
 	//! The TTree for holding the data
@@ -79,6 +82,9 @@ public:
 
 	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
 	int SetValuesFromPointers(int *pheader, string file_format="");
+
+	//! Set the values of t_bin_size vector from adc_sampling_frequency vector in the TADC tree
+	void SetTBinSizeFromADCSamplingFrequency(TADC *t);
 
 	//! The default constructor
 	TRun();

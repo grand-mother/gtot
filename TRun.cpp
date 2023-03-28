@@ -43,6 +43,7 @@ TTree *TRun::CreateTree()
 	trun->Branch("du_ground_tilt", &du_ground_tilt);
 	trun->Branch("du_nut", &du_nut);
 	trun->Branch("du_feb", &du_feb);
+	trun->Branch("t_bin_size", &t_bin_size);
 
 	return trun;
 }
@@ -77,4 +78,12 @@ int TRun::SetValuesFromPointers(int *pheader, string file_format)
 	}
 
 	return 0;
+}
+
+void TRun::SetTBinSizeFromADCSamplingFrequency(TADC *t)
+{
+	for(int i=0; i<t->adc_sampling_frequency.size(); ++i)
+	{
+		this->t_bin_size.push_back(1./t->adc_sampling_frequency[i]*1000);
+	}
 }

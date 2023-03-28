@@ -178,8 +178,11 @@ int main(int argc, char **argv)
 				// For the first event, fill some trun values read by tadc
 				if (event_counter == 0)
 				{
+					// Event type and version
 					run->event_version = ADC->event_version;
 					run->event_type = ADC->event_type;
+					// The time bin size
+					run->SetTBinSizeFromADCSamplingFrequency(ADC);
 
 					// Write the Run TTree
 					run->trun->Fill();
