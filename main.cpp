@@ -165,6 +165,8 @@ int main(int argc, char **argv)
 			{
 				ret_val = ADC->SetValuesFromPointers(event, file_format);
 				if (ret_val < 0) break;
+				// For GP13v1 overwrite the event number - in raw data it is separate for each DU and thus not unique, while it needs to be unique in the TTree
+				if (gp13v1) ADC->event_number=event_counter;
 				ADC->tadc->Fill();
 
 				// For the first event, fill some trun values read by tadc
