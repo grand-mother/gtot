@@ -43,7 +43,7 @@ public:
 	//! Data generator: gtot (in this case)
 	string data_generator="gtot";
 	//! Generator version: gtot version (in this case)
-	string data_generator_version="0.22";
+	string data_generator_version="0.23";
 	//! Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
 	unsigned int event_type=0;
 	//! Event format version of the DAQ

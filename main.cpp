@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 					// Write the Run TTree
 					run->trun->Fill();
 					run->trun->BuildIndex("run_number");
-					run->trun->Write();
+					run->trun->Write("", TObject::kWriteDelete);
 				}
 
 				cout << "\rFilled event " << event_counter;
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 		ADC->tadc->AddFriend(run->trun);
 		// Write out the ADC TTree to the file
 		cout << "Writing TADC tree" << endl;
-		ADC->tadc->Write();
+		ADC->tadc->Write("", TObject::kWriteDelete);
 
 		// Create the TRawVoltage TTree
 		auto voltage = new TRawVoltage(ADC);
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 		voltage->trawvoltage->AddFriend(run->trun);
 		// Write out the Voltage TTree to the file
 		cout << "Writing TRawVoltage tree" << endl;
-		voltage->trawvoltage->Write();
+		voltage->trawvoltage->Write("", TObject::kWriteDelete);
 
 		// Close the TFile with the TTrees
 		tree_file->Close();
