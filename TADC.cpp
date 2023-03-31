@@ -3,10 +3,12 @@
 //
 // The main class for holding the ADC counts and other data coming from the detectors
 
-#include "TADC.h"
 #include <iostream>
+#include "TADC.h"
+#include "TDatime.h"
+#include "TNamed.h"
+#include "TParameter.h"
 
-//extern std::ostream *pvout;
 
 TADC::TADC()
 {
@@ -16,6 +18,9 @@ TADC::TADC()
 TTree *TADC::CreateTree()
 {
 	tadc = new TTree("tadc", "Event with ADC counts and information");
+
+	// Initialise metadata
+	InitialiseMetadata();
 
 	// Create Branches for all stored data
 	// Int branches
@@ -345,4 +350,19 @@ void TADC::ClearVectors()
 	trace_2.clear();
 	trace_3.clear();
 	trace_ch.clear();
+}
+
+//! Initialises the TTree metadata fields
+void TADC::InitialiseMetadata()
+{
+	this->creation_datetime = (new TDatime())->Convert(true);
+
+	this->tadc->GetUserInfo()->Add(new TNamed("type", this->type));
+	this->tadc->GetUserInfo()->Add(new TNamed("comment", this->comment));
+	this->tadc->GetUserInfo()->Add(new TParameter<int>("creation_datetime", this->creation_datetime));
+	this->tadc->GetUserInfo()->Add(new TNamed("modification_history", this->modification_history));
+	this->tadc->GetUserInfo()->Add(new TParameter<int>("source_datetime", this->source_datetime));
+	this->tadc->GetUserInfo()->Add(new TNamed("modification_software", this->modification_software));
+	this->tadc->GetUserInfo()->Add(new TNamed("modification_software_version", this->modification_software_version));
+	this->tadc->GetUserInfo()->Add(new TParameter<int>("analysis_level", this->analysis_level));
 }

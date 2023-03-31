@@ -19,6 +19,29 @@ class TADC
 {
 	// I assume we don't need getters and setters for these properties, because they are simple values
 public:
+
+	// *** Metadata ***
+
+	//! Tree type
+	string type = "TADC";
+	//! Comment - if needed, added by user
+	string comment = "";
+	//! TTree creation date/time in UTC - a naive time, without timezone set
+	int creation_datetime;
+	//! Modification history - JSON
+	string modification_history = "";
+
+	//! Unix creation datetime of the source tree; 0 s means no source
+	int source_datetime = 0;
+	//! The tool used to generate this tree's values from another tree
+	string modification_software = "";
+	//! The version of the tool used to generate this tree's values from another tree
+	string modification_software_version = "";
+	//! The analysis level of this tree
+	int analysis_level = 0;
+
+	// *** Entry values ***
+
 	// Better have local storage for all the variables if one day we don't init from the structure
 	// Common for the whole event
 	//! Event size
@@ -168,6 +191,9 @@ public:
 private:
 	//! Clear the vectors for another fill
 	void ClearVectors();
+
+	//! Initialises the TTree metadata fields
+	void InitialiseMetadata();
 
 };
 

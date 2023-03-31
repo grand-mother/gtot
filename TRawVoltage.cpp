@@ -8,6 +8,9 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include "TDatime.h"
+#include "TNamed.h"
+#include "TParameter.h"
 #include "TRawVoltage.h"
 
 using namespace std;
@@ -23,9 +26,10 @@ TRawVoltage::TRawVoltage()
 //! Constructor computing values from tadc
 TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 {
-	auto tadc = adc->tadc;
+	// Initialise metadata
+	InitialiseMetadata();
 
-//	trawvoltage->Print();
+	auto tadc = adc->tadc;
 
 	// Exclude these branches from copying
 	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch"};
@@ -330,3 +334,18 @@ TTree *TRawVoltage::CreateTree()
 //	trace_2.clear();
 //	trace_3.clear();
 //}
+
+//! Initialises the TTree metadata fields
+void TRawVoltage::InitialiseMetadata()
+{
+	this->creation_datetime = (new TDatime())->Convert(true);
+
+	this->trawvoltage->GetUserInfo()->Add(new TNamed("type", this->type));
+	this->trawvoltage->GetUserInfo()->Add(new TNamed("comment", this->comment));
+	this->trawvoltage->GetUserInfo()->Add(new TParameter<int>("creation_datetime", this->creation_datetime));
+	this->trawvoltage->GetUserInfo()->Add(new TNamed("modification_history", this->modification_history));
+	this->trawvoltage->GetUserInfo()->Add(new TParameter<int>("source_datetime", this->source_datetime));
+	this->trawvoltage->GetUserInfo()->Add(new TNamed("modification_software", this->modification_software));
+	this->trawvoltage->GetUserInfo()->Add(new TNamed("modification_software_version", this->modification_software_version));
+	this->trawvoltage->GetUserInfo()->Add(new TParameter<int>("analysis_level", this->analysis_level));
+}

@@ -19,6 +19,20 @@ class TRun
 {
 	// I assume we don't need getters and setters for these properties, because they are simple values
 public:
+
+	// *** Metadata ***
+
+	//! Tree type
+	string type = "TRun";
+	//! Comment - if needed, added by user
+	string comment = "";
+	//! TTree creation date/time in UTC - a naive time, without timezone set
+	int creation_datetime;
+	//! Modification history - JSON
+	string modification_history = "";
+
+	// *** Entry values ***
+
 	// Better have local storage for all the variables if one day we don't init from the structure
 
 	// These are coming from the hardware
@@ -43,7 +57,7 @@ public:
 	//! Data generator: gtot (in this case)
 	string data_generator="gtot";
 	//! Generator version: gtot version (in this case)
-	string data_generator_version="0.23";
+	string data_generator_version="0.24";
 	//! Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
 	unsigned int event_type=0;
 	//! Event format version of the DAQ
@@ -88,6 +102,10 @@ public:
 
 	//! The default constructor
 	TRun();
+
+private:
+	//! Initialises the TTree metadata fields
+	void InitialiseMetadata();
 
 };
 

@@ -5,6 +5,9 @@
 
 #include "TRun.h"
 #include "Traces.h"
+#include "TDatime.h"
+#include "TNamed.h"
+#include "TParameter.h"
 
 TRun::TRun()
 {
@@ -14,6 +17,9 @@ TRun::TRun()
 TTree *TRun::CreateTree()
 {
 	trun = new TTree("trun", "Run information");
+
+	// Initialise metadata
+	InitialiseMetadata();
 
 	// Create Branches for all stored data
 	// Int branches
@@ -86,4 +92,15 @@ void TRun::SetTBinSizeFromADCSamplingFrequency(TADC *t)
 	{
 		this->t_bin_size.push_back(1./t->adc_sampling_frequency[i]*1000);
 	}
+}
+
+//! Initialises the TTree metadata fields
+void TRun::InitialiseMetadata()
+{
+	this->creation_datetime = (new TDatime())->Convert(true);
+
+	this->trun->GetUserInfo()->Add(new TNamed("type", this->type));
+	this->trun->GetUserInfo()->Add(new TNamed("comment", this->comment));
+	this->trun->GetUserInfo()->Add(new TParameter<int>("creation_datetime", this->creation_datetime));
+	this->trun->GetUserInfo()->Add(new TNamed("modification_history", this->modification_history));
 }
