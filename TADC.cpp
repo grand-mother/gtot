@@ -4,6 +4,7 @@
 // The main class for holding the ADC counts and other data coming from the detectors
 
 #include <iostream>
+#include <bitset>
 #include "TADC.h"
 #include "TDatime.h"
 #include "TNamed.h"
@@ -51,14 +52,26 @@ TTree *TADC::CreateTree()
 	tadc->Branch("firmware_version", &firmware_version);
 	tadc->Branch("adc_sampling_frequency", &adc_sampling_frequency);
 	tadc->Branch("adc_sampling_resolution", &adc_sampling_resolution);
-	tadc->Branch("adc_input_channels", &adc_input_channels);
-	tadc->Branch("adc_enabled_channels", &adc_enabled_channels);
+//	tadc->Branch("adc_input_channels", &adc_input_channels);
+	tadc->Branch("adc_input_channels_ch", &adc_input_channels_ch);
+//	tadc->Branch("adc_enabled_channels", &adc_enabled_channels);
+	tadc->Branch("adc_enabled_channels_ch", &adc_enabled_channels_ch);
 	tadc->Branch("adc_samples_count_total", &adc_samples_count_total);
 	tadc->Branch("adc_samples_count_channel0", &adc_samples_count_channel0);
 	tadc->Branch("adc_samples_count_channel1", &adc_samples_count_channel1);
 	tadc->Branch("adc_samples_count_channel2", &adc_samples_count_channel2);
 	tadc->Branch("adc_samples_count_channel3", &adc_samples_count_channel3);
-	tadc->Branch("trigger_pattern", &trigger_pattern);
+
+	//	tadc->Branch("trigger_pattern", &trigger_pattern);
+	tadc->Branch("trigger_pattern_ch", &trigger_pattern_ch);
+	tadc->Branch("trigger_pattern_ch0_ch1", &trigger_pattern_ch0_ch1);
+	tadc->Branch("trigger_pattern_notch0_ch1", &trigger_pattern_notch0_ch1);
+	tadc->Branch("trigger_pattern_redch0_ch1", &trigger_pattern_redch0_ch1);
+	tadc->Branch("trigger_pattern_ch2_ch3", &trigger_pattern_ch2_ch3);
+	tadc->Branch("trigger_pattern_calibration", &trigger_pattern_calibration);
+	tadc->Branch("trigger_pattern_10s", &trigger_pattern_10s);
+	tadc->Branch("trigger_pattern_external_test_pulse", &trigger_pattern_external_test_pulse);
+
 	tadc->Branch("trigger_rate", &trigger_rate);
 	tadc->Branch("clock_tick", &clock_tick);
 	tadc->Branch("clock_ticks_per_second", &clock_ticks_per_second);
@@ -72,16 +85,57 @@ TTree *TADC::CreateTree()
 	tadc->Branch("gps_lat", &gps_lat);
 	tadc->Branch("gps_alt", &gps_alt);
 	tadc->Branch("gps_temp", &gps_temp);
-	tadc->Branch("digi_ctrl", &digi_ctrl);
-	tadc->Branch("digi_prepost_trig_windows", &digi_prepost_trig_windows);
-	tadc->Branch("channel_properties0", &channel_properties0);
-	tadc->Branch("channel_properties1", &channel_properties1);
-	tadc->Branch("channel_properties2", &channel_properties2);
-	tadc->Branch("channel_properties3", &channel_properties3);
-	tadc->Branch("channel_trig_settings0", &channel_trig_settings0);
-	tadc->Branch("channel_trig_settings1", &channel_trig_settings1);
-	tadc->Branch("channel_trig_settings2", &channel_trig_settings2);
-	tadc->Branch("channel_trig_settings3", &channel_trig_settings3);
+
+//	tadc->Branch("digi_ctrl", &digi_ctrl);
+	tadc->Branch("enable_auto_reset_timeout", &enable_auto_reset_timeout);
+	tadc->Branch("force_firmware_reset", &force_firmware_reset);
+	tadc->Branch("enable_filter_ch", &enable_filter_ch);
+	tadc->Branch("enable_1PPS", &enable_1PPS);
+	tadc->Branch("enable_DAQ", &enable_DAQ);
+	tadc->Branch("enable_trigger_ch", &enable_trigger_ch);
+	tadc->Branch("enable_trigger_ch0_ch1", &enable_trigger_ch0_ch1);
+	tadc->Branch("enable_trigger_notch0_ch1", &enable_trigger_notch0_ch1);
+	tadc->Branch("enable_trigger_redch0_ch1", &enable_trigger_redch0_ch1);
+	tadc->Branch("enable_trigger_ch2_ch3", &enable_trigger_ch2_ch3);
+	tadc->Branch("enable_trigger_calibration", &enable_trigger_calibration);
+	tadc->Branch("enable_trigger_10s", &enable_trigger_10s);
+	tadc->Branch("enable_trigger_external_test_pulse", &enable_trigger_external_test_pulse);
+	tadc->Branch("enable_readout_ch", &enable_readout_ch);
+	tadc->Branch("fire_single_test_pulse", &fire_single_test_pulse);
+	tadc->Branch("test_pulse_rate_divider", &test_pulse_rate_divider);
+	tadc->Branch("common_coincidence_time", &common_coincidence_time);
+	tadc->Branch("selector_readout_ch", &selector_readout_ch);
+
+	//tevent->Branch("clkb_event_gps", (gps_struct_spb2*)&Gps, "gps_time/F:gps_date:gps_lat:gps_lon:gps_hdp:gps_alt:gps_geoid_height:gps_update_time:gps_speed:gps_mag_variation:gps_course:gps_yaw:gps_tilt:gps_range_between_antennas:gps_pdop:gps_track_made_good:gps_track_made_good_magn:gps_station_id/S:gps_lat_hemisphere/B:gps_lon_hemisphere:gps_fix_quality:gps_alt_unit:gps_geoid_height_unit:gps_gngga_checksum:gps_gnzda_checksum:gps_pntl_checksum:gps_gnvtg_checksum:gps_mode:gps_mode_dim:gps_rec_warning:gps_mag_variation_hemisphere:gps_sat_mode:gps_sat_num/b:gps_ptnl_sat_num:gps_ptnl_fix_quality");
+
+//	tadc->Branch("digi_prepost_trig_windows", &digi_prepost_trig_windows);
+	tadc->Branch("pre_coincidence_window_ch", &pre_coincidence_window_ch);
+	tadc->Branch("post_coincidence_window_ch", &post_coincidence_window_ch);
+
+//	tadc->Branch("channel_properties0", &channel_properties0);
+//	tadc->Branch("channel_properties1", &channel_properties1);
+//	tadc->Branch("channel_properties2", &channel_properties2);
+//	tadc->Branch("channel_properties3", &channel_properties3);
+	tadc->Branch("gain_correction_ch", &gain_correction_ch);
+	tadc->Branch("integration_time_ch", &integration_time_ch);
+	tadc->Branch("offset_correction_ch", &offset_correction_ch);
+	tadc->Branch("base_maximum_ch", &base_maximum_ch);
+	tadc->Branch("base_minimum_ch", &base_minimum_ch);
+
+//	tadc->Branch("channel_trig_settings0", &channel_trig_settings0);
+//	tadc->Branch("channel_trig_settings1", &channel_trig_settings1);
+//	tadc->Branch("channel_trig_settings2", &channel_trig_settings2);
+//	tadc->Branch("channel_trig_settings3", &channel_trig_settings3);
+	tadc->Branch("signal_threshold_ch", &signal_threshold_ch);
+	tadc->Branch("noise_threshold_ch", &noise_threshold_ch);
+	tadc->Branch("tprev_ch", &tprev_ch);
+	tadc->Branch("tper_ch", &tper_ch);
+	tadc->Branch("tcmax_ch", &tcmax_ch);
+	tadc->Branch("ncmax_ch", &ncmax_ch);
+	tadc->Branch("ncmin_ch", &ncmin_ch);
+	tadc->Branch("qmax_ch", &qmax_ch);
+	tadc->Branch("qmin_ch", &qmin_ch);
+
 	tadc->Branch("ioff", &ioff);
 //	tadc->Branch("trace_0", &trace_0);
 //	tadc->Branch("trace_1", &trace_1);
@@ -185,14 +239,22 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		firmware_version.push_back(evdu[file_shift + EVT_VERSION]);
 		adc_sampling_frequency.push_back(evdu[file_shift + EVT_MSPS]);
 		adc_sampling_resolution.push_back(evdu[file_shift + EVT_ADC_RES]);
-		adc_input_channels.push_back(evdu[file_shift + EVT_INP_SELECT]);
-		adc_enabled_channels.push_back(evdu[file_shift + EVT_CH_ENABLE]);
+
+//		adc_input_channels.push_back(evdu[file_shift + EVT_INP_SELECT]);
+		ADCInputChannelsDecodeAndFill(evdu[file_shift + EVT_INP_SELECT]);
+
+//		adc_enabled_channels.push_back(evdu[file_shift + EVT_CH_ENABLE]);
+		ADCEnabledChannelsDecodeAndFill(evdu[file_shift + EVT_CH_ENABLE]);
+
 		adc_samples_count_total.push_back(16*evdu[file_shift + EVT_TOT_SAMPLES]);
 		adc_samples_count_channel0.push_back(evdu[file_shift + EVT_TOT_SAMPLES+1]);
 		adc_samples_count_channel1.push_back(evdu[file_shift + EVT_TOT_SAMPLES+2]);
 		adc_samples_count_channel2.push_back(evdu[file_shift + EVT_TOT_SAMPLES+3]);
 		adc_samples_count_channel3.push_back(evdu[file_shift + EVT_TOT_SAMPLES+4]);
-		trigger_pattern.push_back(evdu[file_shift + EVT_TRIG_PAT]);
+
+//		trigger_pattern.push_back(evdu[file_shift + EVT_TRIG_PAT]);
+		TriggerPatternDecodeAndFill(evdu[file_shift + EVT_TRIG_PAT]);
+
 		trigger_rate.push_back(evdu[file_shift + EVT_TRIG_RATE]);
 		clock_tick.push_back(*(uint32_t *)&evdu[file_shift + EVT_CTD]);
 		clock_ticks_per_second.push_back(*(uint32_t *)&evdu[file_shift + EVT_CTP]);
@@ -215,37 +277,37 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		gps_lat.push_back(*(unsigned long long*)&evdu[file_shift + EVT_LATITUDE]);
 		gps_alt.push_back(*(unsigned long long*)&evdu[file_shift + EVT_ALTITUDE]);
 		gps_temp.push_back(*(unsigned long long*)&evdu[file_shift + EVT_GPS_TEMP]);
-		// Maybe this could be prettier with lambdas...
+
 //		digi_ctrl.push_back(vector<unsigned short>());
-		digi_ctrl.emplace_back();
-		for(int i=0;i<8;i++) digi_ctrl.back().push_back(evdu[file_shift + EVT_CTRL+i]);
+//		digi_ctrl.emplace_back();
+//		for(int i=0;i<8;i++) digi_ctrl.back().push_back(evdu[file_shift + EVT_CTRL+i]);
+		DigiCtrlDecodeAndFill(&evdu[file_shift + EVT_CTRL]);
+
 //		digi_prepost_trig_windows.push_back(vector<unsigned short>());
-		digi_prepost_trig_windows.emplace_back();
-		for(int i=0;i<8;i++) digi_prepost_trig_windows.back().push_back(evdu[file_shift + EVT_WINDOWS+i]);
-//		channel_properties0.push_back(vector<unsigned short>());
-		channel_properties0.emplace_back();
-		for(int i=0;i<6;i++) channel_properties0.back().push_back(evdu[file_shift + EVT_CHANNEL+6*0+i]);
-//		channel_properties1.push_back(vector<unsigned short>());
-		channel_properties1.emplace_back();
-		for(int i=0;i<6;i++) channel_properties1.back().push_back(evdu[file_shift + EVT_CHANNEL+6*1+i]);
-//		channel_properties2.push_back(vector<unsigned short>());
-		channel_properties2.emplace_back();
-		for(int i=0;i<6;i++) channel_properties2.back().push_back(evdu[file_shift + EVT_CHANNEL+6*2+i]);
-//		channel_properties3.push_back(vector<unsigned short>());
-		channel_properties3.emplace_back();
-		for(int i=0;i<6;i++) channel_properties3.back().push_back(evdu[file_shift + EVT_CHANNEL+6*3+i]);
-//		channel_trig_settings0.push_back(vector<unsigned short>());
-		channel_trig_settings0.emplace_back();
-		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[file_shift + EVT_TRIGGER+6*0+i]);
-//		channel_trig_settings1.push_back(vector<unsigned short>());
-		channel_trig_settings1.emplace_back();
-		for(int i=0;i<6;i++) channel_trig_settings1.back().push_back(evdu[file_shift + EVT_TRIGGER+6*1+i]);
-//		channel_trig_settings2.push_back(vector<unsigned short>());
-		channel_trig_settings2.emplace_back();
-		for(int i=0;i<6;i++) channel_trig_settings2.back().push_back(evdu[file_shift + EVT_TRIGGER+6*2+i]);
-//		channel_trig_settings3.push_back(vector<unsigned short>());
-		channel_trig_settings3.emplace_back();
-		for(int i=0;i<6;i++) channel_trig_settings3.back().push_back(evdu[file_shift + EVT_TRIGGER+6*3+i]);
+//		digi_prepost_trig_windows.emplace_back();
+//		for(int i=0;i<8;i++) digi_prepost_trig_windows.back().push_back(evdu[file_shift + EVT_WINDOWS+i]);
+		DigiWindowDecodeAndFill(&evdu[file_shift + EVT_WINDOWS]);
+
+//		channel_properties0.emplace_back();
+//		for(int i=0;i<6;i++) channel_properties0.back().push_back(evdu[file_shift + EVT_CHANNEL+6*0+i]);
+//		channel_properties1.emplace_back();
+//		for(int i=0;i<6;i++) channel_properties1.back().push_back(evdu[file_shift + EVT_CHANNEL+6*1+i]);
+//		channel_properties2.emplace_back();
+//		for(int i=0;i<6;i++) channel_properties2.back().push_back(evdu[file_shift + EVT_CHANNEL+6*2+i]);
+//		channel_properties3.emplace_back();
+//		for(int i=0;i<6;i++) channel_properties3.back().push_back(evdu[file_shift + EVT_CHANNEL+6*3+i]);
+		ChannelPropertyDecodeAndFill((short*)&evdu[file_shift + EVT_CHANNEL]);
+
+//		channel_trig_settings0.emplace_back();
+//		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[file_shift + EVT_TRIGGER+6*0+i]);
+//		channel_trig_settings1.emplace_back();
+//		for(int i=0;i<6;i++) channel_trig_settings1.back().push_back(evdu[file_shift + EVT_TRIGGER+6*1+i]);
+//		channel_trig_settings2.emplace_back();
+//		for(int i=0;i<6;i++) channel_trig_settings2.back().push_back(evdu[file_shift + EVT_TRIGGER+6*2+i]);
+//		channel_trig_settings3.emplace_back();
+//		for(int i=0;i<6;i++) channel_trig_settings3.back().push_back(evdu[file_shift + EVT_TRIGGER+6*3+i]);
+		ChannelTriggerParameterDecodeAndFill((short*)&evdu[file_shift + EVT_TRIGGER]);
+
 		// ToDo: What is it?
 		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
 
@@ -312,14 +374,27 @@ void TADC::ClearVectors()
 	firmware_version.clear();
 	adc_sampling_frequency.clear();
 	adc_sampling_resolution.clear();
-	adc_input_channels.clear();
-	adc_enabled_channels.clear();
+//	adc_input_channels.clear();
+	adc_input_channels_ch.clear();
+//	adc_enabled_channels.clear();
+	adc_enabled_channels_ch.clear();
 	adc_samples_count_total.clear();
 	adc_samples_count_channel0.clear();
 	adc_samples_count_channel1.clear();
 	adc_samples_count_channel2.clear();
 	adc_samples_count_channel3.clear();
-	trigger_pattern.clear();
+
+//	trigger_pattern.clear();
+	trigger_pattern_ch.clear();
+	trigger_pattern_ch0_ch1.clear();
+	trigger_pattern_notch0_ch1.clear();
+	trigger_pattern_redch0_ch1.clear();
+	trigger_pattern_ch2_ch3.clear();
+	trigger_pattern_calibration.clear();
+	trigger_pattern_10s.clear();
+	trigger_pattern_external_test_pulse.clear();
+
+
 	trigger_rate.clear();
 	clock_tick.clear();
 	clock_ticks_per_second.clear();
@@ -333,22 +408,61 @@ void TADC::ClearVectors()
 	gps_lat.clear();
 	gps_alt.clear();
 	gps_temp.clear();
-	digi_ctrl.clear();
-	digi_prepost_trig_windows.clear();
-	channel_properties0.clear();
-	channel_properties1.clear();
-	channel_properties2.clear();
-	channel_properties3.clear();
-	channel_trig_settings0.clear();
-	channel_trig_settings1.clear();
-	channel_trig_settings2.clear();
-	channel_trig_settings3.clear();
+
+//	digi_ctrl.clear();
+	enable_auto_reset_timeout.clear();
+	force_firmware_reset.clear();
+	enable_filter_ch.clear();
+	enable_1PPS.clear();
+	enable_DAQ.clear();
+	enable_trigger_ch.clear();
+	enable_trigger_ch0_ch1.clear();
+	enable_trigger_notch0_ch1.clear();
+	enable_trigger_redch0_ch1.clear();
+	enable_trigger_ch2_ch3.clear();
+	enable_trigger_calibration.clear();
+	enable_trigger_10s.clear();
+	enable_trigger_external_test_pulse.clear();
+	enable_readout_ch.clear();
+	fire_single_test_pulse.clear();
+	test_pulse_rate_divider.clear();
+	common_coincidence_time.clear();
+	selector_readout_ch.clear();
+
+//	digi_prepost_trig_windows.clear();
+	pre_coincidence_window_ch.clear();
+	post_coincidence_window_ch.clear();
+
+//	channel_properties0.clear();
+//	channel_properties1.clear();
+//	channel_properties2.clear();
+//	channel_properties3.clear();
+	gain_correction_ch.clear();
+	integration_time_ch.clear();
+	offset_correction_ch.clear();
+	base_maximum_ch.clear();
+	base_minimum_ch.clear();
+
+//	channel_trig_settings0.clear();
+//	channel_trig_settings1.clear();
+//	channel_trig_settings2.clear();
+//	channel_trig_settings3.clear();
+	signal_threshold_ch.clear();
+	noise_threshold_ch.clear();
+	tprev_ch.clear();
+	tper_ch.clear();
+	tcmax_ch.clear();
+	ncmax_ch.clear();
+	ncmin_ch.clear();
+	qmax_ch.clear();
+	qmin_ch.clear();
+
 	// ToDo: What is it?
 	ioff.clear();
-	trace_0.clear();
-	trace_1.clear();
-	trace_2.clear();
-	trace_3.clear();
+//	trace_0.clear();
+//	trace_1.clear();
+//	trace_2.clear();
+//	trace_3.clear();
 	trace_ch.clear();
 }
 
@@ -365,4 +479,101 @@ void TADC::InitialiseMetadata()
 	this->tadc->GetUserInfo()->Add(new TNamed("modification_software", this->modification_software));
 	this->tadc->GetUserInfo()->Add(new TNamed("modification_software_version", this->modification_software_version));
 	this->tadc->GetUserInfo()->Add(new TParameter<int>("analysis_level", this->analysis_level));
+}
+
+void TADC::TriggerPatternDecodeAndFill(unsigned short trigger_pattern)
+{
+	auto bits = bitset<16>{trigger_pattern};
+
+	trigger_pattern_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]});
+
+	trigger_pattern_ch0_ch1.push_back(bits[7]);
+	trigger_pattern_notch0_ch1.push_back(bits[2]);
+	trigger_pattern_redch0_ch1.push_back(bits[1]);
+	trigger_pattern_ch2_ch3.push_back(bits[0]);
+	trigger_pattern_calibration.push_back(bits[6]);
+	trigger_pattern_10s.push_back(bits[5]);
+	trigger_pattern_external_test_pulse.push_back(bits[4]);
+}
+
+void TADC::DigiCtrlDecodeAndFill(unsigned short digi_ctrl[8])
+{
+
+	// Digitizer control register
+	auto bits = bitset<16>{digi_ctrl[0]};
+
+	enable_auto_reset_timeout.push_back(bits[15]);
+	force_firmware_reset.push_back(bits[14]);
+	enable_filter_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]});
+	enable_1PPS.push_back(bits[1]);
+	enable_DAQ.push_back(bits[0]);
+
+	// Trigger enable mask register
+	bits = bitset<16>{digi_ctrl[1]};
+
+	enable_trigger_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]});
+	enable_trigger_ch0_ch1.push_back(bits[7]);
+	enable_trigger_notch0_ch1.push_back(bits[2]);
+	enable_trigger_redch0_ch1.push_back(bits[1]);
+	enable_trigger_ch2_ch3.push_back(bits[0]);
+	enable_trigger_calibration.push_back(bits[6]);
+	enable_trigger_10s.push_back(bits[5]);
+	enable_trigger_external_test_pulse.push_back(bits[4]);
+
+	// Test pulse rate divider and channel readout enable
+	bits = bitset<16>{digi_ctrl[2]};
+
+	enable_readout_ch.push_back(vector<bool>{bits[0], bits[1], bits[2], bits[3]});
+	fire_single_test_pulse.push_back(bits[7]);
+	// Store second byte of digi_ctrl[2]
+	test_pulse_rate_divider.push_back((digi_ctrl[2] >> (8*1)) & 0xff);
+
+	// Common coincidence readout time window
+	common_coincidence_time.push_back(digi_ctrl[3]);
+
+	// Input selector for readout channel
+	selector_readout_ch.push_back(vector<char>{(char)((digi_ctrl[4]>>0)&0b0111), (char)((digi_ctrl[4]>>4)&0b0111), (char)((digi_ctrl[4]>>8)&0b0111), (char)((digi_ctrl[4]>>12)&0b0111)});
+}
+
+void TADC::DigiWindowDecodeAndFill(unsigned short digi_window[8])
+{
+	pre_coincidence_window_ch.push_back(vector<unsigned short>{digi_window[0], digi_window[2], digi_window[4], digi_window[6]});
+	post_coincidence_window_ch.push_back(vector<unsigned short>{digi_window[1], digi_window[3], digi_window[5], digi_window[7]});
+}
+
+void TADC::ChannelPropertyDecodeAndFill(short chprop[24])
+{
+	gain_correction_ch.push_back(vector<short>{chprop[0], chprop[6], chprop[12], chprop[18]});
+	integration_time_ch.push_back(vector<char>{(char)((chprop[1]>>8)&0xff), (char)((chprop[7]>>8)&0xff), (char)((chprop[13]>>8)&0xff), (char)((chprop[19]>>8)&0xff)});
+	offset_correction_ch.push_back(vector<char>{(char)((chprop[1]>>0)&0xff), (char)((chprop[7]>>0)&0xff), (char)((chprop[13]>>0)&0xff), (char)((chprop[19]>>0)&0xff)});;
+	base_maximum_ch.push_back(vector<short>{chprop[2], chprop[8], chprop[14], chprop[20]});
+	base_minimum_ch.push_back(vector<short>{chprop[3], chprop[9], chprop[15], chprop[21]});
+}
+
+void TADC::ChannelTriggerParameterDecodeAndFill(short chprop[24])
+{
+	signal_threshold_ch.push_back(vector<short>{chprop[0], chprop[6], chprop[12], chprop[18]});
+	noise_threshold_ch.push_back(vector<short>{chprop[1], chprop[7], chprop[13], chprop[19]});
+
+	// Cast the short array to char - easier to access from now on
+	char *chpropchar = (char*)chprop;
+
+	tprev_ch.push_back(vector<char>{chpropchar[4], chpropchar[16], chpropchar[28], chpropchar[40]});
+	tper_ch.push_back(vector<char>{chpropchar[5], chpropchar[17], chpropchar[29], chpropchar[41]});
+	tcmax_ch.push_back(vector<char>{chpropchar[6], chpropchar[18], chpropchar[30], chpropchar[42]});
+	ncmax_ch.push_back(vector<char>{chpropchar[7], chpropchar[19], chpropchar[31], chpropchar[43]});
+	ncmin_ch.push_back(vector<char>{chpropchar[8], chpropchar[20], chpropchar[32], chpropchar[44]});
+	qmax_ch.push_back(vector<char>{chpropchar[9], chpropchar[21], chpropchar[33], chpropchar[45]});
+	qmin_ch.push_back(vector<char>{chpropchar[10], chpropchar[22], chpropchar[34], chpropchar[46]});
+}
+
+void TADC::ADCInputChannelsDecodeAndFill(short val)
+{
+	adc_input_channels_ch.push_back(vector<char>{(char)((val>>0)&0b0111), (char)((val>>4)&0b0111), (char)((val>>8)&0b0111), (char)((val>>12)&0b0111)});
+}
+
+void TADC::ADCEnabledChannelsDecodeAndFill(unsigned short val)
+{
+	auto bits = bitset<16>{val};
+	adc_enabled_channels_ch.push_back(vector<bool>{bits[0], bits[1], bits[2], bits[3]});
 }

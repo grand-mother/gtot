@@ -98,10 +98,16 @@ public:
 	vector<unsigned short> adc_sampling_frequency;
 	//! ADC sampling resolution in bits
 	vector<unsigned short> adc_sampling_resolution;
-	//! ADC input channels - > 16 BIT WORD (4*4 BITS) LOWEST IS CHANNEL 1, HIGHEST CHANNEL 4. FOR EACH CHANNEL IN THE EVENT WE HAVE: 0: ADC1, 1: ADC2, 2:ADC3, 3:ADC4 4:FILTERED ADC1, 5:FILTERED ADC 2, 6:FILTERED ADC3, 7:FILTERED ADC4. ToDo: decode this?
-	vector<unsigned short> adc_input_channels;
-	//! ADC enabled channels - LOWEST 4 BITS STATE WHICH CHANNEL IS READ OUT ToDo: Decode this?
-	vector<unsigned short> adc_enabled_channels;
+
+	//! ADC input channels - > 16 BIT WORD (4*4 BITS) LOWEST IS CHANNEL 1, HIGHEST CHANNEL 4. FOR EACH CHANNEL IN THE EVENT WE HAVE: 0: ADC1, 1: ADC2, 2:ADC3, 3:ADC4 4:FILTERED ADC1, 5:FILTERED ADC 2, 6:FILTERED ADC3, 7:FILTERED ADC4.
+//	vector<unsigned short> adc_input_channels;
+	vector<vector<char>> adc_input_channels_ch;
+
+	//! ADC enabled channels - LOWEST 4 BITS STATE WHICH CHANNEL IS READ OUT
+//	vector<unsigned short> adc_enabled_channels;
+	vector<vector<bool>> adc_enabled_channels_ch;
+
+
 	//! ADC samples callected in all channels
 	vector<unsigned short> adc_samples_count_total;
 	//! ADC samples callected in channel 0
@@ -112,8 +118,19 @@ public:
 	vector<unsigned short> adc_samples_count_channel2;
 	//! ADC samples callected in channel 3
 	vector<unsigned short> adc_samples_count_channel3;
-	//! Trigger pattern - which of the trigger sources (more than one may be present) fired to actually the trigger the digitizer - explained in the docs. ToDo: Decode this?
-	vector<unsigned short> trigger_pattern;
+
+	//! Trigger pattern - which of the trigger sources (more than one may be present) fired to actually the trigger the digitizer - explained in the docs.
+//	vector<unsigned short> trigger_pattern;
+
+	vector<vector<bool>> trigger_pattern_ch;
+	vector<bool> trigger_pattern_ch0_ch1;
+	vector<bool> trigger_pattern_notch0_ch1;
+	vector<bool> trigger_pattern_redch0_ch1;
+	vector<bool> trigger_pattern_ch2_ch3;
+	vector<bool> trigger_pattern_calibration;
+	vector<bool> trigger_pattern_10s;
+	vector<bool> trigger_pattern_external_test_pulse;
+
 	//! Trigger rate - the number of triggers recorded in the second preceding the event
 	vector<unsigned short> trigger_rate;
 	//! Clock tick at which the event was triggered (used to calculate the trigger time)
@@ -143,36 +160,95 @@ public:
 	vector<unsigned long long> gps_alt;
 	//! GPS temperature
 	vector<unsigned int> gps_temp;
-	//! Control parameters - the list of general parameters that can set the mode of operation, select trigger sources and preset the common coincidence read out time window (Digitizer mode parameters in the manual). ToDo: Decode?
-	vector<vector<unsigned short>> digi_ctrl;
-	//! Window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). ToDo: Decode?
-	vector<vector<unsigned short>> digi_prepost_trig_windows;
-	//! Channel 0 properties - described in Channel property parameters in the manual. ToDo: Decode?
-	vector<vector<unsigned short>> channel_properties0;
-	//! Channel 1 properties - described in Channel property parameters in the manual. ToDo: Decode?
-	vector<vector<unsigned short>> channel_properties1;
-	//! Channel 2 properties - described in Channel property parameters in the manual. ToDo: Decode?
-	vector<vector<unsigned short>> channel_properties2;
-	//! Channel 3 properties - described in Channel property parameters in the manual. ToDo: Decode?
-	vector<vector<unsigned short>> channel_properties3;
-	//! Channel 0 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
-	vector<vector<unsigned short>> channel_trig_settings0;
-	//! Channel 1 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
-	vector<vector<unsigned short>> channel_trig_settings1;
-	//! Channel 2 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
-	vector<vector<unsigned short>> channel_trig_settings2;
-	//! Channel 3 trigger settings - described in Channel trigger parameters in the manual. ToDo: Decode?
-	vector<vector<unsigned short>> channel_trig_settings3;
+
+	// Digitizer mode parameters
+
+	//! Control parameters - the list of general parameters that can set the mode of operation, select trigger sources and preset the common coincidence read out time window (Digitizer mode parameters in the manual).
+//	vector<vector<unsigned short>> digi_ctrl;
+
+	// Digitizer control register
+	vector<bool> enable_auto_reset_timeout;
+	vector<bool> force_firmware_reset;
+	vector<vector<bool>> enable_filter_ch;
+	vector<bool> enable_1PPS;
+	vector<bool> enable_DAQ;
+
+	// Trigger enable mask register
+	vector<vector<bool>> enable_trigger_ch;
+	vector<bool> enable_trigger_ch0_ch1;
+	vector<bool> enable_trigger_notch0_ch1;
+	vector<bool> enable_trigger_redch0_ch1;
+	vector<bool> enable_trigger_ch2_ch3;
+	vector<bool> enable_trigger_calibration;
+	vector<bool> enable_trigger_10s;
+	vector<bool> enable_trigger_external_test_pulse;
+
+	// Test pulse rate divider and channel readout enable
+	vector<vector<bool>> enable_readout_ch;
+	vector<bool> fire_single_test_pulse;
+	vector<char> test_pulse_rate_divider;
+
+	// Common coincidence readout time window
+	vector<short> common_coincidence_time;
+
+	// Input selector for readout channel
+	vector<vector<char>> selector_readout_ch;
+
+
+	//! Digitizer window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual).
+//	vector<vector<unsigned short>> digi_prepost_trig_windows;
+	vector<vector<unsigned short>> pre_coincidence_window_ch;
+	vector<vector<unsigned short>> post_coincidence_window_ch;
+
+	// Channel property parameters
+
+//	//! Channel 0 properties - described in Channel property parameters in the manual.
+//	vector<vector<unsigned short>> channel_properties0;
+//	//! Channel 1 properties - described in Channel property parameters in the manual.
+//	vector<vector<unsigned short>> channel_properties1;
+//	//! Channel 2 properties - described in Channel property parameters in the manual.
+//	vector<vector<unsigned short>> channel_properties2;
+//	//! Channel 3 properties - described in Channel property parameters in the manual.
+//	vector<vector<unsigned short>> channel_properties3;
+
+	vector<vector<short>> gain_correction_ch;
+	vector<vector<char>> integration_time_ch;
+	vector<vector<char>> offset_correction_ch;
+	vector<vector<short>> base_maximum_ch;
+	vector<vector<short>> base_minimum_ch;
+
+	// Channel trigger parameters
+
+//	//! Channel 0 trigger settings - described in Channel trigger parameters in the manual.
+//	vector<vector<unsigned short>> channel_trig_settings0;
+//	//! Channel 1 trigger settings - described in Channel trigger parameters in the manual.
+//	vector<vector<unsigned short>> channel_trig_settings1;
+//	//! Channel 2 trigger settings - described in Channel trigger parameters in the manual.
+//	vector<vector<unsigned short>> channel_trig_settings2;
+//	//! Channel 3 trigger settings - described in Channel trigger parameters in the manual.
+//	vector<vector<unsigned short>> channel_trig_settings3;
+
+	vector<vector<short>> signal_threshold_ch;
+	vector<vector<short>> noise_threshold_ch;
+	vector<vector<char>> tper_ch;
+	vector<vector<char>> tprev_ch;
+	vector<vector<char>> ncmax_ch;
+	vector<vector<char>> tcmax_ch;
+	vector<vector<char>> qmax_ch;
+	vector<vector<char>> ncmin_ch;
+	vector<vector<char>> qmin_ch;
+
+
 	//! ?? What is it? Some kind of the adc trace offset?
 	vector<unsigned short> ioff;
-	//! ADC trace 0
-	vector<vector<short>> trace_0;
-	//! ADC trace 1
-	vector<vector<short>> trace_1;
-	//! ADC trace 2
-	vector<vector<short>> trace_2;
-	//! ADC trace 3
-	vector<vector<short>> trace_3;
+//	//! ADC trace 0
+//	vector<vector<short>> trace_0;
+//	//! ADC trace 1
+//	vector<vector<short>> trace_1;
+//	//! ADC trace 2
+//	vector<vector<short>> trace_2;
+//	//! ADC trace 3
+//	vector<vector<short>> trace_3;
 	//! ADC traces for channels (0,1,2,3)
 	vector<vector<vector<short>>> trace_ch;
 
@@ -194,6 +270,21 @@ private:
 
 	//! Initialises the TTree metadata fields
 	void InitialiseMetadata();
+
+	//! Decode the trigger pattern
+	void TriggerPatternDecodeAndFill(unsigned short);
+	//! Decode the digital control
+	void DigiCtrlDecodeAndFill(unsigned short[8]);
+	//! Decode the digital window
+	void DigiWindowDecodeAndFill(unsigned short[8]);
+	//! Decode the channels' properties
+	void ChannelPropertyDecodeAndFill(short[24]);
+	//! Decode the channels' trigger parameters
+	void ChannelTriggerParameterDecodeAndFill(short[24]);
+	//! Decode the ADC input channels
+	void ADCInputChannelsDecodeAndFill(short);
+	//! Decode the ADC enabled channels
+	void ADCEnabledChannelsDecodeAndFill(unsigned short);
 
 };
 
