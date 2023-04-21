@@ -26,6 +26,11 @@ gtot -g1 <hardware_file_names>.dat
 
 ## How to build
 
+### Requirements
+Root version >=6.26.00 is required. Probably it can be built with earlier versions, but the cmake file would have to be adjusted to accommodate different dictionary compilation scheme.
+
+### Building
+
 From the main GtoT directory:
 ```
 mkdir cmake-build-release
