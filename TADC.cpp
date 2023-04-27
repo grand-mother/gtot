@@ -57,10 +57,11 @@ TTree *TADC::CreateTree()
 //	tadc->Branch("adc_enabled_channels", &adc_enabled_channels);
 	tadc->Branch("adc_enabled_channels_ch", &adc_enabled_channels_ch);
 	tadc->Branch("adc_samples_count_total", &adc_samples_count_total);
-	tadc->Branch("adc_samples_count_channel0", &adc_samples_count_channel0);
-	tadc->Branch("adc_samples_count_channel1", &adc_samples_count_channel1);
-	tadc->Branch("adc_samples_count_channel2", &adc_samples_count_channel2);
-	tadc->Branch("adc_samples_count_channel3", &adc_samples_count_channel3);
+//	tadc->Branch("adc_samples_count_channel0", &adc_samples_count_channel0);
+//	tadc->Branch("adc_samples_count_channel1", &adc_samples_count_channel1);
+//	tadc->Branch("adc_samples_count_channel2", &adc_samples_count_channel2);
+//	tadc->Branch("adc_samples_count_channel3", &adc_samples_count_channel3);
+	tadc->Branch("adc_samples_count_ch", &adc_samples_count_ch);
 
 	//	tadc->Branch("trigger_pattern", &trigger_pattern);
 	tadc->Branch("trigger_pattern_ch", &trigger_pattern_ch);
@@ -247,10 +248,15 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		ADCEnabledChannelsDecodeAndFill(evdu[file_shift + EVT_CH_ENABLE]);
 
 		adc_samples_count_total.push_back(16*evdu[file_shift + EVT_TOT_SAMPLES]);
-		adc_samples_count_channel0.push_back(evdu[file_shift + EVT_TOT_SAMPLES+1]);
-		adc_samples_count_channel1.push_back(evdu[file_shift + EVT_TOT_SAMPLES+2]);
-		adc_samples_count_channel2.push_back(evdu[file_shift + EVT_TOT_SAMPLES+3]);
-		adc_samples_count_channel3.push_back(evdu[file_shift + EVT_TOT_SAMPLES+4]);
+//		adc_samples_count_channel0.push_back(evdu[file_shift + EVT_TOT_SAMPLES+1]);
+//		adc_samples_count_channel1.push_back(evdu[file_shift + EVT_TOT_SAMPLES+2]);
+//		adc_samples_count_channel2.push_back(evdu[file_shift + EVT_TOT_SAMPLES+3]);
+//		adc_samples_count_channel3.push_back(evdu[file_shift + EVT_TOT_SAMPLES+4]);
+//		digi_ctrl.emplace_back();
+//		for(int i=0;i<8;i++) digi_ctrl.back().push_back(evdu[file_shift + EVT_CTRL+i]);
+
+		adc_samples_count_ch.emplace_back();
+		for(int i=0;i<3;i++) adc_samples_count_ch.back().push_back(evdu[file_shift + EVT_TOT_SAMPLES+i]);
 
 //		trigger_pattern.push_back(evdu[file_shift + EVT_TRIG_PAT]);
 		TriggerPatternDecodeAndFill(evdu[file_shift + EVT_TRIG_PAT]);
@@ -379,10 +385,11 @@ void TADC::ClearVectors()
 //	adc_enabled_channels.clear();
 	adc_enabled_channels_ch.clear();
 	adc_samples_count_total.clear();
-	adc_samples_count_channel0.clear();
-	adc_samples_count_channel1.clear();
-	adc_samples_count_channel2.clear();
-	adc_samples_count_channel3.clear();
+//	adc_samples_count_channel0.clear();
+//	adc_samples_count_channel1.clear();
+//	adc_samples_count_channel2.clear();
+//	adc_samples_count_channel3.clear();
+	adc_samples_count_ch.clear();
 
 //	trigger_pattern.clear();
 	trigger_pattern_ch.clear();

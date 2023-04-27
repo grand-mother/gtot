@@ -108,16 +108,19 @@ public:
 	vector<vector<bool>> adc_enabled_channels_ch;
 
 
-	//! ADC samples callected in all channels
+	//! ADC samples collected in all channels
 	vector<unsigned short> adc_samples_count_total;
-	//! ADC samples callected in channel 0
-	vector<unsigned short> adc_samples_count_channel0;
-	//! ADC samples callected in channel 1
-	vector<unsigned short> adc_samples_count_channel1;
-	//! ADC samples callected in channel 2
-	vector<unsigned short> adc_samples_count_channel2;
-	//! ADC samples callected in channel 3
-	vector<unsigned short> adc_samples_count_channel3;
+
+//	//! ADC samples callected in channel 0
+//	vector<unsigned short> adc_samples_count_channel0;
+//	//! ADC samples callected in channel 1
+//	vector<unsigned short> adc_samples_count_channel1;
+//	//! ADC samples callected in channel 2
+//	vector<unsigned short> adc_samples_count_channel2;
+//	//! ADC samples callected in channel 3
+//	vector<unsigned short> adc_samples_count_channel3;
+	//! ADC samples count per channel
+	vector<vector<unsigned short>> adc_samples_count_ch;
 
 	//! Trigger pattern - which of the trigger sources (more than one may be present) fired to actually the trigger the digitizer - explained in the docs.
 //	vector<unsigned short> trigger_pattern;
