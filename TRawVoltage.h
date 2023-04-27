@@ -177,10 +177,10 @@ public:
 //	vector<vector<unsigned short>> channel_trig_settings3;
 //	//! ?? What is it? Some kind of the adc trace offset?
 	vector<unsigned short> ioff;
-	vector<vector<float>> trace_0;
-	vector<vector<float>> trace_1;
-	vector<vector<float>> trace_2;
-	vector<vector<float>> trace_3;
+//	vector<vector<float>> trace_0;
+//	vector<vector<float>> trace_1;
+//	vector<vector<float>> trace_2;
+//	vector<vector<float>> trace_3;
 	vector<vector<vector<float>>> trace_ch;
 
 	//! The TTree for holding the data
