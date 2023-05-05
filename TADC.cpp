@@ -302,7 +302,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 //		for(int i=0;i<6;i++) channel_properties2.back().push_back(evdu[file_shift + EVT_CHANNEL+6*2+i]);
 //		channel_properties3.emplace_back();
 //		for(int i=0;i<6;i++) channel_properties3.back().push_back(evdu[file_shift + EVT_CHANNEL+6*3+i]);
-		ChannelPropertyDecodeAndFill((short*)&evdu[file_shift + EVT_CHANNEL]);
+		ChannelPropertyDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_CHANNEL]);
 
 //		channel_trig_settings0.emplace_back();
 //		for(int i=0;i<6;i++) channel_trig_settings0.back().push_back(evdu[file_shift + EVT_TRIGGER+6*0+i]);
@@ -312,7 +312,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 //		for(int i=0;i<6;i++) channel_trig_settings2.back().push_back(evdu[file_shift + EVT_TRIGGER+6*2+i]);
 //		channel_trig_settings3.emplace_back();
 //		for(int i=0;i<6;i++) channel_trig_settings3.back().push_back(evdu[file_shift + EVT_TRIGGER+6*3+i]);
-		ChannelTriggerParameterDecodeAndFill((short*)&evdu[file_shift + EVT_TRIGGER]);
+		ChannelTriggerParameterDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_TRIGGER]);
 
 		// ToDo: What is it?
 		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
@@ -539,7 +539,7 @@ void TADC::DigiCtrlDecodeAndFill(unsigned short digi_ctrl[8])
 	common_coincidence_time.push_back(digi_ctrl[3]);
 
 	// Input selector for readout channel
-	selector_readout_ch.push_back(vector<char>{(char)((digi_ctrl[4]>>0)&0b0111), (char)((digi_ctrl[4]>>4)&0b0111), (char)((digi_ctrl[4]>>8)&0b0111), (char)((digi_ctrl[4]>>12)&0b0111)});
+	selector_readout_ch.push_back(vector<unsigned char>{(unsigned char)((digi_ctrl[4]>>0)&0b0111), (unsigned char)((digi_ctrl[4]>>4)&0b0111), (unsigned char)((digi_ctrl[4]>>8)&0b0111), (unsigned char)((digi_ctrl[4]>>12)&0b0111)});
 }
 
 void TADC::DigiWindowDecodeAndFill(unsigned short digi_window[8])
@@ -548,35 +548,35 @@ void TADC::DigiWindowDecodeAndFill(unsigned short digi_window[8])
 	post_coincidence_window_ch.push_back(vector<unsigned short>{digi_window[1], digi_window[3], digi_window[5], digi_window[7]});
 }
 
-void TADC::ChannelPropertyDecodeAndFill(short chprop[24])
+void TADC::ChannelPropertyDecodeAndFill(unsigned short chprop[24])
 {
-	gain_correction_ch.push_back(vector<short>{chprop[0], chprop[6], chprop[12], chprop[18]});
-	integration_time_ch.push_back(vector<char>{(char)((chprop[1]>>8)&0xff), (char)((chprop[7]>>8)&0xff), (char)((chprop[13]>>8)&0xff), (char)((chprop[19]>>8)&0xff)});
-	offset_correction_ch.push_back(vector<char>{(char)((chprop[1]>>0)&0xff), (char)((chprop[7]>>0)&0xff), (char)((chprop[13]>>0)&0xff), (char)((chprop[19]>>0)&0xff)});;
-	base_maximum_ch.push_back(vector<short>{chprop[2], chprop[8], chprop[14], chprop[20]});
-	base_minimum_ch.push_back(vector<short>{chprop[3], chprop[9], chprop[15], chprop[21]});
+	gain_correction_ch.push_back(vector<unsigned short>{chprop[0], chprop[6], chprop[12], chprop[18]});
+	integration_time_ch.push_back(vector<unsigned char>{(unsigned char)((chprop[1]>>8)&0xff), (unsigned char)((chprop[7]>>8)&0xff), (unsigned char)((chprop[13]>>8)&0xff), (unsigned char)((chprop[19]>>8)&0xff)});
+	offset_correction_ch.push_back(vector<unsigned char>{(unsigned char)((chprop[1]>>0)&0xff), (unsigned char)((chprop[7]>>0)&0xff), (unsigned char)((chprop[13]>>0)&0xff), (unsigned char)((chprop[19]>>0)&0xff)});;
+	base_maximum_ch.push_back(vector<unsigned short>{chprop[2], chprop[8], chprop[14], chprop[20]});
+	base_minimum_ch.push_back(vector<unsigned short>{chprop[3], chprop[9], chprop[15], chprop[21]});
 }
 
-void TADC::ChannelTriggerParameterDecodeAndFill(short chprop[24])
+void TADC::ChannelTriggerParameterDecodeAndFill(unsigned short chprop[24])
 {
-	signal_threshold_ch.push_back(vector<short>{chprop[0], chprop[6], chprop[12], chprop[18]});
-	noise_threshold_ch.push_back(vector<short>{chprop[1], chprop[7], chprop[13], chprop[19]});
+	signal_threshold_ch.push_back(vector<unsigned short>{chprop[0], chprop[6], chprop[12], chprop[18]});
+	noise_threshold_ch.push_back(vector<unsigned short>{chprop[1], chprop[7], chprop[13], chprop[19]});
 
 	// Cast the short array to char - easier to access from now on
-	char *chpropchar = (char*)chprop;
+	unsigned char *chpropchar = (unsigned char*)chprop;
 
-	tprev_ch.push_back(vector<char>{chpropchar[4], chpropchar[16], chpropchar[28], chpropchar[40]});
-	tper_ch.push_back(vector<char>{chpropchar[5], chpropchar[17], chpropchar[29], chpropchar[41]});
-	tcmax_ch.push_back(vector<char>{chpropchar[6], chpropchar[18], chpropchar[30], chpropchar[42]});
-	ncmax_ch.push_back(vector<char>{chpropchar[7], chpropchar[19], chpropchar[31], chpropchar[43]});
-	ncmin_ch.push_back(vector<char>{chpropchar[8], chpropchar[20], chpropchar[32], chpropchar[44]});
-	qmax_ch.push_back(vector<char>{chpropchar[9], chpropchar[21], chpropchar[33], chpropchar[45]});
-	qmin_ch.push_back(vector<char>{chpropchar[10], chpropchar[22], chpropchar[34], chpropchar[46]});
+	tprev_ch.push_back(vector<unsigned char>{chpropchar[4], chpropchar[16], chpropchar[28], chpropchar[40]});
+	tper_ch.push_back(vector<unsigned char>{chpropchar[5], chpropchar[17], chpropchar[29], chpropchar[41]});
+	tcmax_ch.push_back(vector<unsigned char>{chpropchar[6], chpropchar[18], chpropchar[30], chpropchar[42]});
+	ncmax_ch.push_back(vector<unsigned char>{chpropchar[7], chpropchar[19], chpropchar[31], chpropchar[43]});
+	ncmin_ch.push_back(vector<unsigned char>{chpropchar[8], chpropchar[20], chpropchar[32], chpropchar[44]});
+	qmax_ch.push_back(vector<unsigned char>{chpropchar[9], chpropchar[21], chpropchar[33], chpropchar[45]});
+	qmin_ch.push_back(vector<unsigned char>{chpropchar[10], chpropchar[22], chpropchar[34], chpropchar[46]});
 }
 
-void TADC::ADCInputChannelsDecodeAndFill(short val)
+void TADC::ADCInputChannelsDecodeAndFill(unsigned short val)
 {
-	adc_input_channels_ch.push_back(vector<char>{(char)((val>>0)&0b0111), (char)((val>>4)&0b0111), (char)((val>>8)&0b0111), (char)((val>>12)&0b0111)});
+	adc_input_channels_ch.push_back(vector<unsigned char>{(unsigned char)((val>>0)&0b0111), (unsigned char)((val>>4)&0b0111), (unsigned char)((val>>8)&0b0111), (unsigned char)((val>>12)&0b0111)});
 }
 
 void TADC::ADCEnabledChannelsDecodeAndFill(unsigned short val)

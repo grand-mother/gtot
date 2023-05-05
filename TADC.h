@@ -101,7 +101,7 @@ public:
 
 	//! ADC input channels - > 16 BIT WORD (4*4 BITS) LOWEST IS CHANNEL 1, HIGHEST CHANNEL 4. FOR EACH CHANNEL IN THE EVENT WE HAVE: 0: ADC1, 1: ADC2, 2:ADC3, 3:ADC4 4:FILTERED ADC1, 5:FILTERED ADC 2, 6:FILTERED ADC3, 7:FILTERED ADC4.
 //	vector<unsigned short> adc_input_channels;
-	vector<vector<char>> adc_input_channels_ch;
+	vector<vector<unsigned char>> adc_input_channels_ch;
 
 	//! ADC enabled channels - LOWEST 4 BITS STATE WHICH CHANNEL IS READ OUT
 //	vector<unsigned short> adc_enabled_channels;
@@ -189,13 +189,13 @@ public:
 	// Test pulse rate divider and channel readout enable
 	vector<vector<bool>> enable_readout_ch;
 	vector<bool> fire_single_test_pulse;
-	vector<char> test_pulse_rate_divider;
+	vector<unsigned char> test_pulse_rate_divider;
 
 	// Common coincidence readout time window
-	vector<short> common_coincidence_time;
+	vector<unsigned short> common_coincidence_time;
 
 	// Input selector for readout channel
-	vector<vector<char>> selector_readout_ch;
+	vector<vector<unsigned char>> selector_readout_ch;
 
 
 	//! Digitizer window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual).
@@ -214,11 +214,11 @@ public:
 //	//! Channel 3 properties - described in Channel property parameters in the manual.
 //	vector<vector<unsigned short>> channel_properties3;
 
-	vector<vector<short>> gain_correction_ch;
-	vector<vector<char>> integration_time_ch;
-	vector<vector<char>> offset_correction_ch;
-	vector<vector<short>> base_maximum_ch;
-	vector<vector<short>> base_minimum_ch;
+	vector<vector<unsigned short>> gain_correction_ch;
+	vector<vector<unsigned char>> integration_time_ch;
+	vector<vector<unsigned char>> offset_correction_ch;
+	vector<vector<unsigned short>> base_maximum_ch;
+	vector<vector<unsigned short>> base_minimum_ch;
 
 	// Channel trigger parameters
 
@@ -231,15 +231,15 @@ public:
 //	//! Channel 3 trigger settings - described in Channel trigger parameters in the manual.
 //	vector<vector<unsigned short>> channel_trig_settings3;
 
-	vector<vector<short>> signal_threshold_ch;
-	vector<vector<short>> noise_threshold_ch;
-	vector<vector<char>> tper_ch;
-	vector<vector<char>> tprev_ch;
-	vector<vector<char>> ncmax_ch;
-	vector<vector<char>> tcmax_ch;
-	vector<vector<char>> qmax_ch;
-	vector<vector<char>> ncmin_ch;
-	vector<vector<char>> qmin_ch;
+	vector<vector<unsigned short>> signal_threshold_ch;
+	vector<vector<unsigned short>> noise_threshold_ch;
+	vector<vector<unsigned char>> tper_ch;
+	vector<vector<unsigned char>> tprev_ch;
+	vector<vector<unsigned char>> ncmax_ch;
+	vector<vector<unsigned char>> tcmax_ch;
+	vector<vector<unsigned char>> qmax_ch;
+	vector<vector<unsigned char>> ncmin_ch;
+	vector<vector<unsigned char>> qmin_ch;
 
 
 	//! ?? What is it? Some kind of the adc trace offset?
@@ -281,11 +281,11 @@ private:
 	//! Decode the digital window
 	void DigiWindowDecodeAndFill(unsigned short[8]);
 	//! Decode the channels' properties
-	void ChannelPropertyDecodeAndFill(short[24]);
+	void ChannelPropertyDecodeAndFill(unsigned short[24]);
 	//! Decode the channels' trigger parameters
-	void ChannelTriggerParameterDecodeAndFill(short[24]);
+	void ChannelTriggerParameterDecodeAndFill(unsigned short[24]);
 	//! Decode the ADC input channels
-	void ADCInputChannelsDecodeAndFill(short);
+	void ADCInputChannelsDecodeAndFill(unsigned short);
 	//! Decode the ADC enabled channels
 	void ADCEnabledChannelsDecodeAndFill(unsigned short);
 

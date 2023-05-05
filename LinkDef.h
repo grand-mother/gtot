@@ -11,6 +11,7 @@
 #pragma link C++ class vector < vector<unsigned short> > +;
 #pragma link C++ class vector < vector<short> > +;
 #pragma link C++ class vector < vector<float> > +;
+#pragma link C++ class vector < vector<unsigned char> > +;
 #pragma link C++ class vector < vector<char> > +;
 #pragma link C++ class vector < vector<bool> > +;
 //#endif
