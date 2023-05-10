@@ -31,8 +31,8 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 
 	auto tadc = adc->tadc;
 
-	// Exclude these branches from copying
-	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch"};
+	// Exclude these branches from copying, for the values need to be modified
+	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level"};
 
 	// *** Transform the tadc events into trawvoltage events ***
 
@@ -103,6 +103,8 @@ void TRawVoltage::ADCs2Real(TADC *adc)
 		TraceADC2Voltage(i, adc);
 		// Convert GPS ADC to real values
 		GPSADC2Real(i, adc);
+		// Convert battery level from ADCs to Voltage
+		BatteryADC2Voltage(i, adc);
 	}
 //	// Merge the traces
 //	trace_ch.push_back(trace_0);
@@ -142,6 +144,11 @@ void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
 		gps_lat.push_back(57.3*(*(double*)&adc->gps_lat[du_num]));
 		gps_alt.push_back(*(double*)&adc->gps_alt[du_num]);
 		gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
+}
+
+void TRawVoltage::BatteryADC2Voltage(int du_num, TADC *adc)
+{
+		battery_level.push_back(adc->battery_level[du_num] / ((18 * 4096) / (2.5*(18+91))));
 }
 
 //void TRawVoltage::CalculateT0s(TADC *adc)

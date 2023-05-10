@@ -207,6 +207,9 @@ private:
 	//! Converts a specific GPS ADC values from tadc into a real values
 	void GPSADC2Real(int du_num, TADC *adc);
 
+	//! Converts battery level from ADCs to Voltage
+	void BatteryADC2Voltage(int du_num, TADC *adc);
+
 	//! Initialises the TTree metadata fields
 	void InitialiseMetadata();
 

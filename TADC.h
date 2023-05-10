@@ -90,7 +90,7 @@ public:
 	vector<unsigned short> acceleration_y;
 	//! Acceleration of the antenna in Z
 	vector<unsigned short> acceleration_z;
-	//! Battery voltage
+	//! Battery level in ADC units (corresponding to some voltage)
 	vector<unsigned short> battery_level;
 	//! Firmware version
 	vector<unsigned short> firmware_version;
