@@ -120,7 +120,10 @@ int main(int argc, char **argv)
 		if (output_filename == "" || filenames.GetEntries()>1)
 		{
 			output_filename = filename;
-			output_filename = output_filename.replace(output_filename.find_last_of("."), output_filename.size() - output_filename.find_last_of("."), ".root");
+			// Leaving the old extension inside the new filename, as it contains an ordinal number
+			output_filename = output_filename.replace(output_filename.find_last_of("."), 1, "_");
+//			output_filename = output_filename.replace(output_filename.find_last_of("."), output_filename.size() - output_filename.find_last_of("."), ".root");
+			output_filename+=".root";
 			cout << "Storing output in " << output_filename << endl;
 		}
 		auto tree_file = new TFile(output_filename.c_str(), "recreate");
