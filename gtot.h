@@ -6,7 +6,11 @@
 #define GTOT_GTOT_H
 
 #include <ostream>
+#include <string>
 
 extern std::ostream *pvout;
+
+// GtoT version
+inline std::string gtot_version = "0.29";
 
 #endif //GTOT_GTOT_H
