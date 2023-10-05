@@ -1,14 +1,14 @@
 #include <iostream>
 #include <fstream>
-#include "Traces1.h"
+#include "inc/Traces1.h"
 #include "TFile.h"
 #include "TInterpreter.h"
 #include "TNamed.h"
 
-#include "TRun.h"
-#include "TADC.h"
-#include "TRawVoltage.h"
-#include "gtot.h"
+#include "inc/TRun.h"
+#include "inc/TADC.h"
+#include "inc/TRawVoltage.h"
+#include "inc/gtot.h"
 
 bool overbose = false;
 
@@ -186,6 +186,7 @@ int main(int argc, char **argv)
 					run->event_version = ADC->event_version;
 					run->event_type = ADC->event_type;
 					// The time bin size
+					// ToDo: BUG!!! It fills only the first event DUs, while it should all the DUs, like in TRun::SetValuesFromPointers
 					run->SetTBinSizeFromADCSamplingFrequency(ADC);
 
 					// Add a comment

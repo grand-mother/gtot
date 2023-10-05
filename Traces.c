@@ -1,6 +1,6 @@
 //#include "amsg.h"
-#include "scope.h"
-#include "Traces.h"
+#include "inc/scope.h"
+#include "inc/Traces.h"
 #include<stdio.h>
 #include<time.h>
 #include<stdlib.h>

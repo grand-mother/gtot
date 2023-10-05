@@ -3,8 +3,8 @@
 //
 // The main class for storing the Run information
 
-#include "TRun.h"
-#include "Traces.h"
+#include "inc/TRun.h"
+#include "inc/Traces.h"
 #include "TDatime.h"
 #include "TNamed.h"
 #include "TParameter.h"
@@ -86,6 +86,7 @@ int TRun::SetValuesFromPointers(int *pheader, string file_format)
 	return 0;
 }
 
+// ToDo: BUG!!! It fills only the first event DUs, while it should all the DUs, like in TRun::SetValuesFromPointers
 void TRun::SetTBinSizeFromADCSamplingFrequency(TADC *t)
 {
 	for(int i=0; i<t->adc_sampling_frequency.size(); ++i)

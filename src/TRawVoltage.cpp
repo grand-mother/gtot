@@ -11,7 +11,7 @@
 #include "TDatime.h"
 #include "TNamed.h"
 #include "TParameter.h"
-#include "TRawVoltage.h"
+#include "inc/TRawVoltage.h"
 
 using namespace std;
 using namespace ROOT;

@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Require CERN ROOT.
 find_package(ROOT CONFIG REQUIRED)
 
-add_executable(gtot main.cpp TADC.cpp TADC.h Traces.h TRawVoltage.cpp TRawVoltage.h TRun.cpp TRun.h LinkDef.h gtot.h gp13.h)
+add_executable(gtot main.cpp src/TADC.cpp inc/TADC.h inc/Traces.h src/TRawVoltage.cpp inc/TRawVoltage.h src/TRun.cpp inc/TRun.h inc/LinkDef.h inc/gtot.h inc/gp13.h)
 
 # If includes are not set, set them the old way
 # This is the "manual" way to add ROOT, the old "make" style, in case one does not source root (like me)
@@ -22,5 +22,5 @@ endif()
 # A dictionary is needed for vector<vector<short>> etc.
 add_library(gtot_vectors SHARED)
 target_include_directories(gtot_vectors PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-root_generate_dictionary(G__gtot_vectors gtot_vector_link.h MODULE gtot_vectors LINKDEF LinkDef.h)
+root_generate_dictionary(G__gtot_vectors inc/gtot_vector_link.h MODULE gtot_vectors LINKDEF inc/LinkDef.h)
 target_link_libraries(gtot PUBLIC ROOT::Core ROOT::Tree gtot_vectors)

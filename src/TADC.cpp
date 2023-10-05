@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include <bitset>
-#include "TADC.h"
+#include "inc/TADC.h"
 #include "TDatime.h"
 #include "TNamed.h"
 #include "TParameter.h"
