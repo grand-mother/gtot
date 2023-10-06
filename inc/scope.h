@@ -149,7 +149,6 @@
 #define GENSTAT_PPSFIFO  (1<<24)
 #define GENSTAT_EVTFIFO  (1<<25)
 #define GENSTAT_DMAFIFO  (1<<26)
-#define GENCTRL_EVTREAD  (1<<25)
 
 #define TRIG_10SEC    (1 << 5)
 #define TRIG_CAL      (1 << 6)
@@ -302,10 +301,13 @@
 #define DEV_READ_BLOCK 100      //!< fpga Device read blocksize, in Bytes
 
 #define MAX_RATE 1000            //!< maximum event rate, in Hz
+#ifdef Fake
+#define BUFSIZE 3            //!< store up to 10 events in circular buffer
+#else
 #define BUFSIZE 3000            //!< store up to 3000 events in circular buffer
-
+#endif
 #define GPSSIZE 35              //!< buffer upto 35 GPS seconds info in circular buffer
-#define MAXT3 20               //!< 200 T3 events in circular cuffer
+#define MAXT3 200               //!< 200 T3 events in circular cuffer
 
 // next: what did we read from the scope?
 
@@ -333,14 +335,6 @@ typedef struct
   int16_t sync;             //!< Positive or Negative clock edge
   uint8_t buf[MAX_READOUT]; //!< raw data buffer
 } EV_DATA;
-
-typedef struct
-{
-  uint32_t ts_seconds;
-  uint32_t ts_nanoseconds;
-  uint16_t event_nr;
-  uint16_t trigmask;
-}TS_DATA; //timestamps
 
 typedef struct
 {
@@ -376,8 +370,10 @@ int scope_run_read();
 int scope_cal_read();
 int scope_calc_t3nsec(EV_DATA *buf);
 int scope_calc_evnsec();
+void scope_calibrate();
+void scope_initialize_calibration();
+int scope_calibrate_evt();
 void scope_close();
 void scope_create_memory();
 void scope_copy_shadow();
-void scope_event_to_shm(uint16_t evnr,uint16_t trflag,uint16_t sec,uint32_t ssec);
 //
