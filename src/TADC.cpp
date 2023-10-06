@@ -327,22 +327,26 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 //		trace_0.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 //		trace_ch.back().emplace_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		trace_ch.back().emplace_back(&evdu[start_addr], &evdu[end_addr]);
+		transform(trace_ch.back().back().begin(), trace_ch.back().back().end(), trace_ch.back().back().begin(), &TADC::ADC2short);
 //		trace_ch.back().push_back(trace_0.back());
 		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+1];
 		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+2];
 //		trace_1.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 //		trace_ch.back().push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		trace_ch.back().emplace_back(&evdu[start_addr], &evdu[end_addr]);
+		transform(trace_ch.back().back().begin(), trace_ch.back().back().end(), trace_ch.back().back().begin(), &TADC::ADC2short);
 		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+2];
 		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+3];
 //		trace_2.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 //		trace_ch.back().push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		trace_ch.back().emplace_back(&evdu[start_addr], &evdu[end_addr]);
+		transform(trace_ch.back().back().begin(), trace_ch.back().back().end(), trace_ch.back().back().begin(), &TADC::ADC2short);
 		start_addr+=evdu[file_shift + EVT_TOT_SAMPLES+3];
 		end_addr = start_addr+evdu[file_shift + EVT_TOT_SAMPLES+4];
 //		trace_3.push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 //		trace_ch.back().push_back(vector<short>(&evdu[start_addr], &evdu[end_addr]));
 		trace_ch.back().emplace_back(&evdu[start_addr], &evdu[end_addr]);
+		transform(trace_ch.back().back().begin(), trace_ch.back().back().end(), trace_ch.back().back().begin(), &TADC::ADC2short);
 
 		if(gp13v1) idu +=(evdu[file_shift + EVT_LENGTH] + NewDataAdded);
 		else idu +=(evdu[file_shift + EVT_LENGTH]);
@@ -583,4 +587,15 @@ void TADC::ADCEnabledChannelsDecodeAndFill(unsigned short val)
 {
 	auto bits = bitset<16>{val};
 	adc_enabled_channels_ch.push_back(vector<bool>{bits[0], bits[1], bits[2], bits[3]});
+}
+
+short TADC::ADC2short(short val)
+{
+	short value = val;
+	short bit14 = (value & ( 1 << 13 )) >> 13;
+	int mask = 1 << 14; // --- bit 15
+	value = (value & (~mask)) | (bit14 << 14);
+	mask = 1 << 15; // --- bit 16
+	value = (value & (~mask)) | (bit14 << 15);
+	return value;
 }

@@ -7,6 +7,8 @@
 #define GTOT_TADC_H
 
 #include <vector>
+#include <algorithm>
+#include <functional>
 #include "scope.h"
 #include "Traces.h"
 #include "TTree.h"
@@ -289,6 +291,8 @@ private:
 	//! Decode the ADC enabled channels
 	void ADCEnabledChannelsDecodeAndFill(unsigned short);
 
+	//! Convert the 14-bit ADC value to short
+	static short ADC2short(short value);
 };
 
 
