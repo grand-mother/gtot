@@ -1,4 +1,4 @@
-# GRAND to ROOT (GtoT)
+# GRAND to Trees (GtoT)
 
 The program to convert GRAND hardware binary blobs in raw format to GRAND ROOT TTrees based format
 
