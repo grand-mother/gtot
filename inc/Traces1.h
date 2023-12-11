@@ -7,9 +7,6 @@
 #include<string.h>
 #include "gtot.h"
 
-#define INTSIZE 4
-#define SHORTSIZE 2
-
 //int *filehdr=NULL;
 //unsigned short *event=NULL;
 

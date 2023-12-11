@@ -10,6 +10,8 @@
 #include "TNamed.h"
 #include "TParameter.h"
 
+// Use the binary blob addressing from firmware version 1
+using namespace fv1;
 
 TADC::TADC()
 {
