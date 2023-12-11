@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "inc/Traces1.h"
+#include "inc/Traces1_fv2.h"
 #include "TFile.h"
 #include "TInterpreter.h"
 #include "TNamed.h"
@@ -20,6 +21,7 @@ void print_help()
 	cout << "Options:" << endl;
 	cout << "\t-h, --help\t\t\t\tdisplay this help" << endl;
 	cout << "\t-g1, --gp13v1\t\t\t\tthe input file is a GP13 v1 file" << endl;
+	cout << "\t-f2, --firmware_v2\t\t\tthe input file is a firmware v2 file" << endl;
 	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
 	cout << "\t-i, --input_filename <filename>\t\tname of the single file to analyse, regardless of extension. No other files accepted." << endl;
 	cout << "\t-v, --verbose\t\t\t\tswitch on verbose output" << endl;
@@ -29,6 +31,7 @@ void print_help()
 TObjArray filenames;
 string output_filename="";
 bool gp13v1 = false;
+bool is_fv2 = false;
 string file_format = "";
 bool infile_forced = false;
 
@@ -78,6 +81,12 @@ void analyse_command_line_params(int argc, char **argv)
 			cout << "Enabled verbose output" << endl;
 			overbose = true;
 		}
+		else if((strlen(argv[i])>=2 && strstr(argv[i],"-f2")) || strstr(argv[i],"--firmware_v2"))
+		{
+			cout << "Switching to firmware v2 mode" << endl;
+			is_fv2 = true;
+//			file_format = "gp13v1";
+		}
 	}
 }
 
@@ -105,6 +114,20 @@ int main(int argc, char **argv)
 	{
 		cout << "Specifying output file name makes no sense in case of multiply input files" << endl;
 		return -1;
+	}
+
+	// Initialise pointers to functions depending on the input file type
+	int (*grand_read_file_header_ptr)(FILE *fp, int **pfilehdr);
+	int (*grand_read_event_ptr)(FILE *fp, unsigned short **pevent, const char *file_format);
+	if(is_fv2)
+	{
+		grand_read_file_header_ptr = fv2::grand_read_file_header;
+		grand_read_event_ptr = fv2::grand_read_event;
+	}
+	else
+	{
+		grand_read_file_header_ptr = fv1::grand_read_file_header;
+		grand_read_event_ptr = fv1::grand_read_event;
 	}
 
 	// Loop through the input files
@@ -154,7 +177,8 @@ int main(int argc, char **argv)
 		int ret_val = 0;
 
 		// Read the file from the detector and fill in the TTrees with the read-out data
-		if (grand_read_file_header(fp, &filehdr))
+//		if (grand_read_file_header(fp, &filehdr))
+		if (grand_read_file_header_ptr(fp, &filehdr))
 		{
 			// Read the file header and fill the Run TTree
 			run->SetValuesFromPointers(filehdr, file_format);
@@ -165,7 +189,7 @@ int main(int argc, char **argv)
 			// For GP13 move in the file
 			if (gp13v1) fseek(fp, 256, 0);
 			// Loop-read the events
-			while (grand_read_event(fp, &event, file_format.c_str()) > 0)
+			while (grand_read_event_ptr(fp, &event, file_format.c_str()) > 0)
 			{
 				ret_val = ADC->SetValuesFromPointers(event, file_format);
 				if (ret_val < 0) break;

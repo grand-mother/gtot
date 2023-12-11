@@ -10,40 +10,42 @@
 //int *filehdr=NULL;
 //unsigned short *event=NULL;
 
-
-int grand_read_file_header(FILE *fp, int **pfilehdr)
+namespace fv1
 {
-	int *filehdr = NULL;
-	int i, return_code;
-	int isize;
 
-	if (!fread(&isize, INTSIZE, 1, fp))
+	int grand_read_file_header(FILE *fp, int **pfilehdr)
 	{
-		printf("\nCannot read the header length\n");
-		return (0);                                                       //cannot read the header length
+		int *filehdr = NULL;
+		int i, return_code;
+		int isize;
+
+		if (!fread(&isize, INTSIZE, 1, fp))
+		{
+			printf("\nCannot read the header length\n");
+			return (0);                                                       //cannot read the header length
+		}
+		printf("The header length is %d bytes \n", isize);
+		if (isize < FILE_HDR_ADDITIONAL)
+		{
+			printf("\nThe file header is too short, only %d integers\n", isize);
+			return (0);                                                       //file header too short
+		}
+		if (filehdr != NULL) free((void *) filehdr);                         //in case we run several files
+		filehdr = (int *) malloc(isize + INTSIZE);                            //allocate memory for the file header
+		if (filehdr == NULL)
+		{
+			printf("\nCannot allocate enough memory to save the file header!\n");
+			return (0);                                                       //cannot allocate memory for file header
+		}
+		filehdr[0] = isize;                                                //put the size into the header
+		if ((return_code = fread(&(filehdr[1]), 1, isize, fp)) != (isize))
+		{
+			printf("\nCannot read the full header (%d)\n", return_code);
+			return (0);                                                       //cannot read the full header
+		}
+		*pfilehdr = filehdr;
+		return (1);
 	}
-	printf("The header length is %d bytes \n", isize);
-	if (isize < FILE_HDR_ADDITIONAL)
-	{
-		printf("\nThe file header is too short, only %d integers\n", isize);
-		return (0);                                                       //file header too short
-	}
-	if (filehdr != NULL) free((void *) filehdr);                         //in case we run several files
-	filehdr = (int *) malloc(isize + INTSIZE);                            //allocate memory for the file header
-	if (filehdr == NULL)
-	{
-		printf("\nCannot allocate enough memory to save the file header!\n");
-		return (0);                                                       //cannot allocate memory for file header
-	}
-	filehdr[0] = isize;                                                //put the size into the header
-	if ((return_code = fread(&(filehdr[1]), 1, isize, fp)) != (isize))
-	{
-		printf("\nCannot read the full header (%d)\n", return_code);
-		return (0);                                                       //cannot read the full header
-	}
-	*pfilehdr = filehdr;
-	return (1);
-}
 
 /*void print_file_header()*/
 /*{*/
@@ -70,55 +72,55 @@ int grand_read_file_header(FILE *fp, int **pfilehdr)
 /*  }*/
 /*}*/
 
-int grand_read_event(FILE *fp, unsigned short **pevent, const char *file_format)
-{
-	std::ostream &vout = *pvout;
-
-	// A bool means a lot of bools for more formats, but hopefully it won't come to that
-	bool gp13v1 = false;
-	if (strstr(file_format, "gp13v1")) gp13v1 = true;
-
-	unsigned short *event = NULL;
-	int isize, return_code;
-
-	if (gp13v1) vout << "Tag!!!\n";
-	if (!fread(&isize, INTSIZE, 1, fp))
+	int grand_read_event(FILE *fp, unsigned short **pevent, const char *file_format)
 	{
-		printf("\nCannot read the Event length\n");
-		return (0);                                                       //cannot read the header length
-	}
-	vout << "The event length is " << isize << "bytes \n";
-	if (event != NULL)
-	{
-		if (event[0] != isize)
+		std::ostream &vout = *pvout;
+
+		// A bool means a lot of bools for more formats, but hopefully it won't come to that
+		bool gp13v1 = false;
+		if (strstr(file_format, "gp13v1")) gp13v1 = true;
+
+		unsigned short *event = NULL;
+		int isize, return_code;
+
+		if (gp13v1) vout << "Tag!!!\n";
+		if (!fread(&isize, INTSIZE, 1, fp))
 		{
-			free((void *) event);                                           //free and alloc only if needed
+			printf("\nCannot read the Event length\n");
+			return (0);                                                       //cannot read the header length
+		}
+		vout << "The event length is " << isize << "bytes \n";
+		if (event != NULL)
+		{
+			if (event[0] != isize)
+			{
+				free((void *) event);                                           //free and alloc only if needed
+				if (gp13v1) event = (unsigned short *) malloc(isize);                          //allocate memory for the event
+				else event = (unsigned short *) malloc(isize + INTSIZE);                          //allocate memory for the event
+			}
+		} else
+		{
 			if (gp13v1) event = (unsigned short *) malloc(isize);                          //allocate memory for the event
 			else event = (unsigned short *) malloc(isize + INTSIZE);                          //allocate memory for the event
 		}
-	} else
-	{
-		if (gp13v1) event = (unsigned short *) malloc(isize);                          //allocate memory for the event
-		else event = (unsigned short *) malloc(isize + INTSIZE);                          //allocate memory for the event
-	}
-	if (event == NULL)
-	{
-		printf("\nCannot allocate enough memory to save the event!\n");
-		return (0);                                                       //cannot allocate memory for event
-	}
-	event[0] = isize & 0xffff;                                                  //put the size into the event
-	event[1] = isize >> 16;
-	if (gp13v1) return_code = fread(&(event[2]), 1, isize - INTSIZE, fp);
-	else return_code = fread(&(event[2]), 1, isize, fp);
+		if (event == NULL)
+		{
+			printf("\nCannot allocate enough memory to save the event!\n");
+			return (0);                                                       //cannot allocate memory for event
+		}
+		event[0] = isize & 0xffff;                                                  //put the size into the event
+		event[1] = isize >> 16;
+		if (gp13v1) return_code = fread(&(event[2]), 1, isize - INTSIZE, fp);
+		else return_code = fread(&(event[2]), 1, isize, fp);
 
-	if ((!gp13v1 && return_code != (isize)) || (gp13v1 && (return_code != (isize - INTSIZE))))
-	{
-		printf("\nCannot read the full event (%d)\n", return_code);
-		return (0);                                                       //cannot read the full event
+		if ((!gp13v1 && return_code != (isize)) || (gp13v1 && (return_code != (isize - INTSIZE))))
+		{
+			printf("\nCannot read the full event (%d)\n", return_code);
+			return (0);                                                       //cannot read the full event
+		}
+		*pevent = event;
+		return (1);
 	}
-	*pevent = event;
-	return (1);
-}
 
 /*
 void print_du(uint16_t *du)
@@ -231,3 +233,4 @@ int main(int argc, char **argv)
 }
 
 */
+}
