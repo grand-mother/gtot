@@ -90,6 +90,9 @@ namespace fv2
 	const int EVT_CH12_SAMPLEP = 144;
 	const int EVT_CH3_SAMPLEP = 145;
 	const int EVT_START_ADC = 146;
+
+	const int INTSIZE = 4;
+	const int SHORTSIZE = 2;
 }
 
 #endif //GTOT_TRACES_FV2_H

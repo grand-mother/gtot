@@ -11,6 +11,7 @@
 #include <functional>
 #include "scope.h"
 #include "Traces.h"
+#include "Traces_fv2.h"
 #include "TTree.h"
 #include "TTimeStamp.h"
 #include "gtot.h"
@@ -265,6 +266,7 @@ public:
 
 	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
 	int SetValuesFromPointers(unsigned short *pevent, string file_format="");
+	int SetValuesFromPointers_fv2(unsigned short *pevent, string file_format="");
 
 	//! The default constructor
 	TADC();

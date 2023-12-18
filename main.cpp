@@ -191,8 +191,13 @@ int main(int argc, char **argv)
 			// Loop-read the events
 			while (grand_read_event_ptr(fp, &event, file_format.c_str()) > 0)
 			{
-				ret_val = ADC->SetValuesFromPointers(event, file_format);
+				if(is_fv2)
+					ret_val = ADC->SetValuesFromPointers_fv2(event, file_format);
+				else
+					ret_val = ADC->SetValuesFromPointers(event, file_format);
+
 				if (ret_val < 0) break;
+
 				// For GP13v1 overwrite some values
 				if (gp13v1)
 				{

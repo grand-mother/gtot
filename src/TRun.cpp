@@ -56,6 +56,7 @@ TTree *TRun::CreateTree()
 
 int TRun::SetValuesFromPointers(int *pheader, string file_format)
 {
+	using namespace fv1;
 	run_number = pheader[FILE_HDR_RUNNR];
 	run_mode = pheader[FILE_HDR_RUN_MODE];
 //	file_serial_number = pheader[FILE_HDR_SERIAL];

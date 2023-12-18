@@ -8,8 +8,8 @@
 //const int INTSIZE=4;
 //const int SHORTSIZE=2;
 
-int *filehdr=NULL;
-unsigned int *event=NULL;
+//int *filehdr=NULL;
+//unsigned int *event=NULL;
 
 // Use the binary blob addressing from firmware version 2
 using namespace fv2;
@@ -18,6 +18,7 @@ namespace fv2
 //	int grand_read_file_header(FILE *fp)
 	int grand_read_file_header(FILE *fp, int **pfilehdr)
 	{
+		int *filehdr = NULL;
 		int i, return_code;
 		int isize;
 
@@ -45,34 +46,8 @@ namespace fv2
 			printf("Cannot read the full header (%d)\n", return_code);
 			return (0);                                                       //cannot read the full header
 		}
+		*pfilehdr = filehdr;
 		return (1);
-	}
-
-	void print_file_header()
-	{
-		int i, additional_int;
-		struct tm *mytime;
-
-		additional_int = 1 + (filehdr[FILE_HDR_LENGTH] / INTSIZE) - FILE_HDR_ADDITIONAL; //number of additional words in the header
-		if (additional_int < 0)
-		{
-			printf("The header is too short!\n");
-			return;
-		}
-		printf("Header Length is %d bytes\n", filehdr[FILE_HDR_LENGTH]);
-		printf("Header Run Number is %d\n", filehdr[FILE_HDR_RUNNR]);
-		printf("Header Run Mode is %d\n", filehdr[FILE_HDR_RUN_MODE]);
-		printf("Header File Serial Number is %d\n", filehdr[FILE_HDR_SERIAL]);
-		printf("Header First Event is %d\n", filehdr[FILE_HDR_FIRST_EVENT]);
-		mytime = gmtime((const time_t *) (&filehdr[FILE_HDR_FIRST_EVENT_SEC]));
-		printf("Header First Event Time is %s", asctime(mytime));
-		printf("Header Last Event is %d\n", filehdr[FILE_HDR_LAST_EVENT]);
-		mytime = gmtime((const time_t *) (&filehdr[FILE_HDR_LAST_EVENT_SEC]));
-		printf("Header Last Event Time is %s", asctime(mytime));
-		for (i = 0; i < additional_int; i++)
-		{
-			printf("HEADER Additional Word %d = %d\n", i, filehdr[i + FILE_HDR_ADDITIONAL]);
-		}
 	}
 
 //	int grand_read_event(FILE *fp)
@@ -80,12 +55,16 @@ namespace fv2
 	{
 		int isize, return_code;
 
+		std::ostream &vout = *pvout;
+
+		unsigned int *event=NULL;
+
 		if (!fread(&isize, INTSIZE, 1, fp))
 		{
 			printf("Cannot read the Event length\n");
 			return (0);                                                       //cannot read the header length
 		}
-		printf("The event length is %d bytes \n", isize);
+		vout << "The event length is " << isize << " bytes \n";
 		if (event != NULL)
 		{
 			if (event[0] != isize)
@@ -108,6 +87,9 @@ namespace fv2
 			printf("Cannot read the full event (%d)\n", return_code);
 			return (0);                                                       //cannot read the full event
 		}
+
+		*pevent = (unsigned short*)event;
+
 		return (1);
 	}
 
@@ -291,36 +273,36 @@ namespace fv2
 		print_adc_values(du);
 	}
 
-	void print_grand_event()
-	{
-		uint32_t *evdu;
-		int idu = EVENT_DU;                                                      //parameter indicating start of LS
-		int ev_end = event[EVENT_HDR_LENGTH] / 4;
-		printf("Event Size = %d\n", event[EVENT_HDR_LENGTH]);
-		printf("      Run Number = %d\n", event[EVENT_HDR_RUNNR]);
-		printf("      Event Number = %d\n", event[EVENT_HDR_EVENTNR]);
-		printf("      T3 Number = %d\n", event[EVENT_HDR_T3EVENTNR]);
-		printf("      First DU = %d\n", event[EVENT_HDR_FIRST_DU]);
-		printf("      Time Seconds = %u\n", event[EVENT_HDR_EVENT_SEC]);
-		printf("      Time Nano Seconds = %d\n", event[EVENT_HDR_EVENT_NSEC]);
-		printf("      Event Type = ");
-		//if((evdu[0] &TRIGGER_T3_MINBIAS)) printf("10 second trigger\n");
-		//else if((evdu[0] &TRIGGER_T3_RANDOM)) printf("random trigger\n");
-		//else printf("Shower event\n");
-		printf("\n");
-		printf("      Number of DU's = %d\n", event[EVENT_HDR_NDU]);
-		evdu = (unsigned int *) &event[EVENT_DU];
-		printf("IDU  \n");
-		//for(int i=0;i<40;i++) printf("\t %d 0x%08x\n",i,evdu[i]);
-		while (idu < ev_end)
-		{
-			printf("IDU = %d (end = %d)\n", idu, ev_end);
-			evdu = (uint32_t *) (&event[idu]);
-			print_du((uint32_t *) evdu);
-			idu += (evdu[EVT_LENGTH] >> 16);
-			printf("IDU = %d (end = %d)\n", idu, ev_end);
-		}
-	}
+//	void print_grand_event()
+//	{
+//		uint32_t *evdu;
+//		int idu = EVENT_DU;                                                      //parameter indicating start of LS
+//		int ev_end = event[EVENT_HDR_LENGTH] / 4;
+//		printf("Event Size = %d\n", event[EVENT_HDR_LENGTH]);
+//		printf("      Run Number = %d\n", event[EVENT_HDR_RUNNR]);
+//		printf("      Event Number = %d\n", event[EVENT_HDR_EVENTNR]);
+//		printf("      T3 Number = %d\n", event[EVENT_HDR_T3EVENTNR]);
+//		printf("      First DU = %d\n", event[EVENT_HDR_FIRST_DU]);
+//		printf("      Time Seconds = %u\n", event[EVENT_HDR_EVENT_SEC]);
+//		printf("      Time Nano Seconds = %d\n", event[EVENT_HDR_EVENT_NSEC]);
+//		printf("      Event Type = ");
+//		//if((evdu[0] &TRIGGER_T3_MINBIAS)) printf("10 second trigger\n");
+//		//else if((evdu[0] &TRIGGER_T3_RANDOM)) printf("random trigger\n");
+//		//else printf("Shower event\n");
+//		printf("\n");
+//		printf("      Number of DU's = %d\n", event[EVENT_HDR_NDU]);
+//		evdu = (unsigned int *) &event[EVENT_DU];
+//		printf("IDU  \n");
+//		//for(int i=0;i<40;i++) printf("\t %d 0x%08x\n",i,evdu[i]);
+//		while (idu < ev_end)
+//		{
+//			printf("IDU = %d (end = %d)\n", idu, ev_end);
+//			evdu = (uint32_t *) (&event[idu]);
+//			print_du((uint32_t *) evdu);
+//			idu += (evdu[EVT_LENGTH] >> 16);
+//			printf("IDU = %d (end = %d)\n", idu, ev_end);
+//		}
+//	}
 
 
 //	int main(int argc, char **argv)

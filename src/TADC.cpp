@@ -10,9 +10,6 @@
 #include "TNamed.h"
 #include "TParameter.h"
 
-// Use the binary blob addressing from firmware version 1
-using namespace fv1;
-
 TADC::TADC()
 {
 	CreateTree();
@@ -151,6 +148,9 @@ TTree *TADC::CreateTree()
 
 int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 {
+	// Use the binary blob addressing from firmware version 1
+	using namespace fv1;
+
 	std::ostream &vout = *pvout;
 
 	// The allowed amount of DUs in the event. If it is exceeded, probably the reading of the file went wrong.
@@ -352,6 +352,164 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 
 		if(gp13v1) idu +=(evdu[file_shift + EVT_LENGTH] + NewDataAdded);
 		else idu +=(evdu[file_shift + EVT_LENGTH]);
+
+		du_counter++;
+		// Safety check of the amount of DUs in the event. If too big, the file reading most likely went wrong.
+		if(du_counter>=safe_du_amount)
+		{
+			cerr << "The amount of DUs in the event exceeded " << safe_du_amount << ". Too much!" << endl;
+			cerr << "Make sure that the file format is correct and the file is not corrupted." << endl;
+			cerr << "Exiting, to avoid a memory hog." << endl;
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
+{
+	using namespace fv2;
+
+	std::ostream &vout = *pvout;
+
+	// The allowed amount of DUs in the event. If it is exceeded, probably the reading of the file went wrong.
+	int safe_du_amount = 10000;
+
+	int file_shift = 0;
+
+	// A bool means a lot of bools for more formats, but hopefully it won't come to that
+	bool gp13v1 = false;
+
+	// Clear the vectors
+	ClearVectors();
+
+	unsigned int *evptr = (unsigned int *)pevent;
+	unsigned int *event = (unsigned int *)pevent;
+
+	int idu = EVENT_DU; //parameter indicating start of LS
+	int ev_end = event[EVENT_HDR_LENGTH]/4;
+
+	unsigned int *evdu;
+	char Event_ID[4];
+	char TriggerDuNumber[4];
+	char HitId[4];
+
+	event_size = event[EVENT_HDR_LENGTH];
+	run_number = event[EVENT_HDR_RUNNR];
+	event_number = event[EVENT_HDR_EVENTNR];
+	t3_number = event[EVENT_HDR_T3EVENTNR];
+	first_du = event[EVENT_HDR_FIRST_DU];
+	time_seconds = event[EVENT_HDR_EVENT_SEC];
+	time_nanoseconds = event[EVENT_HDR_EVENT_NSEC];
+//	evdu = (uint16_t *) evptr;
+//	event_type = evdu[0];
+//	event_version = *evdu++;
+//	evptr += 2;
+	du_count = event[EVENT_HDR_NDU];
+
+	int NewDataAdded = 8;//Byte
+	int du_counter=0;
+
+	while(idu<ev_end)
+	{
+		evdu = (unsigned int *)(&event[idu]);
+
+		event_id.push_back(evdu[EVT_EVT_ID]);
+		du_id.push_back(evdu[EVT_STATION_ID]);
+		// ToDo: Add hardware_id
+		du_seconds.push_back(evdu[EVT_SECOND]);
+		du_nanoseconds.push_back(evdu[EVT_NANOSEC]);
+		trigger_position.push_back(evdu[EVT_TRIGGER_POS]>>16);
+		trigger_flag.push_back(evdu[EVT_TRIGGER_STAT]>>16);
+		// ToDo: Add trigger status
+		atm_temperature.push_back(evdu[EVT_ATM_TP]>>16);
+		atm_pressure.push_back(evdu[EVT_ATM_TP]&0xffff);
+		atm_humidity.push_back(evdu[EVT_HM_AX]>>16);
+		acceleration_x.push_back(evdu[EVT_HM_AX]&0xffff);
+		acceleration_y.push_back(evdu[EVT_AY_AZ]>>16);
+		acceleration_z.push_back(evdu[EVT_AY_AZ]&0xffff);
+		battery_level.push_back(evdu[EVT_BATTERY]>>16);
+		// ToDo: Is this the same as event_version for the whole event?
+		firmware_version.push_back((evdu[EVT_VERSION]>>16)&0xff);
+		// ToDo: Add Data format version
+		adc_sampling_frequency.push_back(evdu[EVT_ADCINFO]>>16);
+		// ToDo: Is this resolution? Marked in Charles' code as "bits"
+		adc_sampling_resolution.push_back(evdu[EVT_ADCINFO]&0xffff);
+
+		// ToDo: Add decoding from print_channel_info()
+//		ADCInputChannelsDecodeAndFill(evdu[file_shift + EVT_INP_SELECT]);
+
+		// ToDo: Add decoding from print_channel_info()
+//		ADCEnabledChannelsDecodeAndFill(evdu[file_shift + EVT_CH_ENABLE]);
+
+		// ToDo: Add decoding from print_channel_info()
+//		adc_samples_count_total.push_back(16*evdu[file_shift + EVT_TOT_SAMPLES]);
+
+		// ToDo: Add decoding from print_channel_info()
+//		adc_samples_count_ch.emplace_back();
+//		for(int i=0;i<3;i++) adc_samples_count_ch.back().push_back(evdu[file_shift + EVT_TOT_SAMPLES+i]);
+
+		// ToDo: Add decoding from print_channel_info()
+//		TriggerPatternDecodeAndFill(evdu[file_shift + EVT_TRIG_PAT]);
+
+		trigger_rate.push_back(evdu[EVT_STATISTICS]>>16);
+		// ToDo: Add DDR Storage
+
+		// ToDo: Check if there are clock_tick and clock_ticks_per_second in the data now
+//		clock_tick.push_back(*(uint32_t *)&evdu[file_shift + EVT_CTD]);
+//		clock_ticks_per_second.push_back(*(uint32_t *)&evdu[file_shift + EVT_CTP]);
+		gps_offset.push_back(*(float *)&evdu[EVT_OFFSET]);
+
+		// ToDo: Check if there is leap second stored
+//		gps_leap_second.push_back(evdu[file_shift + EVT_LEAP]);
+		gps_status.push_back((evdu[EVT_SECMINHOUR]>>24)&0xff);
+
+		// ToDo: Check which one in new data correspond to alarms and warning below
+//		gps_alarms.push_back(evdu[file_shift + EVT_GPS_CRITICAL]);
+//		gps_warnings.push_back(evdu[file_shift + EVT_GPS_WARNING]);
+
+		// Convert the GPS times into unix time. This assumes we get UTC from the GPS
+		TTimeStamp ts;
+		ts.Set(evdu[EVT_YEAR], (evdu[EVT_DAYMONTH]>>16)&0xff, (evdu[EVT_DAYMONTH]>>24)&0xff, evdu[EVT_SECMINHOUR]&0xff, (evdu[EVT_SECMINHOUR]>>8)&0xff, (evdu[EVT_SECMINHOUR]>>16)&0xff, 0, true, 0);
+		gps_time.push_back(ts.GetSec());
+
+		gps_long.push_back(*(unsigned long long*)&evdu[EVT_LONGITUDE-1]);
+		gps_lat.push_back(*(unsigned long long*)&evdu[EVT_LATITUDE-1]);
+		gps_alt.push_back(*(unsigned long long*)&evdu[EVT_ALTITUDE-1]);
+		// ToDo: Now this is float, so just 2 bytes. How to fix it?
+		gps_temp.push_back(*(unsigned long long*)&evdu[EVT_TEMPERATURE]);
+
+		// ToDo: Add seconds since sunday, week, utc offset, modes and work on alarms
+
+		// ToDo: All 4 below from print_channel_info()
+//		DigiCtrlDecodeAndFill(&evdu[file_shift + EVT_CTRL]);
+//		DigiWindowDecodeAndFill(&evdu[file_shift + EVT_WINDOWS]);
+//		ChannelPropertyDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_CHANNEL]);
+//		ChannelTriggerParameterDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_TRIGGER]);
+
+		// ToDo: Add notch filters
+
+		// ToDo: check if there is anything like ioff now
+//		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
+
+		int start_addr = EVT_START_ADC;
+
+		// Merge the traces
+		trace_ch.emplace_back();
+		int end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
+		trace_ch.back().emplace_back((short*)&evdu[start_addr], (short*)&evdu[end_addr]);
+		start_addr=end_addr;
+		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
+		trace_ch.back().emplace_back((short*)&evdu[start_addr], (short*)&evdu[end_addr]);
+		start_addr=end_addr;
+		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
+		trace_ch.back().emplace_back((short*)&evdu[start_addr], (short*)&evdu[end_addr]);
+		start_addr=end_addr;
+		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
+		trace_ch.back().emplace_back((short*)&evdu[start_addr], (short*)&evdu[end_addr]);
+
+		idu += (evdu[EVT_LENGTH]>>16);
 
 		du_counter++;
 		// Safety check of the amount of DUs in the event. If too big, the file reading most likely went wrong.
