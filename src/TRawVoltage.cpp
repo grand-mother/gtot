@@ -24,7 +24,7 @@ TRawVoltage::TRawVoltage()
 }
 
 //! Constructor computing values from tadc
-TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
+TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2) : TRawVoltage()
 {
 	// Initialise metadata
 	InitialiseMetadata();
@@ -58,7 +58,7 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 
 		// *** Calculate the values not existing in TADC ***
 		// ToDo: Calling to separate functions results in two loops over traces. Definitely not optimal, but maybe fast enough for now.
-		ADCs2Real(adc);
+		ADCs2Real(adc, is_fv2);
 //		CalculateT0s(adc);
 		trawvoltage->Fill();
 	}
@@ -67,7 +67,7 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 }
 
 
-void TRawVoltage::ADCs2Real(TADC *adc)
+void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 {
 	// Clear the traces vectors
 //	trace_0.clear();
@@ -105,7 +105,12 @@ void TRawVoltage::ADCs2Real(TADC *adc)
 		// Convert this specific DU's ADCs to Voltage
 		TraceADC2Voltage(i, adc);
 		// Convert GPS ADC to real values
-		GPSADC2Real(i, adc);
+		if(is_fv2)
+			// Firmware v2
+			GPSADC2Real_fv2(i, adc);
+		else
+			// Firmware v1
+			GPSADC2Real(i, adc);
 		// Convert battery level from ADCs to Voltage
 		BatteryADC2Voltage(i, adc);
 	}
@@ -147,6 +152,22 @@ void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
 		gps_lat.push_back(57.3*(*(double*)&adc->gps_lat[du_num]));
 		gps_alt.push_back(*(double*)&adc->gps_alt[du_num]);
 		gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
+}
+
+void TRawVoltage::GPSADC2Real_fv2(int du_num, TADC *adc)
+{
+	double longitude,latitude,altitude;
+	((int *)&longitude)[1] = ((int*)&adc->gps_long[du_num])[0];
+	((int *)&longitude)[0] = ((int*)&adc->gps_long[du_num])[1];
+	((int *)&latitude)[1] = ((int*)&adc->gps_lat[du_num])[0];
+	((int *)&latitude)[0] = ((int*)&adc->gps_lat[du_num])[1];
+	((int *)&altitude)[1] = ((int*)&adc->gps_alt[du_num])[0];
+	((int *)&altitude)[0] = ((int*)&adc->gps_alt[du_num])[1];
+
+	gps_long.push_back(57.3*longitude);
+	gps_lat.push_back(57.3*latitude);
+	gps_alt.push_back(altitude);
+	gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
 }
 
 void TRawVoltage::BatteryADC2Voltage(int du_num, TADC *adc)

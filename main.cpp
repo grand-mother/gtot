@@ -250,7 +250,7 @@ int main(int argc, char **argv)
 		ADC->tadc->Write("", TObject::kWriteDelete);
 
 		// Create the TRawVoltage TTree
-		auto voltage = new TRawVoltage(ADC);
+		auto voltage = new TRawVoltage(ADC, is_fv2);
 		// Add the Run TTree as a friend
 		voltage->trawvoltage->AddFriend(run->trun);
 		// Write out the Voltage TTree to the file

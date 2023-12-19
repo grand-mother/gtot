@@ -192,20 +192,23 @@ public:
 	//! General constructor
 	TRawVoltage();
 	//! Constructor computing values from TADC
-	TRawVoltage(TADC *adc);
+	TRawVoltage(TADC *adc, bool is_fv2=false);
 
 private:
 //	//! Clear the vectors for another fill
 //	void ClearVectors();
 
 	//! Converts the ADC traces from tadc into Voltage traces
-	void ADCs2Real(TADC *adc);
+	void ADCs2Real(TADC *adc, bool is_fv2=false);
 
 	//! Converts a specific ADC trace from tadc into a Voltage trace
 	void TraceADC2Voltage(int du_num, TADC *adc);
 
 	//! Converts a specific GPS ADC values from tadc into a real values
 	void GPSADC2Real(int du_num, TADC *adc);
+
+	//! Converts a specific GPS ADC values from tadc into a real values for firmware v2
+	void GPSADC2Real_fv2(int du_num, TADC *adc);
 
 	//! Converts battery level from ADCs to Voltage
 	void BatteryADC2Voltage(int du_num, TADC *adc);
