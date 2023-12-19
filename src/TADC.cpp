@@ -498,16 +498,37 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		// Merge the traces
 		trace_ch.emplace_back();
 		int end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
-		trace_ch.back().emplace_back((short*)&evdu[start_addr], (short*)&evdu[end_addr]);
+		trace_ch.back().emplace_back();
+		// Swapping the order of bytes in the traces values
+		for(int i=0; i<(evdu[EVT_TRACELENGTH]>>16); ++i)
+		{
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2+1]);
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2]);
+		}
 		start_addr=end_addr;
 		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
-		trace_ch.back().emplace_back((short*)&evdu[start_addr], (short*)&evdu[end_addr]);
+		trace_ch.back().emplace_back();
+		for(int i=0; i<(evdu[EVT_TRACELENGTH]>>16); ++i)
+		{
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2+1]);
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2]);
+		}
 		start_addr=end_addr;
 		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
-		trace_ch.back().emplace_back((short*)&evdu[start_addr], (short*)&evdu[end_addr]);
+		trace_ch.back().emplace_back();
+		for(int i=0; i<(evdu[EVT_TRACELENGTH]>>16); ++i)
+		{
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2+1]);
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2]);
+		}
 		start_addr=end_addr;
 		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
-		trace_ch.back().emplace_back((short*)&evdu[start_addr], (short*)&evdu[end_addr]);
+		trace_ch.back().emplace_back();
+		for(int i=0; i<(evdu[EVT_TRACELENGTH]>>16); ++i)
+		{
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2+1]);
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2]);
+		}
 
 		idu += (evdu[EVT_LENGTH]>>16);
 
