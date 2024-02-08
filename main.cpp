@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <algorithm>
+#include <string.h>
 #include "inc/Traces1.h"
 #include "inc/Traces1_fv2.h"
 #include "TFile.h"
@@ -17,7 +19,7 @@ bool overbose = false;
 void print_help()
 {
 	cout << "GRAND TO TTrees (gtot), program for converting GRAND experiment binary files in raw hardware format to CERN ROOT TTrees.\nMade by Lech Wiktor Piotrowski <lech.piotrowski@fuw.edu.pl>, University of Warsaw, Poland." << endl << endl;
-	cout << "Usage: gtot <options> <hardware_file_names>.dat/.f0*" << endl;
+	cout << "Usage: gtot <options> <hardware_file_names>" << endl;
 	cout << "Options:" << endl;
 	cout << "\t-h, --help\t\t\t\tdisplay this help" << endl;
 	cout << "\t-g1, --gp13v1\t\t\t\tthe input file is a GP13 v1 file" << endl;
@@ -52,12 +54,6 @@ void analyse_command_line_params(int argc, char **argv)
 			print_help();
 			exit(0);
 		}
-		// File to analyse
-		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0")) && !infile_forced)
-		{
-			filenames.Add((TObject*)(new TString(argv[i])));
-			cout << "Added " << ((TString*)(filenames.Last()))->Data() << endl;
-		}
 		// Forced input file
 		else if((strlen(argv[i])>=2 && strstr(argv[i],"-i")) || strstr(argv[i],"--input_filename"))
 		{
@@ -87,6 +83,20 @@ void analyse_command_line_params(int argc, char **argv)
 			is_fv2 = true;
 //			file_format = "gp13v1";
 		}
+		// File to analyse
+		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0") || count(argv[i], argv[i]+strlen(argv[i]), '_')==5) && !infile_forced)
+//		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0")) && !infile_forced)
+		{
+			filenames.Add((TObject*)(new TString(argv[i])));
+			cout << "Added " << ((TString*)(filenames.Last()))->Data() << endl;
+		}
+		/*
+		else
+		{
+			cout << argv[i] << " count " << count(argv[i], argv[i]+sizeof(argv[i]), '_') << " " << strlen(argv[i]) << endl;
+		}
+		 */
+
 	}
 }
 
@@ -144,7 +154,8 @@ int main(int argc, char **argv)
 		{
 			output_filename = filename;
 			// Leaving the old extension inside the new filename, as it contains an ordinal number
-			output_filename = output_filename.replace(output_filename.find_last_of("."), 1, "_");
+			if(filename.find(".dat") != string::npos || filename.find(".f0") != string::npos)
+				output_filename = output_filename.replace(output_filename.find_last_of("."), 1, "_");
 //			output_filename = output_filename.replace(output_filename.find_last_of("."), output_filename.size() - output_filename.find_last_of("."), ".root");
 			output_filename+=".root";
 			cout << "Storing output in " << output_filename << endl;
