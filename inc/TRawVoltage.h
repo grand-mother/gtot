@@ -183,6 +183,15 @@ public:
 //	vector<vector<float>> trace_3;
 	vector<vector<vector<float>>> trace_ch;
 
+	//! PPS-ID
+	vector<unsigned int> pps_id;
+
+	//! FPGA temperature
+	vector<float> fpga_temp;
+
+	//! ADC temperature
+	vector<float> adc_temp;
+
 	//! The TTree for holding the data
 	TTree *trawvoltage;
 

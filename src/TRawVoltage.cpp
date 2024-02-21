@@ -32,7 +32,7 @@ TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2) : TRawVoltage()
 	auto tadc = adc->tadc;
 
 	// Exclude these branches from copying, for the values need to be modified
-	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level"};
+	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level", "fpga_temp", "adc_temp"};
 
 	// *** Transform the tadc events into trawvoltage events ***
 
@@ -85,6 +85,9 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 	// Clear the battery
 	battery_level.clear();
 
+	fpga_temp.clear();
+	adc_temp.clear();
+
 	// Loop through the DUs
 //	for (size_t i=0; i<adc->du_count; ++i)
 	for (size_t i=0; i<adc->trace_ch.size(); ++i)
@@ -106,8 +109,12 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 		TraceADC2Voltage(i, adc);
 		// Convert GPS ADC to real values
 		if(is_fv2)
+		{
 			// Firmware v2
 			GPSADC2Real_fv2(i, adc);
+			fpga_temp.push_back(adc->fpga_temp[i]*509.3140064/(1<<16)-280.23087870);
+			adc_temp.push_back((adc->adc_temp[i]-819)/2.654+25);
+		}
 		else
 			// Firmware v1
 			GPSADC2Real(i, adc);
@@ -245,6 +252,11 @@ TTree *TRawVoltage::CreateTree()
 //	trawvoltage->Branch("du_t0_nanoseconds", &du_t0_nanoseconds);
 //	trawvoltage->Branch("trigger_position", &trigger_position);
 	trawvoltage->Branch("trigger_flag", &trigger_flag);
+
+	trawvoltage->Branch("pps_id", &pps_id);
+	trawvoltage->Branch("fpga_temp", &fpga_temp);
+	trawvoltage->Branch("adc_temp", &adc_temp);
+
 	trawvoltage->Branch("atm_temperature", &atm_temperature);
 	trawvoltage->Branch("atm_pressure", &atm_pressure);
 	trawvoltage->Branch("atm_humidity", &atm_humidity);
