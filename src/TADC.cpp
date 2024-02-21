@@ -41,6 +41,11 @@ TTree *TADC::CreateTree()
 	tadc->Branch("du_nanoseconds", &du_nanoseconds);
 	tadc->Branch("trigger_position", &trigger_position);
 	tadc->Branch("trigger_flag", &trigger_flag);
+
+	tadc->Branch("pps_id", &pps_id);
+	tadc->Branch("fpga_temp", &fpga_temp);
+	tadc->Branch("adc_temp", &adc_temp);
+
 	tadc->Branch("atm_temperature", &atm_temperature);
 	tadc->Branch("atm_pressure", &atm_pressure);
 	tadc->Branch("atm_humidity", &atm_humidity);
@@ -423,6 +428,11 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		trigger_position.push_back(evdu[EVT_TRIGGER_POS]>>16);
 		trigger_flag.push_back(evdu[EVT_TRIGGER_STAT]>>16);
 		// ToDo: Add trigger status
+
+		pps_id.push_back(evdu[EVT_PPS_ID]);
+		fpga_temp.push_back(evdu[EVT_FPGA_TEMP]>>16);
+		adc_temp.push_back(evdu[EVT_FPGA_TEMP]&0xffff);
+
 		atm_temperature.push_back(evdu[EVT_ATM_TP]>>16);
 		atm_pressure.push_back(evdu[EVT_ATM_TP]&0xffff);
 		atm_humidity.push_back(evdu[EVT_HM_AX]>>16);
@@ -552,6 +562,11 @@ void TADC::ClearVectors()
 	du_nanoseconds.clear();
 	trigger_position.clear();
 	trigger_flag.clear();
+
+	pps_id.clear();
+	fpga_temp.clear();
+	adc_temp.clear();
+
 	atm_temperature.clear();
 	atm_pressure.clear();
 	atm_humidity.clear();

@@ -258,6 +258,18 @@ public:
 	//! ADC traces for channels (0,1,2,3)
 	vector<vector<vector<short>>> trace_ch;
 
+	// Added after 21.02.2024
+
+	//! PPS-ID
+	vector<unsigned int> pps_id;
+
+	//! FPGA temperature
+	vector<unsigned int> fpga_temp;
+
+	//! ADC temperature
+	vector<unsigned int> adc_temp;
+
+
 	//! The TTree for holding the data
 	TTree *tadc;
 
