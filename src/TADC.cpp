@@ -434,7 +434,6 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		firmware_version.push_back((evdu[EVT_VERSION]>>16)&0xff);
 		// ToDo: Add Data format version
 		adc_sampling_frequency.push_back(evdu[EVT_ADCINFO]>>16);
-		// ToDo: Is this resolution? Marked in Charles' code as "bits"
 		adc_sampling_resolution.push_back(evdu[EVT_ADCINFO]&0xffff);
 
 		// ToDo: Add decoding from print_channel_info()
@@ -456,9 +455,8 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		trigger_rate.push_back(evdu[EVT_STATISTICS]>>16);
 		// ToDo: Add DDR Storage
 
-		// ToDo: Check if there are clock_tick and clock_ticks_per_second in the data now
-//		clock_tick.push_back(*(uint32_t *)&evdu[file_shift + EVT_CTD]);
-//		clock_ticks_per_second.push_back(*(uint32_t *)&evdu[file_shift + EVT_CTP]);
+		clock_tick.push_back(evdu[EVT_CTD]);
+		clock_ticks_per_second.push_back(evdu[EVT_CTP]);
 		gps_offset.push_back(*(float *)&evdu[EVT_OFFSET]);
 
 		// ToDo: Check if there is leap second stored
@@ -696,20 +694,20 @@ void TADC::DigiCtrlDecodeAndFill(unsigned short digi_ctrl[8])
 
 	enable_auto_reset_timeout.push_back(bits[15]);
 	force_firmware_reset.push_back(bits[14]);
-	enable_filter_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]});
+	enable_filter_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]}); //
 	enable_1PPS.push_back(bits[1]);
 	enable_DAQ.push_back(bits[0]);
 
 	// Trigger enable mask register
 	bits = bitset<16>{digi_ctrl[1]};
 
-	enable_trigger_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]});
-	enable_trigger_ch0_ch1.push_back(bits[7]);
+	enable_trigger_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]}); //
+	enable_trigger_ch0_ch1.push_back(bits[7]); //
 	enable_trigger_notch0_ch1.push_back(bits[2]);
 	enable_trigger_redch0_ch1.push_back(bits[1]);
 	enable_trigger_ch2_ch3.push_back(bits[0]);
 	enable_trigger_calibration.push_back(bits[6]);
-	enable_trigger_10s.push_back(bits[5]);
+	enable_trigger_10s.push_back(bits[5]); //
 	enable_trigger_external_test_pulse.push_back(bits[4]);
 
 	// Test pulse rate divider and channel readout enable
