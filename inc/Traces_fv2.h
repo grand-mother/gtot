@@ -42,7 +42,7 @@ namespace fv2
 	const int EVT_TRIGGER_STAT = 11;
 	const int EVT_STATISTICS = 12;
 	const int EVT_PPS_ID = 13;
-	const int EVT_SPARE1 = 14;
+	const int EVT_FPGA_TEMP=14;
 	const int EVT_SPARE2 = 15;
 	const int EVT_SPARE3 = 16;
 	const int EVT_ATM_TP = 17;
