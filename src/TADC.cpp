@@ -486,7 +486,6 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		gps_long.push_back(*(unsigned long long*)&evdu[EVT_LONGITUDE-1]);
 		gps_lat.push_back(*(unsigned long long*)&evdu[EVT_LATITUDE-1]);
 		gps_alt.push_back(*(unsigned long long*)&evdu[EVT_ALTITUDE-1]);
-		// ToDo: Now this is float, so just 2 bytes. How to fix it?
 		gps_temp.push_back(*(unsigned int*)&evdu[EVT_TEMPERATURE]);
 
 		// ToDo: Add seconds since sunday, week, utc offset, modes and work on alarms
