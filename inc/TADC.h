@@ -104,6 +104,7 @@ public:
 
 	//! ADC input channels - > 16 BIT WORD (4*4 BITS) LOWEST IS CHANNEL 1, HIGHEST CHANNEL 4. FOR EACH CHANNEL IN THE EVENT WE HAVE: 0: ADC1, 1: ADC2, 2:ADC3, 3:ADC4 4:FILTERED ADC1, 5:FILTERED ADC 2, 6:FILTERED ADC3, 7:FILTERED ADC4.
 //	vector<unsigned short> adc_input_channels;
+	//! ADC input channels for fv2: 0: ADC1, 1: ADC2, 2:ADC3, 3:ADC4, 4:FILTERED ADC1, 5:FILTERED ADC2, 6:FILTERED ADC3, 7:FILTERED ADC4, 15: off
 	vector<vector<unsigned char>> adc_input_channels_ch;
 
 	//! ADC enabled channels - LOWEST 4 BITS STATE WHICH CHANNEL IS READ OUT
@@ -269,6 +270,35 @@ public:
 	//! ADC temperature
 	vector<unsigned int> adc_temp;
 
+	// Added on 23.02.2024
+
+	//! Hardware ID
+	vector<unsigned short> hardware_id;
+
+	//! Trigger status
+	vector<unsigned short> trigger_status;
+
+	//! Trigger DDR storage
+	vector<unsigned short> trigger_ddr_storage;
+
+	//! Data format version
+	vector<unsigned short> data_format_version;
+
+	//! ADAQ version
+	vector<unsigned short> adaq_version;
+
+	//! DUDAQ version
+	vector<unsigned short> dudaq_version;
+
+	//! Trigger selection: ch0&ch1&ch2
+	vector<bool> trigger_pattern_ch0_ch1_ch2;
+	//! Trigger selection: ch0&ch1&~ch2
+	vector<bool> trigger_pattern_ch0_ch1_notch2;
+	//! Trigger selection: 20 Hz
+	vector<bool> trigger_pattern_20Hz;
+
+	//! External pulse trigger period
+	vector<int> trigger_external_test_pulse_period;
 
 	//! The TTree for holding the data
 	TTree *tadc;
@@ -292,6 +322,8 @@ private:
 
 	//! Decode the trigger pattern
 	void TriggerPatternDecodeAndFill(unsigned short);
+	//! Decode the trigger pattern in firmware v2
+	void TriggerPatternDecodeAndFill_fv2(unsigned short);
 	//! Decode the digital control
 	void DigiCtrlDecodeAndFill(unsigned short[8]);
 	//! Decode the digital window
@@ -302,6 +334,8 @@ private:
 	void ChannelTriggerParameterDecodeAndFill(unsigned short[24]);
 	//! Decode the ADC input channels
 	void ADCInputChannelsDecodeAndFill(unsigned short);
+	//! Decode the ADC input channels in firmware v2
+	void ADCInputChannelsDecodeAndFill_fv2(unsigned short);
 	//! Decode the ADC enabled channels
 	void ADCEnabledChannelsDecodeAndFill(unsigned short);
 

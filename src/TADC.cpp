@@ -423,12 +423,15 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 
 		event_id.push_back(evdu[EVT_EVT_ID]);
 		du_id.push_back(evdu[EVT_STATION_ID]);
-		// ToDo: Add hardware_id
+		// !ToDo: Add hardware_id
+		hardware_id.push_back(evdu[EVT_HARDWARE_ID]);
 		du_seconds.push_back(evdu[EVT_SECOND]);
 		du_nanoseconds.push_back(evdu[EVT_NANOSEC]);
 		trigger_position.push_back(evdu[EVT_TRIGGER_POS]>>16);
 		trigger_flag.push_back(evdu[EVT_TRIGGER_STAT]>>16);
-		// ToDo: Add trigger status
+		// !ToDo: Add trigger status
+		// ToDo: Ask Charles, as he says it is similar to trigger pattern in the old format, but this was being decoded
+		trigger_status.push_back(evdu[EVT_TRIGGER_STAT]&0xffff);
 
 		pps_id.push_back(evdu[EVT_PPS_ID]);
 		fpga_temp.push_back(evdu[EVT_FPGA_TEMP]>>16);
@@ -441,14 +444,18 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		acceleration_y.push_back(evdu[EVT_AY_AZ]>>16);
 		acceleration_z.push_back(evdu[EVT_AY_AZ]&0xffff);
 		battery_level.push_back(evdu[EVT_BATTERY]>>16);
-		// ToDo: Is this the same as event_version for the whole event?
+		// !ToDo: Is this the same as event_version for the whole event?
 		firmware_version.push_back((evdu[EVT_VERSION]>>16)&0xff);
-		// ToDo: Add Data format version
+		// !ToDo: Add Data format version
+		data_format_version.push_back((evdu[EVT_VERSION]>>24)&0xff);
+		adaq_version.push_back((evdu[EVT_VERSION]>>8)&0xff);
+		dudaq_version.push_back((evdu[EVT_VERSION]&0xff));
+
 		adc_sampling_frequency.push_back(evdu[EVT_ADCINFO]>>16);
 		adc_sampling_resolution.push_back(evdu[EVT_ADCINFO]&0xffff);
 
-		// ToDo: Add decoding from print_channel_info()
-//		ADCInputChannelsDecodeAndFill(evdu[file_shift + EVT_INP_SELECT]);
+		// !ToDo: Add decoding from print_channel_info()
+		ADCInputChannelsDecodeAndFill_fv2(evdu[EVT_INP_SELECT]);
 
 		// ToDo: Add decoding from print_channel_info()
 //		ADCEnabledChannelsDecodeAndFill(evdu[file_shift + EVT_CH_ENABLE]);
@@ -460,11 +467,12 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 //		adc_samples_count_ch.emplace_back();
 //		for(int i=0;i<3;i++) adc_samples_count_ch.back().push_back(evdu[file_shift + EVT_TOT_SAMPLES+i]);
 
-		// ToDo: Add decoding from print_channel_info()
-//		TriggerPatternDecodeAndFill(evdu[file_shift + EVT_TRIG_PAT]);
+		// !ToDo: Add decoding from print_channel_info()
+		TriggerPatternDecodeAndFill_fv2(evdu[EVT_TRIG_SELECT]);
 
 		trigger_rate.push_back(evdu[EVT_STATISTICS]>>16);
-		// ToDo: Add DDR Storage
+		// !ToDo: Add DDR Storage
+		trigger_ddr_storage.push_back(evdu[EVT_STATISTICS]&0xffff);
 
 		clock_tick.push_back(evdu[EVT_CTD]);
 		clock_ticks_per_second.push_back(evdu[EVT_CTP]);
@@ -701,6 +709,24 @@ void TADC::TriggerPatternDecodeAndFill(unsigned short trigger_pattern)
 	trigger_pattern_external_test_pulse.push_back(bits[4]);
 }
 
+void TADC::TriggerPatternDecodeAndFill_fv2(unsigned short trigger_pattern)
+{
+	auto bits = bitset<16>{trigger_pattern};
+
+	trigger_pattern_ch.push_back(vector<bool>{bits[0], bits[1], bits[2], bits[3]});
+
+	trigger_pattern_ch0_ch1.push_back(bits[4]);
+	trigger_pattern_ch0_ch1_ch2.push_back(bits[5]);
+	trigger_pattern_ch0_ch1_notch2.push_back(bits[6]);
+	trigger_pattern_20Hz.push_back(bits[7]);
+	trigger_pattern_10s.push_back(bits[8]);
+	trigger_pattern_external_test_pulse.push_back(bits[9]);
+
+	int period =((trigger_pattern>>13)&0xf)<<(2+((trigger_pattern>>9)&0xf));
+	trigger_external_test_pulse_period.push_back(period);
+}
+
+
 void TADC::DigiCtrlDecodeAndFill(unsigned short digi_ctrl[8])
 {
 
@@ -775,6 +801,29 @@ void TADC::ChannelTriggerParameterDecodeAndFill(unsigned short chprop[24])
 void TADC::ADCInputChannelsDecodeAndFill(unsigned short val)
 {
 	adc_input_channels_ch.push_back(vector<unsigned char>{(unsigned char)((val>>0)&0b0111), (unsigned char)((val>>4)&0b0111), (unsigned char)((val>>8)&0b0111), (unsigned char)((val>>12)&0b0111)});
+}
+
+void TADC::ADCInputChannelsDecodeAndFill_fv2(unsigned short val)
+{
+	unsigned char adc_val[3];
+	for(int ich=0;ich<3;ich++)
+	{
+		// Channel off
+		if(((val>>5*ich)&0x1e) == 0) adc_val[ich]=15;
+		else
+		{
+			for(int iadc=0;iadc<4;iadc++){
+				if(val&(1<<(5*ich+iadc+1)))
+				{
+					// Filtered channel
+					if (val & (1 << (5 * ich))) adc_val[ich] = iadc+4;
+					// Unfiltered channel
+					else adc_val[ich] = iadc;
+				}
+			}
+		}
+	}
+	adc_input_channels_ch.push_back(vector<unsigned char>{adc_val[0], adc_val[1], adc_val[2]});
 }
 
 void TADC::ADCEnabledChannelsDecodeAndFill(unsigned short val)
