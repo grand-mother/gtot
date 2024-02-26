@@ -300,6 +300,31 @@ public:
 	//! External pulse trigger period
 	vector<int> trigger_external_test_pulse_period;
 
+	// Added on 26.02.2024
+
+	//! GPS week number
+	vector<unsigned short> gps_week_num;
+
+	//! GPS receiver mode
+	vector<unsigned char> gps_receiver_mode;
+
+	//! GPS disciplining mode
+	vector<unsigned char> gps_disciplining_mode;
+
+	//! GPS self-survey progress
+	vector<unsigned char> gps_self_survey;
+
+	//! GPS minor alarms
+	vector<unsigned char> gps_minor_alarms;
+
+	//! GPS GNSS decoding
+	vector<unsigned char> gps_gnss_decoding;
+
+	//! GPS disciplining activity
+	vector<unsigned short> gps_disciplining_activity;
+
+
+
 	//! The TTree for holding the data
 	TTree *tadc;
 

@@ -91,6 +91,14 @@ TTree *TADC::CreateTree()
 	tadc->Branch("gps_alt", &gps_alt);
 	tadc->Branch("gps_temp", &gps_temp);
 
+	tadc->Branch("gps_week_num", &gps_week_num);
+	tadc->Branch("gps_receiver_mode", &gps_receiver_mode);
+	tadc->Branch("gps_disciplining_mode", &gps_disciplining_mode);
+	tadc->Branch("gps_self_survey", &gps_self_survey);
+	tadc->Branch("gps_minor_alarms", &gps_minor_alarms);
+	tadc->Branch("gps_gnss_decoding", &gps_gnss_decoding);
+	tadc->Branch("gps_disciplining_activity", &gps_disciplining_activity);
+
 //	tadc->Branch("digi_ctrl", &digi_ctrl);
 	tadc->Branch("enable_auto_reset_timeout", &enable_auto_reset_timeout);
 	tadc->Branch("force_firmware_reset", &force_firmware_reset);
@@ -478,8 +486,8 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		clock_ticks_per_second.push_back(evdu[EVT_CTP]);
 		gps_offset.push_back(*(float *)&evdu[EVT_OFFSET]);
 
-		// ToDo: Check if there is leap second stored
-//		gps_leap_second.push_back(evdu[file_shift + EVT_LEAP]);
+		// !ToDo: Check if there is leap second stored
+		gps_leap_second.push_back(evdu[EVT_WEEKOFFSET]&0xffff);
 		gps_status.push_back((evdu[EVT_SECMINHOUR]>>24)&0xff);
 
 		// ToDo: Check which one in new data correspond to alarms and warning below
@@ -496,7 +504,14 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		gps_alt.push_back(*(unsigned long long*)&evdu[EVT_ALTITUDE-1]);
 		gps_temp.push_back(*(unsigned int*)&evdu[EVT_TEMPERATURE]);
 
-		// ToDo: Add seconds since sunday, week, utc offset, modes and work on alarms
+		// !ToDo: Add seconds since sunday, week, utc offset, modes and work on alarms
+		gps_week_num.push_back(evdu[EVT_WEEKOFFSET]>>16);
+		gps_receiver_mode.push_back((evdu[EVT_GPSMODE]>>24)&0xff);
+		gps_disciplining_mode.push_back((evdu[EVT_GPSMODE]>>16)&0xff);
+		gps_self_survey.push_back((evdu[EVT_GPSMODE]>>8)&0xff);
+		gps_minor_alarms.push_back((evdu[EVT_GPSSTATUS]>>16)&0xffff);
+		gps_gnss_decoding.push_back((evdu[EVT_GPSSTATUS]>>8)&0xff);
+		gps_disciplining_activity.push_back((evdu[EVT_GPSSTATUS])&0xff);
 
 		// ToDo: All 4 below from print_channel_info()
 //		DigiCtrlDecodeAndFill(&evdu[file_shift + EVT_CTRL]);
@@ -621,6 +636,14 @@ void TADC::ClearVectors()
 	gps_lat.clear();
 	gps_alt.clear();
 	gps_temp.clear();
+
+	gps_week_num.clear();
+	gps_receiver_mode.clear();
+	gps_disciplining_mode.clear();
+	gps_self_survey.clear();
+	gps_minor_alarms.clear();
+	gps_gnss_decoding.clear();
+	gps_disciplining_activity.clear();
 
 //	digi_ctrl.clear();
 	enable_auto_reset_timeout.clear();
