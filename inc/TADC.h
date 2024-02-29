@@ -273,7 +273,7 @@ public:
 	// Added on 23.02.2024
 
 	//! Hardware ID
-	vector<unsigned short> hardware_id;
+	vector<unsigned int> hardware_id;
 
 	//! Trigger status
 	vector<unsigned short> trigger_status;
@@ -302,6 +302,9 @@ public:
 
 	// Added on 26.02.2024
 
+	//! GPS seconds since Sunday 00:00
+	vector<unsigned int> gps_sec_sun;
+
 	//! GPS week number
 	vector<unsigned short> gps_week_num;
 
@@ -315,7 +318,7 @@ public:
 	vector<unsigned char> gps_self_survey;
 
 	//! GPS minor alarms
-	vector<unsigned char> gps_minor_alarms;
+	vector<unsigned short> gps_minor_alarms;
 
 	//! GPS GNSS decoding
 	vector<unsigned char> gps_gnss_decoding;
@@ -324,6 +327,18 @@ public:
 	vector<unsigned short> gps_disciplining_activity;
 
 
+	// Added on 29.02.2024
+
+	//! Samples in baseline subtraction - same as integration time in fv1, but now a short not a char
+	vector<vector<unsigned short>> integration_time_ch_fv2;
+
+	vector<vector<unsigned short>> tper_ch_fv2;
+	vector<vector<unsigned short>> tprev_ch_fv2;
+	vector<vector<unsigned short>> ncmax_ch_fv2;
+	vector<vector<unsigned short>> tcmax_ch_fv2;
+	vector<vector<unsigned short>> ncmin_ch_fv2;
+
+	vector<vector<unsigned char>> notch_filters_no_ch;
 
 	//! The TTree for holding the data
 	TTree *tadc;
@@ -335,8 +350,11 @@ public:
 	int SetValuesFromPointers(unsigned short *pevent, string file_format="");
 	int SetValuesFromPointers_fv2(unsigned short *pevent, string file_format="");
 
+	//! Is it firmware v2
+	bool is_fv2;
+
 	//! The default constructor
-	TADC();
+	TADC(bool is_fv2=false);
 
 private:
 	//! Clear the vectors for another fill

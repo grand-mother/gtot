@@ -10,8 +10,9 @@
 #include "TNamed.h"
 #include "TParameter.h"
 
-TADC::TADC()
+TADC::TADC(bool is_fv2)
 {
+	this->is_fv2 = is_fv2;
 	CreateTree();
 }
 
@@ -35,16 +36,29 @@ TTree *TADC::CreateTree()
 	tadc->Branch("event_version", &event_version, "event_version/i");
 	tadc->Branch("du_count", &du_count, "du_count/i");
 	// Vector branches
-	tadc->Branch("event_id", &event_id);
+
 	tadc->Branch("du_id", &du_id);
+	if (is_fv2)
+	{
+		tadc->Branch("data_format_version", &data_format_version);
+		tadc->Branch("firmware_version", &firmware_version);
+		tadc->Branch("adaq_version", &adaq_version);
+		tadc->Branch("dudaq_version", &dudaq_version);
+		tadc->Branch("hardware_id", &hardware_id);
+	}
+
+	tadc->Branch("event_id", &event_id);
 	tadc->Branch("du_seconds", &du_seconds);
 	tadc->Branch("du_nanoseconds", &du_nanoseconds);
 	tadc->Branch("trigger_position", &trigger_position);
 	tadc->Branch("trigger_flag", &trigger_flag);
 
-	tadc->Branch("pps_id", &pps_id);
-	tadc->Branch("fpga_temp", &fpga_temp);
-	tadc->Branch("adc_temp", &adc_temp);
+	if (is_fv2)
+	{
+		tadc->Branch("pps_id", &pps_id);
+		tadc->Branch("fpga_temp", &fpga_temp);
+		tadc->Branch("adc_temp", &adc_temp);
+	}
 
 	tadc->Branch("atm_temperature", &atm_temperature);
 	tadc->Branch("atm_pressure", &atm_pressure);
@@ -77,7 +91,22 @@ TTree *TADC::CreateTree()
 	tadc->Branch("trigger_pattern_10s", &trigger_pattern_10s);
 	tadc->Branch("trigger_pattern_external_test_pulse", &trigger_pattern_external_test_pulse);
 
+	if (is_fv2)
+	{
+		tadc->Branch("trigger_pattern_ch0_ch1_ch2", &trigger_pattern_ch0_ch1_ch2);
+		tadc->Branch("trigger_pattern_ch0_ch1_notch2", &trigger_pattern_ch0_ch1_notch2);
+		tadc->Branch("trigger_pattern_20Hz", &trigger_pattern_20Hz);
+		tadc->Branch("trigger_external_test_pulse_period", &trigger_external_test_pulse_period);
+	}
+
 	tadc->Branch("trigger_rate", &trigger_rate);
+
+	if (is_fv2)
+	{
+		tadc->Branch("trigger_status", &trigger_status);
+		tadc->Branch("trigger_ddr_storage", &trigger_ddr_storage);
+	}
+
 	tadc->Branch("clock_tick", &clock_tick);
 	tadc->Branch("clock_ticks_per_second", &clock_ticks_per_second);
 	tadc->Branch("gps_offset", &gps_offset);
@@ -90,6 +119,18 @@ TTree *TADC::CreateTree()
 	tadc->Branch("gps_lat", &gps_lat);
 	tadc->Branch("gps_alt", &gps_alt);
 	tadc->Branch("gps_temp", &gps_temp);
+
+	if (is_fv2)
+	{
+		tadc->Branch("gps_sec_sun", &gps_sec_sun);
+		tadc->Branch("gps_week_num", &gps_week_num);
+		tadc->Branch("gps_receiver_mode", &gps_receiver_mode);
+		tadc->Branch("gps_disciplining_mode", &gps_disciplining_mode);
+		tadc->Branch("gps_self_survey", &gps_self_survey);
+		tadc->Branch("gps_minor_alarms", &gps_minor_alarms);
+		tadc->Branch("gps_gnss_decoding", &gps_gnss_decoding);
+		tadc->Branch("gps_disciplining_activity", &gps_disciplining_activity);
+	}
 
 	tadc->Branch("gps_week_num", &gps_week_num);
 	tadc->Branch("gps_receiver_mode", &gps_receiver_mode);
@@ -131,6 +172,7 @@ TTree *TADC::CreateTree()
 //	tadc->Branch("channel_properties3", &channel_properties3);
 	tadc->Branch("gain_correction_ch", &gain_correction_ch);
 	tadc->Branch("integration_time_ch", &integration_time_ch);
+	if(is_fv2) tadc->Branch("samples_in_baseline_ch", &integration_time_ch_fv2);
 	tadc->Branch("offset_correction_ch", &offset_correction_ch);
 	tadc->Branch("base_maximum_ch", &base_maximum_ch);
 	tadc->Branch("base_minimum_ch", &base_minimum_ch);
@@ -144,10 +186,23 @@ TTree *TADC::CreateTree()
 	tadc->Branch("tprev_ch", &tprev_ch);
 	tadc->Branch("tper_ch", &tper_ch);
 	tadc->Branch("tcmax_ch", &tcmax_ch);
-	tadc->Branch("ncmax_ch", &ncmax_ch);
 	tadc->Branch("ncmin_ch", &ncmin_ch);
+	tadc->Branch("ncmax_ch", &ncmax_ch);
+
+	if(is_fv2)
+	{
+		tadc->Branch("tpre_trig_ch", &tprev_ch_fv2);
+		tadc->Branch("tpost_trig_ch", &tper_ch_fv2);
+		tadc->Branch("tmax_crossings_ch", &tcmax_ch_fv2);
+		tadc->Branch("min_crossing_lim_ch", &ncmin_ch_fv2);
+		tadc->Branch("max_crossing_lim_ch", &ncmax_ch_fv2);
+	}
+
 	tadc->Branch("qmax_ch", &qmax_ch);
 	tadc->Branch("qmin_ch", &qmin_ch);
+
+	if (is_fv2)
+		tadc->Branch("notch_filters_no_ch", &notch_filters_no_ch);
 
 	tadc->Branch("ioff", &ioff);
 //	tadc->Branch("trace_0", &trace_0);
@@ -465,11 +520,13 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		// !ToDo: Add decoding from print_channel_info()
 		ADCInputChannelsDecodeAndFill_fv2(evdu[EVT_INP_SELECT]);
 
-		// ToDo: Add decoding from print_channel_info()
+		// !ToDo: Add decoding from print_channel_info()
+		// Added above
 //		ADCEnabledChannelsDecodeAndFill(evdu[file_shift + EVT_CH_ENABLE]);
 
-		// ToDo: Add decoding from print_channel_info()
+		// ToDo: Check if before it was also sample _pairs_, or should I change the variable name
 //		adc_samples_count_total.push_back(16*evdu[file_shift + EVT_TOT_SAMPLES]);
+		adc_samples_count_total.push_back(evdu[EVT_TOT_SAMPLEP]);
 
 		// ToDo: Add decoding from print_channel_info()
 //		adc_samples_count_ch.emplace_back();
@@ -490,7 +547,7 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		gps_leap_second.push_back(evdu[EVT_WEEKOFFSET]&0xffff);
 		gps_status.push_back((evdu[EVT_SECMINHOUR]>>24)&0xff);
 
-		// ToDo: Check which one in new data correspond to alarms and warning below
+		// !ToDo: Check which one in new data correspond to alarms and warning below
 //		gps_alarms.push_back(evdu[file_shift + EVT_GPS_CRITICAL]);
 //		gps_warnings.push_back(evdu[file_shift + EVT_GPS_WARNING]);
 
@@ -505,6 +562,7 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		gps_temp.push_back(*(unsigned int*)&evdu[EVT_TEMPERATURE]);
 
 		// !ToDo: Add seconds since sunday, week, utc offset, modes and work on alarms
+		gps_sec_sun.push_back(evdu[EVT_WEEKTIME]);
 		gps_week_num.push_back(evdu[EVT_WEEKOFFSET]>>16);
 		gps_receiver_mode.push_back((evdu[EVT_GPSMODE]>>24)&0xff);
 		gps_disciplining_mode.push_back((evdu[EVT_GPSMODE]>>16)&0xff);
@@ -514,12 +572,30 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		gps_disciplining_activity.push_back((evdu[EVT_GPSSTATUS])&0xff);
 
 		// ToDo: All 4 below from print_channel_info()
+		// Nothing from it is called here I think
 //		DigiCtrlDecodeAndFill(&evdu[file_shift + EVT_CTRL]);
+		// This is now NOT in the event
 //		DigiWindowDecodeAndFill(&evdu[file_shift + EVT_WINDOWS]);
+		// Replaced by below
 //		ChannelPropertyDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_CHANNEL]);
+		gain_correction_ch.push_back(vector<unsigned short>{(unsigned short)(evdu[EVT_GAIN_AB]>>16), (unsigned short)(evdu[EVT_GAIN_AB]&0xffff), (unsigned short)(evdu[EVT_GAIN_CD]>>16), (unsigned short)(evdu[EVT_GAIN_CD]&0xffff)});
+		integration_time_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(1<<((evdu[EVT_BASELINE_12]>>10)&0x7)), (unsigned short)(1<<((evdu[EVT_BASELINE_12]>>23)&0x7)), (unsigned short)(1<<((evdu[EVT_BASELINE_3]>>10)&0x7))});
+		base_maximum_ch.push_back(vector<unsigned short>{(unsigned short)(evdu[EVT_BASELINE_12]&0x3ff), (unsigned short)((evdu[EVT_BASELINE_12]>>13)&0x3ff), (unsigned short)(evdu[EVT_BASELINE_3]&0x3ff)});
+
+		// Replaced by below
 //		ChannelTriggerParameterDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_TRIGGER]);
 
-		// ToDo: Add notch filters
+		signal_threshold_ch.push_back(vector<unsigned short>{(unsigned short)((evdu[EVT_THRES_C1+0]>>12)&0xfff), (unsigned short)((evdu[EVT_THRES_C1+1]>>12)&0xfff), (unsigned short)((evdu[EVT_THRES_C1+2]>>12)&0xfff)});
+		noise_threshold_ch.push_back(vector<unsigned short>{(unsigned short)((evdu[EVT_THRES_C1+0]&0xfff)), (unsigned short)((evdu[EVT_THRES_C1+1]&0xfff)), (unsigned short)((evdu[EVT_THRES_C1+2]&0xfff))});
+
+		tprev_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(4*((evdu[EVT_TRIG_C1+2*0]>>21)&0x1ff)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*1]>>21)&0x1ff)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*2]>>21)&0x1ff))});
+		tper_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(4*((evdu[EVT_TRIG_C1+2*0]>>12)&0x1ff)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*1]>>12)&0x1ff)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*2]>>12)&0x1ff))});
+		tcmax_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(4*((evdu[EVT_TRIG_C1+2*0]>>9)&0x7)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*1]>>9)&0x7)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*2]>>9)&0x7))});
+		ncmin_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(((evdu[EVT_TRIG_C1+2*0]>>5)&0xf)), (unsigned short)(((evdu[EVT_TRIG_C1+2*1]>>5)&0xf)), (unsigned short)(((evdu[EVT_TRIG_C1+2*2]>>5)&0xf))});
+		ncmax_ch_fv2.push_back(vector<unsigned short>{(unsigned short)((evdu[EVT_TRIG_C1+2*0]&0x1f)), (unsigned short)((evdu[EVT_TRIG_C1+2*1]&0x1f)), (unsigned short)((evdu[EVT_TRIG_C1+2*2]&0x1f))});
+
+		// !ToDo: Add notch filters
+		notch_filters_no_ch.push_back(vector<unsigned char>{(unsigned char)((evdu[EVT_TRIG_SELECT]>>17)&0x7), (unsigned char)((evdu[EVT_TRIG_SELECT]>>20)&0x7), (unsigned char)((evdu[EVT_TRIG_SELECT]>>23)&0x7)});
 
 		// ToDo: check if there is anything like ioff now
 //		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
@@ -637,6 +713,7 @@ void TADC::ClearVectors()
 	gps_alt.clear();
 	gps_temp.clear();
 
+	gps_sec_sun.clear();
 	gps_week_num.clear();
 	gps_receiver_mode.clear();
 	gps_disciplining_mode.clear();
@@ -675,6 +752,7 @@ void TADC::ClearVectors()
 //	channel_properties3.clear();
 	gain_correction_ch.clear();
 	integration_time_ch.clear();
+	integration_time_ch_fv2.clear();
 	offset_correction_ch.clear();
 	base_maximum_ch.clear();
 	base_minimum_ch.clear();
@@ -690,6 +768,11 @@ void TADC::ClearVectors()
 	tcmax_ch.clear();
 	ncmax_ch.clear();
 	ncmin_ch.clear();
+	tprev_ch_fv2.clear();
+	tper_ch_fv2.clear();
+	tcmax_ch_fv2.clear();
+	ncmax_ch_fv2.clear();
+	ncmin_ch_fv2.clear();
 	qmax_ch.clear();
 	qmin_ch.clear();
 
@@ -700,6 +783,31 @@ void TADC::ClearVectors()
 //	trace_2.clear();
 //	trace_3.clear();
 	trace_ch.clear();
+
+	hardware_id.clear();
+	trigger_status.clear();
+	trigger_ddr_storage.clear();
+	data_format_version.clear();
+	adaq_version.clear();
+	dudaq_version.clear();
+	trigger_pattern_ch0_ch1_ch2.clear();
+	trigger_pattern_ch0_ch1_notch2.clear();
+	trigger_pattern_20Hz.clear();
+	trigger_external_test_pulse_period.clear();
+	gps_week_num.clear();
+	gps_receiver_mode.clear();
+	gps_disciplining_mode.clear();
+	gps_self_survey.clear();
+	gps_minor_alarms.clear();
+	gps_gnss_decoding.clear();
+	gps_disciplining_activity.clear();
+	integration_time_ch_fv2.clear();
+	tper_ch_fv2.clear();
+	tprev_ch_fv2.clear();
+	ncmax_ch_fv2.clear();
+	tcmax_ch_fv2.clear();
+	ncmin_ch_fv2.clear();
+	notch_filters_no_ch.clear();
 }
 
 //! Initialises the TTree metadata fields
@@ -732,6 +840,7 @@ void TADC::TriggerPatternDecodeAndFill(unsigned short trigger_pattern)
 	trigger_pattern_external_test_pulse.push_back(bits[4]);
 }
 
+// ToDo: Not sure if this is actually trigger pattern or trigger enabling
 void TADC::TriggerPatternDecodeAndFill_fv2(unsigned short trigger_pattern)
 {
 	auto bits = bitset<16>{trigger_pattern};
@@ -746,7 +855,9 @@ void TADC::TriggerPatternDecodeAndFill_fv2(unsigned short trigger_pattern)
 	trigger_pattern_external_test_pulse.push_back(bits[9]);
 
 	int period =((trigger_pattern>>13)&0xf)<<(2+((trigger_pattern>>9)&0xf));
-	trigger_external_test_pulse_period.push_back(period);
+//	trigger_external_test_pulse_period.push_back(period);
+	// ToDo: I am not sure if this is test_pulse_rate_divider
+	test_pulse_rate_divider.push_back(period);
 }
 
 
@@ -828,25 +939,33 @@ void TADC::ADCInputChannelsDecodeAndFill(unsigned short val)
 
 void TADC::ADCInputChannelsDecodeAndFill_fv2(unsigned short val)
 {
-	unsigned char adc_val[3];
+	unsigned char adc_val[3] = {0, 0, 0};
+	bool filter_val[3] = {false, false, false};
+	bool enabled_ch[3] = {true, true, true};
 	for(int ich=0;ich<3;ich++)
 	{
 		// Channel off
-		if(((val>>5*ich)&0x1e) == 0) adc_val[ich]=15;
+		if(((val>>5*ich)&0x1e) == 0)
+		{
+			// Filling with a dummy highest value for non-enable channel
+			adc_val[ich] = 15;
+			enabled_ch[ich] = false;
+		}
 		else
 		{
 			for(int iadc=0;iadc<4;iadc++){
 				if(val&(1<<(5*ich+iadc+1)))
 				{
+					adc_val[ich] = iadc;
 					// Filtered channel
-					if (val & (1 << (5 * ich))) adc_val[ich] = iadc+4;
-					// Unfiltered channel
-					else adc_val[ich] = iadc;
+					if (val & (1 << (5 * ich))) filter_val[ich] = true;
 				}
 			}
 		}
 	}
 	adc_input_channels_ch.push_back(vector<unsigned char>{adc_val[0], adc_val[1], adc_val[2]});
+	enable_filter_ch.push_back(vector<bool>{filter_val[0], filter_val[1], filter_val[2]});
+	enable_readout_ch.push_back(vector<bool>{enabled_ch[0], enabled_ch[1], enabled_ch[2]});
 }
 
 void TADC::ADCEnabledChannelsDecodeAndFill(unsigned short val)
