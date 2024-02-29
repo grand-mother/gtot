@@ -192,6 +192,9 @@ public:
 	//! ADC temperature
 	vector<float> adc_temp;
 
+	// Added 29.02.2024
+	vector<vector<float>> gain_correction_ch;
+
 	//! The TTree for holding the data
 	TTree *trawvoltage;
 

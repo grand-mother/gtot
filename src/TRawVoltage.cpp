@@ -32,7 +32,7 @@ TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2) : TRawVoltage()
 	auto tadc = adc->tadc;
 
 	// Exclude these branches from copying, for the values need to be modified
-	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level", "fpga_temp", "adc_temp"};
+	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level", "fpga_temp", "adc_temp", "atm_temperature", "atm_pressure", "atm_humidity", "gain_correction_ch"};
 
 	// *** Transform the tadc events into trawvoltage events ***
 
@@ -88,6 +88,10 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 	fpga_temp.clear();
 	adc_temp.clear();
 
+	atm_temperature.clear();
+	atm_humidity.clear();
+	atm_pressure.clear();
+
 	// Loop through the DUs
 //	for (size_t i=0; i<adc->du_count; ++i)
 	for (size_t i=0; i<adc->trace_ch.size(); ++i)
@@ -120,6 +124,13 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 			GPSADC2Real(i, adc);
 		// Convert battery level from ADCs to Voltage
 		BatteryADC2Voltage(i, adc);
+
+		atm_temperature.push_back(((adc->atm_temperature[i]*2500./4096)-400)/19.5);
+		atm_humidity.push_back(((adc->atm_temperature[i]*2.5/4096/3.3)-0.1515)/0.00636);
+		// ToDo: find the conversion
+		atm_pressure.push_back(adc->atm_pressure[i]*1.);
+
+		gain_correction_ch.push_back(vector<float>{(float)((adc->gain_correction_ch[i][0]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][1]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][2]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][3]-0.5)*2.5*37.5/4096-14)});
 	}
 //	// Merge the traces
 //	trace_ch.push_back(trace_0);
@@ -266,6 +277,7 @@ TTree *TRawVoltage::CreateTree()
 //	trawvoltage->Branch("acceleration_z", &acceleration_z);
 	trawvoltage->Branch("battery_level", &battery_level);
 	trawvoltage->Branch("adc_samples_count_channel", &adc_samples_count_channel);
+	trawvoltage->Branch("gain_correction_ch", &gain_correction_ch);
 //	trawvoltage->Branch("firmware_version", &firmware_version);
 //	trawvoltage->Branch("adc_sampling_frequency", &adc_sampling_frequency);
 //	trawvoltage->Branch("adc_sampling_resolution", &adc_sampling_resolution);
