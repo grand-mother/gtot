@@ -173,7 +173,7 @@ int main(int argc, char **argv)
 		// The whole Run class
 		auto run = new TRun();
 		// The ADC event class
-		auto ADC = new TADC();
+		auto ADC = new TADC(is_fv2);
 
 		//! File reading
 		FILE *fp;
