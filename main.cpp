@@ -84,7 +84,7 @@ void analyse_command_line_params(int argc, char **argv)
 //			file_format = "gp13v1";
 		}
 		// File to analyse
-		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0") || count(argv[i], argv[i]+strlen(argv[i]), '_')==5) && !infile_forced)
+		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0") || count(argv[i], argv[i]+strlen(argv[i]), '_')>=5) && !infile_forced)
 //		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0")) && !infile_forced)
 		{
 			filenames.Add((TObject*)(new TString(argv[i])));
