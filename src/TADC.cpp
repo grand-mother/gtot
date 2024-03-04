@@ -526,7 +526,7 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 
 		// ToDo: Check if before it was also sample _pairs_, or should I change the variable name
 //		adc_samples_count_total.push_back(16*evdu[file_shift + EVT_TOT_SAMPLES]);
-		adc_samples_count_total.push_back(evdu[EVT_TOT_SAMPLEP]);
+		adc_samples_count_total.push_back(evdu[EVT_TOT_SAMPLEP]*2);
 
 		// ToDo: Add decoding from print_channel_info()
 //		adc_samples_count_ch.emplace_back();
