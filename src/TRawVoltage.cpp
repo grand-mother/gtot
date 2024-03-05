@@ -105,7 +105,7 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 		trace_ch.emplace_back();
 
 		// Loop through traces dimensions
-		for (int i = 0; i < adc->trace_ch[0].size(); ++i)
+		for (int j = 0; j < adc->trace_ch[0].size(); ++j)
 		{
 			trace_ch.back().emplace_back();
 		}
