@@ -133,7 +133,7 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 		BatteryADC2Voltage(i, adc);
 
 		atm_temperature.push_back(((adc->atm_temperature[i]*2500./4096)-400)/19.5);
-		atm_humidity.push_back(((adc->atm_temperature[i]*2.5/4096/3.3)-0.1515)/0.00636);
+		atm_humidity.push_back(((adc->atm_humidity[i]*2.5/4096/3.3)-0.1515)/0.00636);
 		// ToDo: find the conversion
 		atm_pressure.push_back(adc->atm_pressure[i]*1.);
 
