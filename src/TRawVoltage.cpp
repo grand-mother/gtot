@@ -92,6 +92,8 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 	atm_humidity.clear();
 	atm_pressure.clear();
 
+	gain_correction_ch.clear();
+
 	// Loop through the DUs
 //	for (size_t i=0; i<adc->du_count; ++i)
 	for (size_t i=0; i<adc->trace_ch.size(); ++i)
