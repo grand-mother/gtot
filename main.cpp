@@ -2,6 +2,7 @@
 #include <fstream>
 #include <algorithm>
 #include <string.h>
+#include <filesystem>
 #include "inc/Traces1.h"
 #include "inc/Traces1_fv2.h"
 #include "TFile.h"
@@ -49,46 +50,46 @@ void analyse_command_line_params(int argc, char **argv)
 	for(int i=1; i<argc; ++i)
 	{
 		// Help requested
-		if((strlen(argv[i])>=2 && strstr(argv[i],"-h")) || strstr(argv[i],"--help"))
+		if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-h")) || strstr(argv[i], "--help"))
 		{
 			print_help();
 			exit(0);
 		}
-		// Forced input file
-		else if((strlen(argv[i])>=2 && strstr(argv[i],"-i")) || strstr(argv[i],"--input_filename"))
+			// Forced input file
+		else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-i")) || strstr(argv[i], "--input_filename"))
 		{
-			infile_forced=true;
+			infile_forced = true;
 			filenames.Clear();
-			filenames.Add((TObject*)(new TString(argv[i+1])));
-		}
-		else if((strlen(argv[i])>=2 && strstr(argv[i],"-o")) || strstr(argv[i],"--output_filename"))
+			filenames.Add((TObject *) (new TString(argv[i + 1])));
+		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-o")) || strstr(argv[i], "--output_filename"))
 		{
-			output_filename = argv[i+1];
+			output_filename = argv[i + 1];
 			++i;
-		}
-		else if((strlen(argv[i])>=2 && strstr(argv[i],"-g1")) || strstr(argv[i],"--gp13v1"))
+		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-g1")) || strstr(argv[i], "--gp13v1"))
 		{
 			cout << "Switching to GP13 v1 mode" << endl;
 			gp13v1 = true;
 			file_format = "gp13v1";
-		}
-		else if((strlen(argv[i])==2 && strstr(argv[i],"-v")) || strstr(argv[i],"--verbose"))
+		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-v")) || strstr(argv[i], "--verbose"))
 		{
 			cout << "Enabled verbose output" << endl;
 			overbose = true;
-		}
-		else if((strlen(argv[i])>=2 && strstr(argv[i],"-f2")) || strstr(argv[i],"--firmware_v2"))
+		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-f2")) || strstr(argv[i], "--firmware_v2"))
 		{
 			cout << "Switching to firmware v2 mode" << endl;
 			is_fv2 = true;
 //			file_format = "gp13v1";
 		}
-		// File to analyse
-		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0") || count(argv[i], argv[i]+strlen(argv[i]), '_')>=5) && !infile_forced)
-//		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0")) && !infile_forced)
+			// File to analyse
+		else
 		{
-			filenames.Add((TObject*)(new TString(argv[i])));
-			cout << "Added " << ((TString*)(filenames.Last()))->Data() << endl;
+			auto fn_ext = filesystem::path(argv[i]).extension();
+			if ((fn_ext == ".dat" || strstr(fn_ext.c_str(), ".f0") || fn_ext == ".bin" || count(argv[i], argv[i] + strlen(argv[i]), '_') >= 5) && !infile_forced)
+//		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0")) && !infile_forced)
+			{
+				filenames.Add((TObject *) (new TString(argv[i])));
+				cout << "Added " << ((TString *) (filenames.Last()))->Data() << endl;
+			}
 		}
 		/*
 		else
@@ -154,10 +155,18 @@ int main(int argc, char **argv)
 		{
 			output_filename = filename;
 			// Leaving the old extension inside the new filename, as it contains an ordinal number
-			if(filename.find(".dat") != string::npos || filename.find(".f0") != string::npos)
+			auto fn_ext = filesystem::path(filename).extension();
+			if( fn_ext == ".dat" || fn_ext.string().find(".f0") != string::npos)
 				output_filename = output_filename.replace(output_filename.find_last_of("."), 1, "_");
 //			output_filename = output_filename.replace(output_filename.find_last_of("."), output_filename.size() - output_filename.find_last_of("."), ".root");
-			output_filename+=".root";
+
+			// For firmware v2 files replace the extension
+			if( fn_ext == ".bin")
+				output_filename = filesystem::path(filename).replace_extension(".root");
+			// For others, add .root
+			else
+				output_filename+=".root";
+
 			cout << "Storing output in " << output_filename << endl;
 		}
 		auto tree_file = new TFile(output_filename.c_str(), "recreate");
