@@ -105,4 +105,8 @@ void TRun::InitialiseMetadata()
 	this->trun->GetUserInfo()->Add(new TNamed("comment", this->comment));
 	this->trun->GetUserInfo()->Add(new TParameter<int>("creation_datetime", this->creation_datetime));
 	this->trun->GetUserInfo()->Add(new TNamed("modification_history", this->modification_history));
+	this->trun->GetUserInfo()->Add(new TParameter<int>("source_datetime", this->source_datetime));
+	this->trun->GetUserInfo()->Add(new TNamed("modification_software", this->modification_software));
+	this->trun->GetUserInfo()->Add(new TNamed("modification_software_version", this->modification_software_version));
+	this->trun->GetUserInfo()->Add(new TParameter<int>("analysis_level", this->analysis_level));
 }

@@ -31,6 +31,15 @@ public:
 	//! Modification history - JSON
 	string modification_history = "";
 
+	//! Unix creation datetime of the source tree; 0 s means no source
+	int source_datetime = 0;
+	//! The tool used to generate this tree's values from another tree
+	string modification_software = "";
+	//! The version of the tool used to generate this tree's values from another tree
+	string modification_software_version = "";
+	//! The analysis level of this tree
+	int analysis_level = 0;
+
 	// *** Entry values ***
 
 	// Better have local storage for all the variables if one day we don't init from the structure
