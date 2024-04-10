@@ -272,7 +272,7 @@ TTree *TRawVoltage::CreateTree()
 	trawvoltage->Branch("du_nanoseconds", &du_nanoseconds);
 //	trawvoltage->Branch("du_t0_seconds", &du_t0_seconds);
 //	trawvoltage->Branch("du_t0_nanoseconds", &du_t0_nanoseconds);
-//	trawvoltage->Branch("trigger_position", &trigger_position);
+	trawvoltage->Branch("trigger_position", &trigger_position);
 	trawvoltage->Branch("trigger_flag", &trigger_flag);
 
 	trawvoltage->Branch("pps_id", &pps_id);

@@ -79,7 +79,7 @@ public:
 //	//! Nanoseconds of the start of the trace for this DU
 //	vector<unsigned int> du_t0_nanoseconds;
 //	//! Trigger position in the trace (trigger start = nanoseconds - 2*sample number)
-//	vector<unsigned short> trigger_position;
+	vector<unsigned short> trigger_position;
 	//! Same as event_type, but event_type could consist of different triggered DUs
 	vector<unsigned short> trigger_flag;
 	//! Atmospheric temperature (read via I2C)
