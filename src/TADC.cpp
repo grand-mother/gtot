@@ -171,8 +171,11 @@ TTree *TADC::CreateTree()
 //	tadc->Branch("channel_properties2", &channel_properties2);
 //	tadc->Branch("channel_properties3", &channel_properties3);
 	tadc->Branch("gain_correction_ch", &gain_correction_ch);
-	tadc->Branch("integration_time_ch", &integration_time_ch);
-	if(is_fv2) tadc->Branch("samples_in_baseline_ch", &integration_time_ch_fv2);
+
+//	if(is_fv2) tadc->Branch("samples_in_baseline_ch", &integration_time_ch_fv2);
+	if(is_fv2) tadc->Branch("integration_time_ch", &integration_time_ch_fv2);
+	else tadc->Branch("integration_time_ch", &integration_time_ch);
+
 	tadc->Branch("offset_correction_ch", &offset_correction_ch);
 	tadc->Branch("base_maximum_ch", &base_maximum_ch);
 	tadc->Branch("base_minimum_ch", &base_minimum_ch);
@@ -183,19 +186,22 @@ TTree *TADC::CreateTree()
 //	tadc->Branch("channel_trig_settings3", &channel_trig_settings3);
 	tadc->Branch("signal_threshold_ch", &signal_threshold_ch);
 	tadc->Branch("noise_threshold_ch", &noise_threshold_ch);
-	tadc->Branch("tprev_ch", &tprev_ch);
-	tadc->Branch("tper_ch", &tper_ch);
-	tadc->Branch("tcmax_ch", &tcmax_ch);
-	tadc->Branch("ncmin_ch", &ncmin_ch);
-	tadc->Branch("ncmax_ch", &ncmax_ch);
 
 	if(is_fv2)
 	{
-		tadc->Branch("tpre_trig_ch", &tprev_ch_fv2);
-		tadc->Branch("tpost_trig_ch", &tper_ch_fv2);
-		tadc->Branch("tmax_crossings_ch", &tcmax_ch_fv2);
-		tadc->Branch("min_crossing_lim_ch", &ncmin_ch_fv2);
-		tadc->Branch("max_crossing_lim_ch", &ncmax_ch_fv2);
+		tadc->Branch("tprev_ch", &tprev_ch_fv2);
+		tadc->Branch("tper_ch", &tper_ch_fv2);
+		tadc->Branch("tcmax_ch", &tcmax_ch_fv2);
+		tadc->Branch("ncmin_ch", &ncmin_ch_fv2);
+		tadc->Branch("ncmax_ch", &ncmax_ch_fv2);
+	}
+	else
+	{
+		tadc->Branch("tprev_ch", &tprev_ch);
+		tadc->Branch("tper_ch", &tper_ch);
+		tadc->Branch("tcmax_ch", &tcmax_ch);
+		tadc->Branch("ncmin_ch", &ncmin_ch);
+		tadc->Branch("ncmax_ch", &ncmax_ch);
 	}
 
 	tadc->Branch("qmax_ch", &qmax_ch);
@@ -491,6 +497,11 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		du_seconds.push_back(evdu[EVT_SECOND]);
 		du_nanoseconds.push_back(evdu[EVT_NANOSEC]);
 		trigger_position.push_back(evdu[EVT_TRIGGER_POS]>>16);
+
+		pre_coincidence_window_ch.push_back(vector<unsigned short>{trigger_position.back(), trigger_position.back(), trigger_position.back(), trigger_position.back()});
+		unsigned short post_coinc_window = 2*(evdu[EVT_TRACELENGTH]>>16)-(evdu[EVT_TRACELENGTH]>>16);
+		post_coincidence_window_ch.push_back(vector<unsigned short>{post_coinc_window, post_coinc_window, post_coinc_window, post_coinc_window});
+
 		trigger_flag.push_back(evdu[EVT_TRIGGER_STAT]>>16);
 		// !ToDo: Add trigger status
 		// ToDo: Ask Charles, as he says it is similar to trigger pattern in the old format, but this was being decoded
@@ -579,7 +590,7 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		// Replaced by below
 //		ChannelPropertyDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_CHANNEL]);
 		gain_correction_ch.push_back(vector<unsigned short>{(unsigned short)(evdu[EVT_GAIN_AB]>>16), (unsigned short)(evdu[EVT_GAIN_AB]&0xffff), (unsigned short)(evdu[EVT_GAIN_CD]>>16), (unsigned short)(evdu[EVT_GAIN_CD]&0xffff)});
-		integration_time_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(1<<((evdu[EVT_BASELINE_12]>>10)&0x7)), (unsigned short)(1<<((evdu[EVT_BASELINE_12]>>23)&0x7)), (unsigned short)(1<<((evdu[EVT_BASELINE_3]>>10)&0x7))});
+		integration_time_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(2*(1<<((evdu[EVT_BASELINE_12]>>10)&0x7))), (unsigned short)(2*(1<<((evdu[EVT_BASELINE_12]>>23)&0x7))), (unsigned short)(2*(1<<((evdu[EVT_BASELINE_3]>>10)&0x7)))});
 		base_maximum_ch.push_back(vector<unsigned short>{(unsigned short)(evdu[EVT_BASELINE_12]&0x3ff), (unsigned short)((evdu[EVT_BASELINE_12]>>13)&0x3ff), (unsigned short)(evdu[EVT_BASELINE_3]&0x3ff)});
 
 		// Replaced by below

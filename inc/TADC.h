@@ -202,7 +202,7 @@ public:
 	vector<vector<unsigned char>> selector_readout_ch;
 
 
-	//! Digitizer window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual).
+	//! Digitizer window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). The unit is samples (to get time, multiply by 2).
 //	vector<vector<unsigned short>> digi_prepost_trig_windows;
 	vector<vector<unsigned short>> pre_coincidence_window_ch;
 	vector<vector<unsigned short>> post_coincidence_window_ch;
@@ -237,6 +237,7 @@ public:
 
 	vector<vector<unsigned short>> signal_threshold_ch;
 	vector<vector<unsigned short>> noise_threshold_ch;
+	// The unit is samples (to get time, multiply by 2)
 	vector<vector<unsigned char>> tper_ch;
 	vector<vector<unsigned char>> tprev_ch;
 	vector<vector<unsigned char>> ncmax_ch;
