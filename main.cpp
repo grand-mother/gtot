@@ -169,7 +169,8 @@ int main(int argc, char **argv)
 
 			cout << "Storing output in " << output_filename << endl;
 		}
-		auto tree_file = new TFile(output_filename.c_str(), "recreate");
+		// Created on the disk after the first successfull event read
+		TFile *tree_file;
 
 		// Just for debugging for now
 //	tree_file->SetCompressionLevel(0);
@@ -228,9 +229,15 @@ int main(int argc, char **argv)
 				}
 				ADC->tadc->Fill();
 
-				// For the first event, fill some trun values read by tadc
+				// For the first event, create the TFile, fill some trun values read by tadc
 				if (event_counter == 0)
 				{
+					// Create the TFile
+					tree_file = new TFile(output_filename.c_str(), "recreate");
+					// Move TTrees to it
+					run->trun->SetDirectory(tree_file);
+					ADC->tadc->SetDirectory(tree_file);
+
 					// Event type and version
 					run->event_version = ADC->event_version;
 					run->event_type = ADC->event_type;
@@ -251,8 +258,17 @@ int main(int argc, char **argv)
 				cout << "\rFilled event " << event_counter;
 				event_counter++;
 			}
+
+			// In case of no events, just exit
+			if (event_counter == 0)
+			{
+				cout << "No events found in the hardware file. The ROOT file will not be written." << endl;
+				exit(-1);
+			}
+
 		}
 		if (fp != NULL) fclose(fp); // close the file
+
 
 		// In case of a bad return above, just close the file and exit
 		if (ret_val < 0)
