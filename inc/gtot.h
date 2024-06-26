@@ -11,6 +11,6 @@
 extern std::ostream *pvout;
 
 // GtoT version
-inline std::string gtot_version = "0.38";
+inline std::string gtot_version = "0.39";
 
 #endif //GTOT_GTOT_H
