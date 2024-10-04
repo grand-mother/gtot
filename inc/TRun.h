@@ -103,6 +103,9 @@ public:
 	//! Create the TTree and its branches
 	TTree *CreateTree();
 
+	//! Update the first/last event info, fill, write and close
+	void UpdateAndWrite(unsigned int first_event, unsigned int first_event_time, unsigned int last_event, unsigned int last_event_time);
+
 	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
 	int SetValuesFromPointers(int *pheader, string file_format="");
 

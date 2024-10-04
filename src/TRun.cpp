@@ -8,6 +8,7 @@
 #include "TDatime.h"
 #include "TNamed.h"
 #include "TParameter.h"
+#include "TFile.h"
 
 TRun::TRun()
 {
@@ -109,4 +110,28 @@ void TRun::InitialiseMetadata()
 	this->trun->GetUserInfo()->Add(new TNamed("modification_software", this->modification_software));
 	this->trun->GetUserInfo()->Add(new TNamed("modification_software_version", this->modification_software_version));
 	this->trun->GetUserInfo()->Add(new TParameter<int>("analysis_level", this->analysis_level));
+}
+
+//! Update the first/last event info, fill, write and close
+void TRun::UpdateAndWrite(unsigned int first_event, unsigned int first_event_time, unsigned int last_event, unsigned int last_event_time)
+{
+	// If the given first event is smaller than the one in the tree, update the one in the tree
+	if(first_event<this->first_event)
+	{
+		this->first_event = first_event;
+		this->first_event_time = first_event_time;
+	}
+
+	// If the given last event is greater than the one in the tree, update the one in the tree
+	if(last_event>this->last_event)
+	{
+		this->last_event = last_event;
+		this->last_event = last_event_time;
+	}
+
+	// Fill the tree and write it
+	this->trun->Fill();
+	this->trun->BuildIndex("run_number");
+	this->trun->Write("", TObject::kWriteDelete);
+
 }
