@@ -447,9 +447,7 @@ int main(int argc, char **argv)
 				run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
 				trun_file->Close();
 				rename_run_files(fn_tokens, dir_name);
-				tadc_file->cd();
 				tadc_file->Close();
-				trawvoltage_file->cd();
 				trawvoltage_file->Close();
 				rename_event_files(dir_name, first_event, last_event);
 			}
@@ -466,11 +464,10 @@ int main(int argc, char **argv)
 		// Write out the ADC TTree to the file
 		cout << "Writing TADC tree" << endl;
 		tadc_file->cd();
-		ADC->tadc->Write("", TObject::kWriteDelete);
+			ADC->tadc->Write("", TObject::kWriteDelete);
 
 		// Create the TRawVoltage TTree
-		auto voltage = new TRawVoltage(ADC, is_fv2);
-		voltage->trawvoltage->SetDirectory(trawvoltage_file);
+		auto voltage = new TRawVoltage(ADC, is_fv2, trawvoltage_file);
 		// Add the Run TTree as a friend
 		voltage->trawvoltage->AddFriend(run->trun);
 		// Write out the Voltage TTree to the file
@@ -493,9 +490,10 @@ int main(int argc, char **argv)
 	// For the new style output fill, write and close the run after all the files
 	if(!old_style_output)
 	{
-		trun_file->cd();
+//		trun_file->cd();
 		run->trun->SetDirectory(trun_file);
 		run->trun->Fill();
+		trun_file->cd();
 		run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
 		rename_run_files(fn_tokens, dir_name);
 	}

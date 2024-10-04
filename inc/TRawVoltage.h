@@ -204,7 +204,7 @@ public:
 	//! General constructor
 	TRawVoltage();
 	//! Constructor computing values from TADC
-	TRawVoltage(TADC *adc, bool is_fv2=false);
+	TRawVoltage(TADC *adc, bool is_fv2=false, TFile *out_file=NULL);
 
 private:
 //	//! Clear the vectors for another fill

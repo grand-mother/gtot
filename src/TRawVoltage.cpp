@@ -12,6 +12,7 @@
 #include "TNamed.h"
 #include "TParameter.h"
 #include "inc/TRawVoltage.h"
+#include "TFile.h"
 
 using namespace std;
 using namespace ROOT;
@@ -24,7 +25,7 @@ TRawVoltage::TRawVoltage()
 }
 
 //! Constructor computing values from tadc
-TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2) : TRawVoltage()
+TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRawVoltage()
 {
 	// Initialise metadata
 	InitialiseMetadata();
@@ -51,6 +52,11 @@ TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2) : TRawVoltage()
 			br->SetAddress(adc_br->GetAddress());
 		}
 	}
+
+	// Set the output file before filling, if provided
+	if(out_file!=NULL)
+		this->trawvoltage->SetDirectory(out_file);
+
 	// Loop through the tadc events and fill the trawvoltage with the corresponding values
 	for(int entry_no=0; entry_no<tadc->GetEntries(); ++entry_no)
 	{
