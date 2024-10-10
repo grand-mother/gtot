@@ -155,13 +155,13 @@ void rename_run_files(vector<string> tokens, string out_dir)
 	filesystem::rename(filesystem::path(out_dir + "/run.root"), filesystem::path(out_dir + "/" + trun_name));
 }
 
-void rename_event_files(string out_dir, int first_event, int last_event)
+void rename_event_files(string out_dir, string date, string time, int first_event, int last_event)
 {
-	string tadc_name = string("adc_")+to_string(first_event)+"-"+to_string(last_event)+"_L1_0000.root";
+	string tadc_name = string("adc_")+date+string("_")+time+string("_")+to_string(first_event)+"-"+to_string(last_event)+"_L1_0000.root";
 	cout << "Renaming adc.root to " << tadc_name << endl;
 	filesystem::rename(filesystem::path(out_dir+"/adc.root"), filesystem::path(out_dir+"/"+tadc_name));
 
-	string trawvoltage_name = string("rawvoltage_")+to_string(first_event)+"-"+to_string(last_event)+"_L1_0000.root";
+		string trawvoltage_name = string("rawvoltage_")+date+string("_")+time+string("_")+to_string(first_event)+"-"+to_string(last_event)+"_L1_0000.root";
 	cout << "Renaming rawvoltage.root to " << trawvoltage_name << endl;
 
 	filesystem::rename(filesystem::path(out_dir+"/rawvoltage.root"), filesystem::path(out_dir+"/"+trawvoltage_name));
@@ -226,8 +226,30 @@ int main(int argc, char **argv)
 
 		fn_tokens = parse_file_name(filename);
 
+		// Check if the directory for the analysed files already exists
+		vector<filesystem::path> directories;
+		// Get all directories with proper names
+		for (const auto& entry : filesystem::directory_iterator("."))
+		{
+			auto dn = entry.path().string();
+			// Append if it is a directory and its name contain proper parts
+			if (entry.is_directory() && dn.find(string("exp_")+fn_tokens.at(0))!=string::npos && dn.find(fn_tokens.at(3)+string("_")+fn_tokens.at(4)+string("_")+fn_tokens.at(5)+string("_0000"))!=string::npos)
+			{
+				directories.push_back(entry.path().filename());
+			}
+		}
+
+		// If the directory or analysed files already exists, use it
+		if(!directories.empty())
+		{
+			// Sort the directories alphabetically
+			sort(directories.begin(), directories.end());
+			// Use the first directory
+			dir_name = directories[0];
+		}
 		// Build directory name
-		dir_name = string("exp_")+fn_tokens.at(0)+string("_")+fn_tokens.at(1)+string("_")+fn_tokens.at(2)+string("_")+fn_tokens.at(3)+string("_")+fn_tokens.at(4)+string("_")+fn_tokens.at(5)+string("_0000");
+		else
+					dir_name = string("exp_")+fn_tokens.at(0)+string("_")+fn_tokens.at(1)+string("_")+fn_tokens.at(2)+string("_")+fn_tokens.at(3)+string("_")+fn_tokens.at(4)+string("_")+fn_tokens.at(5)+string("_0000");
 
 		// Assume the file to analyse is the last parameter
 		cout << "\n*** Analysing " << filename << endl;
@@ -449,7 +471,7 @@ int main(int argc, char **argv)
 				rename_run_files(fn_tokens, dir_name);
 				tadc_file->Close();
 				trawvoltage_file->Close();
-				rename_event_files(dir_name, first_event, last_event);
+				rename_event_files(dir_name, fn_tokens[1], fn_tokens[2], first_event, last_event);
 			}
 			else
 				trun_file->Close();
@@ -483,7 +505,7 @@ int main(int argc, char **argv)
 		{
 			tadc_file->Close();
 			trawvoltage_file->Close();
-			rename_event_files(dir_name, first_event, last_event);
+			rename_event_files(dir_name, fn_tokens[1], fn_tokens[2], first_event, last_event);
 		}
 	}
 
