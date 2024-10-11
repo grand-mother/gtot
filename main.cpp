@@ -153,14 +153,6 @@ vector<string> parse_file_name(string &filename)
 	return parts;
 };
 
-void rename_run_files(vector<string> tokens, string out_dir)
-{
-	auto run_num = tokens[3].substr(3, 10);
-	string trun_name = string("run_") + run_num + "_L0_0000.root";
-	cout << "Renaming run.root to " << trun_name << endl;
-	filesystem::rename(filesystem::path(out_dir + "/run.root"), filesystem::path(out_dir + "/" + trun_name));
-}
-
 void rename_event_files(string out_dir, string date, string time, int first_event, int last_event)
 {
 	string tadc_name = string("adc_")+date+string("_")+time+string("_")+to_string(first_event)+"-"+to_string(last_event)+"_L1_0000.root";
@@ -265,12 +257,25 @@ int main(int argc, char **argv)
 		// Assume the file to analyse is the last parameter
 		cout << "\n*** Analysing " << filename << endl;
 
+		//! File reading
+		FILE *fp;
+		int i, ich, ib;
+
+		fp = fopen(filename.c_str(), "r");
+		if (fp == NULL) printf("Error opening file %s\n", filename.c_str());
+
+		int *filehdr = NULL;
+		unsigned short *event = NULL;
+
+		int ret_val = 0;
+
 		// If directory does not exist, create it
 		if(!filesystem::is_directory(filesystem::path(dir_name)))
 		{
 			cout << "\n*** Creating directory " << dir_name << endl;
 			filesystem::create_directory(filesystem::path(dir_name));
 		}
+		filesystem::current_path(dir_name);
 
 		// If no output was provided, replace the file extension with ".root"
 		if (output_filename == "" || filenames.GetEntries()>1)
@@ -287,7 +292,7 @@ int main(int argc, char **argv)
 			{
 				output_filename = filesystem::path(filename).replace_extension(".root");
 			}
-			// For others, add .root
+				// For others, add .root
 			else
 				output_filename+=".root";
 
@@ -315,11 +320,12 @@ int main(int argc, char **argv)
 			auto run_num = fn_tokens.at(3).substr(3, 10);
 			string trun_name = string("run_") + run_num + "_L0_0000.root";
 
-			// If the run file already exist, clone it for updating later
-			if (filesystem::is_regular_file(filesystem::path(trun_name)))
+			// If the run file already exist and we are reading the first file, clone it for updating later
+			if (filesystem::is_regular_file(filesystem::path(trun_name)) && j==0)
 			{
 				run_file_exists = true;
-				old_trun_file = new TFile((dir_name + "/" +string(trun_name)).c_str(), "read");
+				cerr << "reading old tree" << endl;
+				old_trun_file = new TFile(string(trun_name).c_str(), "read");
 				old_trun = (TTree *) old_trun_file->Get("trun");
 				old_trun->GetEntry(0);
 
@@ -346,17 +352,6 @@ int main(int argc, char **argv)
 		// The ADC event class
 		auto ADC = new TADC(is_fv2);
 
-		//! File reading
-		FILE *fp;
-		int i, ich, ib;
-
-		fp = fopen(filename.c_str(), "r");
-		if (fp == NULL) printf("Error opening file %s\n", argv[1]);
-
-		int *filehdr = NULL;
-		unsigned short *event = NULL;
-
-		int ret_val = 0;
 
 		// Read the file from the detector and fill in the TTrees with the read-out data
 //		if (grand_read_file_header(fp, &filehdr))
@@ -411,11 +406,16 @@ int main(int argc, char **argv)
 					// Create the TFiles in the output directory
 					if(!old_style_output)
 					{
-						// Create the run file only for the first file
-						if(j==0) trun_file = new TFile((dir_name+"/"+string("run.root")).c_str(), "recreate");
+						// Create the run file only when analysing the first file
+						if(j==0)
+						{
+							auto run_num = fn_tokens[3].substr(3, 10);
+							string trun_name = string("run_") + run_num + "_L0_0000.root";
+							trun_file = new TFile(trun_name.c_str(), "recreate");
+						}
 
-						tadc_file = new TFile((dir_name+"/"+string("adc.root")).c_str(), "recreate");
-						trawvoltage_file = new TFile((dir_name+"/"+string("rawvoltage.root")).c_str(), "recreate");
+						tadc_file = new TFile(string("adc.root").c_str(), "recreate");
+						trawvoltage_file = new TFile(string("rawvoltage.root").c_str(), "recreate");
 					}
 					// For old style output, store trees in just one file in the current directory
 					else
@@ -488,10 +488,9 @@ int main(int argc, char **argv)
 				last_event=event_counter-1;
 				run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
 				trun_file->Close();
-				rename_run_files(fn_tokens, dir_name);
 				tadc_file->Close();
 				trawvoltage_file->Close();
-				rename_event_files(dir_name, fn_tokens[1], fn_tokens[2], first_event, last_event);
+				rename_event_files(".", fn_tokens[1], fn_tokens[2], first_event, last_event);
 				if(cons_ev_num) first_event = event_counter;
 			}
 			else
@@ -504,6 +503,7 @@ int main(int argc, char **argv)
 		ADC->tadc->BuildIndex("run_number", "event_number");
 		// Add the Run TTree as a friend
 		ADC->tadc->AddFriend(run->trun);
+
 		// Write out the ADC TTree to the file
 		cout << "Writing TADC tree" << endl;
 		tadc_file->cd();
@@ -527,19 +527,19 @@ int main(int argc, char **argv)
 			tadc_file->Close();
 			trawvoltage_file->Close();
 			last_event = event_counter-1;
-			rename_event_files(dir_name, fn_tokens[1], fn_tokens[2], first_event, last_event);
+			rename_event_files(".", fn_tokens[1], fn_tokens[2], first_event, last_event);
 		}
+
+		filesystem::current_path("../");
 	}
 
 	// For the new style output fill, write and close the run after all the files
 	if(!old_style_output)
 	{
-//		trun_file->cd();
 		run->trun->SetDirectory(trun_file);
 		trun_file->cd();
 		last_event=event_counter-1;
 		run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
-		rename_run_files(fn_tokens, dir_name);
 	}
 
 	cout << "\nFinished, quitting" << endl;
