@@ -24,6 +24,7 @@ void print_help()
 	cout << "Options:" << endl;
 	cout << "\t-h, --help\t\t\t\tdisplay this help" << endl;
 	cout << "\t-g1, --gp13v1\t\t\t\tthe input file is a GP13 v1 file" << endl;
+	cout << "\t-e, --event_number_assignment\t\t\t\tdon't read event numbers from raw files, assign them consecutively" << endl;
 	cout << "\t-f2, --firmware_v2\t\t\tthe input file is a firmware v2 file" << endl;
 	cout << "\t-os, --old_style_output\t\t\tall trees will be in the same file, no directory will be created" << endl;
 	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
@@ -39,6 +40,7 @@ bool is_fv2 = false;
 string file_format = "";
 bool infile_forced = false;
 bool old_style_output = false;
+bool cons_ev_num = false;
 
 // Analyse the command line parameters
 void analyse_command_line_params(int argc, char **argv)
@@ -72,6 +74,10 @@ void analyse_command_line_params(int argc, char **argv)
 			cout << "Switching to GP13 v1 mode" << endl;
 			gp13v1 = true;
 			file_format = "gp13v1";
+		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-e")) || strstr(argv[i], "--event_number_assignment"))
+		{
+			cout << "Assigning event numbers consecutively" << endl;
+			cons_ev_num = true;
 		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-v")) || strstr(argv[i], "--verbose"))
 		{
 			cout << "Enabled verbose output" << endl;
@@ -214,10 +220,15 @@ int main(int argc, char **argv)
 	bool run_file_exists = false;
 
 	// First and last events to be stored in the run file
-	unsigned int first_event=numeric_limits<unsigned int>::max(), last_event=0, first_event_time, last_event_time;
+	unsigned int first_event, last_event=0, first_event_time, last_event_time;
+	if(cons_ev_num) first_event=0;
+	else first_event=numeric_limits<unsigned int>::max();
 
 	vector<string> fn_tokens;
 	string dir_name;
+
+	// Event counter
+	int event_counter = 0;
 
 	// Loop through the input files
 	for(int j=0; j<filenames.GetEntries(); ++j)
@@ -296,12 +307,15 @@ int main(int argc, char **argv)
 		TFile *old_trun_file = NULL;
 		TTree *old_trun = NULL;
 
+		// For event numbers read from the raw file, zero the event_counter
+		if(!cons_ev_num) event_counter=0;
+
 		if(!old_style_output)
 		{
 			auto run_num = fn_tokens.at(3).substr(3, 10);
 			string trun_name = string("run_") + run_num + "_L0_0000.root";
 
-			// If the run file already exist			, clone it for updating later
+			// If the run file already exist, clone it for updating later
 			if (filesystem::is_regular_file(filesystem::path(trun_name)))
 			{
 				run_file_exists = true;
@@ -315,6 +329,12 @@ int main(int argc, char **argv)
 				last_event = old_trun->GetLeaf("last_event")->GetValue();
 				last_event_time = old_trun->GetLeaf("last_event_time")->GetValue();
 			}
+
+			// If it is not the first file, and consecutive event numbering requested, update event numbers from the last file
+			if(j!=0)
+			{
+				first_event = event_counter;
+			}
 		}
 
 		// The whole Run class, init only for the first file or for the old output style
@@ -322,6 +342,7 @@ int main(int argc, char **argv)
 		{
 			run = new TRun();
 		}
+
 		// The ADC event class
 		auto ADC = new TADC(is_fv2);
 
@@ -346,9 +367,6 @@ int main(int argc, char **argv)
 			if(old_style_output || j==0)
 				run->SetValuesFromPointers(filehdr, file_format);
 
-			// Event counter
-			int event_counter = 0;
-
 			// For GP13 move in the file
 			if (gp13v1) fseek(fp, 256, 0);
 			// Loop-read the events
@@ -362,10 +380,10 @@ int main(int argc, char **argv)
 				if (ret_val < 0) break;
 
 				// For GP13v1 overwrite some values
-				if (gp13v1)
+				if (gp13v1 || cons_ev_num)
 				{
 					// The run number is not specified in GPv13 event, only in header of the file
-					ADC->run_number = run->run_number;
+					if(gp13v1) ADC->run_number = run->run_number;
 					// The event number - in raw data it is separate for each DU and thus not unique, while it needs to be unique in the TTree
 					ADC->event_number = event_counter;
 				}
@@ -374,26 +392,28 @@ int main(int argc, char **argv)
 				// In principle these event numbers/times could be taken from the file header, but the thing below is work around potential bugs in firmware
 
 				// If the event_number lower than the first event, update the first event
-				if(ADC->event_number<first_event)
+				if(ADC->event_number<first_event && !cons_ev_num)
 				{
 					first_event = ADC->event_number;
 					first_event_time = ADC->time_seconds;
 				}
 
 				// If the event_number higher than the last event, update the last event
-				if(ADC->event_number>last_event)
+				if(ADC->event_number>last_event && !cons_ev_num)
 				{
 					last_event = ADC->event_number;
 					last_event_time = ADC->time_seconds;
 				}
 
 				// For the first event, create the TFile, fill some trun values read by tadc
-				if (event_counter == 0)
+				if (event_counter == first_event)
 				{
 					// Create the TFiles in the output directory
 					if(!old_style_output)
 					{
-						trun_file = new TFile((dir_name+"/"+string("run.root")).c_str(), "recreate");
+						// Create the run file only for the first file
+						if(j==0) trun_file = new TFile((dir_name+"/"+string("run.root")).c_str(), "recreate");
+
 						tadc_file = new TFile((dir_name+"/"+string("adc.root")).c_str(), "recreate");
 						trawvoltage_file = new TFile((dir_name+"/"+string("rawvoltage.root")).c_str(), "recreate");
 					}
@@ -465,13 +485,14 @@ int main(int argc, char **argv)
 			if(!old_style_output)
 			{
 				trun_file->cd();
-				run->trun->Fill();
+				last_event=event_counter-1;
 				run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
 				trun_file->Close();
 				rename_run_files(fn_tokens, dir_name);
 				tadc_file->Close();
 				trawvoltage_file->Close();
 				rename_event_files(dir_name, fn_tokens[1], fn_tokens[2], first_event, last_event);
+				if(cons_ev_num) first_event = event_counter;
 			}
 			else
 				trun_file->Close();
@@ -486,7 +507,7 @@ int main(int argc, char **argv)
 		// Write out the ADC TTree to the file
 		cout << "Writing TADC tree" << endl;
 		tadc_file->cd();
-			ADC->tadc->Write("", TObject::kWriteDelete);
+		ADC->tadc->Write("", TObject::kWriteDelete);
 
 		// Create the TRawVoltage TTree
 		auto voltage = new TRawVoltage(ADC, is_fv2, trawvoltage_file);
@@ -505,6 +526,7 @@ int main(int argc, char **argv)
 		{
 			tadc_file->Close();
 			trawvoltage_file->Close();
+			last_event = event_counter-1;
 			rename_event_files(dir_name, fn_tokens[1], fn_tokens[2], first_event, last_event);
 		}
 	}
@@ -514,8 +536,8 @@ int main(int argc, char **argv)
 	{
 //		trun_file->cd();
 		run->trun->SetDirectory(trun_file);
-		run->trun->Fill();
 		trun_file->cd();
+		last_event=event_counter-1;
 		run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
 		rename_run_files(fn_tokens, dir_name);
 	}
