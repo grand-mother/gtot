@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string.h>
 #include <filesystem>
+#include "inc/main_functions.h"
 #include "inc/Traces1.h"
 #include "inc/Traces1_fv2.h"
 #include "TFile.h"
@@ -152,18 +153,6 @@ vector<string> parse_file_name(string &filename)
 
 	return parts;
 };
-
-void rename_event_files(string out_dir, string date, string time, int first_event, int last_event)
-{
-	string tadc_name = string("adc_")+date+string("_")+time+string("_")+to_string(first_event)+"-"+to_string(last_event)+"_L1_0000.root";
-	cout << "Renaming adc.root to " << tadc_name << endl;
-	filesystem::rename(filesystem::path(out_dir+"/adc.root"), filesystem::path(out_dir+"/"+tadc_name));
-
-		string trawvoltage_name = string("rawvoltage_")+date+string("_")+time+string("_")+to_string(first_event)+"-"+to_string(last_event)+"_L1_0000.root";
-	cout << "Renaming rawvoltage.root to " << trawvoltage_name << endl;
-
-	filesystem::rename(filesystem::path(out_dir+"/rawvoltage.root"), filesystem::path(out_dir+"/"+trawvoltage_name));
-}
 
 std::ostream *pvout;
 
@@ -484,51 +473,26 @@ int main(int argc, char **argv)
 		{
 			if(!old_style_output)
 			{
+				auto voltage = new TRawVoltage(trawvoltage_file);
+				finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2, old_style_output);
+
 				trun_file->cd();
 				last_event=event_counter-1;
 				run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
 				trun_file->Close();
-				tadc_file->Close();
-				trawvoltage_file->Close();
-				rename_event_files(".", fn_tokens[1], fn_tokens[2], first_event, last_event);
 				if(cons_ev_num) first_event = event_counter;
 			}
 			else
 				trun_file->Close();
-//			tree_file->Close();
+
 			return ret_val;
 		}
 
-		// Build the run_number/event_number index for ADC TTree
-		ADC->tadc->BuildIndex("run_number", "event_number");
-		// Add the Run TTree as a friend
-		ADC->tadc->AddFriend(run->trun);
+		last_event = event_counter-1;
 
-		// Write out the ADC TTree to the file
-		cout << "Writing TADC tree" << endl;
-		tadc_file->cd();
-		ADC->tadc->Write("", TObject::kWriteDelete);
+		auto voltage = new TRawVoltage(trawvoltage_file);
 
-		// Create the TRawVoltage TTree
-		auto voltage = new TRawVoltage(ADC, is_fv2, trawvoltage_file);
-		// Add the Run TTree as a friend
-		voltage->trawvoltage->AddFriend(run->trun);
-		// Write out the Voltage TTree to the file
-		cout << "Writing TRawVoltage tree" << endl;
-		trawvoltage_file->cd();
-		voltage->trawvoltage->Write("", TObject::kWriteDelete);
-
-		// Close TFiles with the TTrees for the old style output
-		// the trun_file contains also the event trees
-		if(old_style_output)
-			trun_file->Close();
-		else
-		{
-			tadc_file->Close();
-			trawvoltage_file->Close();
-			last_event = event_counter-1;
-			rename_event_files(".", fn_tokens[1], fn_tokens[2], first_event, last_event);
-		}
+		finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2, old_style_output);
 
 		filesystem::current_path("../");
 	}
