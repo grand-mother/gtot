@@ -92,30 +92,34 @@ int main(int argc, char **argv)
 
 		fn_tokens = parse_file_name(filename);
 
-		// Check if the directory for the analysed files already exists
-		vector<filesystem::path> directories;
-		// Get all directories with proper names
-		for (const auto& entry : filesystem::directory_iterator("."))
+		if(!old_style_output)
 		{
-			auto dn = entry.path().string();
-			// Append if it is a directory and its name contain proper parts
-			if (entry.is_directory() && dn.find(string("exp_")+fn_tokens.at(0))!=string::npos && dn.find(fn_tokens.at(3)+string("_")+fn_tokens.at(4)+string("_")+fn_tokens.at(5)+string("_0000"))!=string::npos)
-			{
-				directories.push_back(entry.path().filename());
+			// Check if the directory for the analysed files already exists
+			vector<filesystem::path> directories;
+			// Get all directories with proper names
+			for (const auto &entry: filesystem::directory_iterator(".")) {
+				auto dn = entry.path().string();
+				// Append if it is a directory and its name contain proper parts
+				if (entry.is_directory() && dn.find(string("exp_") + fn_tokens.at(0)) != string::npos &&
+					dn.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
+							string("_0000")) != string::npos) {
+					directories.push_back(entry.path().filename());
+				}
 			}
-		}
 
-		// If the directory or analysed files already exists, use it
-		if(!directories.empty())
-		{
-			// Sort the directories alphabetically
-			sort(directories.begin(), directories.end());
-			// Use the first directory
-			dir_name = directories[0];
+			// If the directory or analysed files already exists, use it
+			if (!directories.empty()) {
+				// Sort the directories alphabetically
+				sort(directories.begin(), directories.end());
+				// Use the first directory
+				dir_name = directories[0];
+			}
+				// Build directory name
+			else
+				dir_name = string("exp_") + fn_tokens.at(0) + string("_") + fn_tokens.at(1) + string("_") +
+						   fn_tokens.at(2) + string("_") + fn_tokens.at(3) + string("_") + fn_tokens.at(4) +
+						   string("_") + fn_tokens.at(5) + string("_0000");
 		}
-		// Build directory name
-		else
-					dir_name = string("exp_")+fn_tokens.at(0)+string("_")+fn_tokens.at(1)+string("_")+fn_tokens.at(2)+string("_")+fn_tokens.at(3)+string("_")+fn_tokens.at(4)+string("_")+fn_tokens.at(5)+string("_0000");
 
 		// Assume the file to analyse is the last parameter
 		cout << "\n*** Analysing " << filename << endl;
@@ -132,13 +136,15 @@ int main(int argc, char **argv)
 
 		int ret_val = 0;
 
-		// If directory does not exist, create it
-		if(!filesystem::is_directory(filesystem::path(dir_name)))
+		if(!old_style_output)
 		{
-			cout << "\n*** Creating directory " << dir_name << endl;
-			filesystem::create_directory(filesystem::path(dir_name));
+			// If directory does not exist, create it
+			if (!filesystem::is_directory(filesystem::path(dir_name))) {
+				cout << "\n*** Creating directory " << dir_name << endl;
+				filesystem::create_directory(filesystem::path(dir_name));
+			}
+			filesystem::current_path(dir_name);
 		}
-		filesystem::current_path(dir_name);
 
 		// If no output was provided, replace the file extension with ".root"
 		if (output_filename == "" || filenames.GetEntries()>1)
@@ -269,7 +275,7 @@ int main(int argc, char **argv)
 				}
 
 				// For the first event, create the TFile, fill some trun values read by tadc
-				if (event_counter == first_event)
+				if (event_counter == first_event || (!cons_ev_num && event_counter==0))
 				{
 					// Create the TFiles in the output directory
 					if(!old_style_output)
@@ -373,7 +379,7 @@ int main(int argc, char **argv)
 
 		finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2, old_style_output);
 
-		filesystem::current_path("../");
+		if(!old_style_output) filesystem::current_path("../");
 	}
 
 	// For the new style output fill, write and close the run after all the files
