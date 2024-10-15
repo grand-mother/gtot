@@ -19,6 +19,7 @@ void print_help()
 	cout << "\t-h, --help\t\t\t\tdisplay this help" << endl;
 	cout << "\t-g1, --gp13v1\t\t\t\tthe input file is a GP13 v1 file" << endl;
 	cout << "\t-e, --event_number_assignment\t\t\t\tdon't read event numbers from raw files, assign them consecutively" << endl;
+	cout << "\t-rn, --run_number_assignment\t\t\t\tdon't read raw numbers from raw files, but from the file name" << endl;
 	cout << "\t-f2, --firmware_v2\t\t\tthe input file is a firmware v2 file" << endl;
 	cout << "\t-os, --old_style_output\t\t\tall trees will be in the same file, no directory will be created" << endl;
 	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
@@ -27,7 +28,7 @@ void print_help()
 }
 
 // Analyse the command line parameters
-void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output)
+void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num)
 {
 	if(argc<2)
 	{
@@ -62,7 +63,12 @@ void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, st
 		{
 			cout << "Assigning event numbers consecutively" << endl;
 			cons_ev_num = true;
-		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-v")) || strstr(argv[i], "--verbose"))
+		} else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-rn")) || strstr(argv[i], "--run_number_assignment"))
+		{
+			cout << "Reading run numbers from files names" << endl;
+			file_run_num = true;
+		}
+		else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-v")) || strstr(argv[i], "--verbose"))
 		{
 			cout << "Enabled verbose output" << endl;
 			overbose = true;

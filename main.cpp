@@ -26,12 +26,13 @@ string file_format = "";
 bool infile_forced = false;
 bool old_style_output = false;
 bool cons_ev_num = false;
+bool file_run_num = false;
 
 std::ostream *pvout;
 
 int main(int argc, char **argv)
 {
-	analyse_command_line_params(argc, argv, filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output);
+	analyse_command_line_params(argc, argv, filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num);
 
 	// Create verbose output stream if requested
 	std::ofstream dev_null("/dev/null");
@@ -237,10 +238,15 @@ int main(int argc, char **argv)
 				if (ret_val < 0) break;
 
 				// For GP13v1 overwrite some values
-				if (gp13v1 || cons_ev_num)
+				if (gp13v1 || cons_ev_num || file_run_num)
 				{
 					// The run number is not specified in GPv13 event, only in header of the file
-					if(gp13v1) ADC->run_number = run->run_number;
+					if(file_run_num)
+					{
+						auto run_num = fn_tokens.at(3).substr(3, 10);
+						ADC->run_number = stoul(run_num);
+					}
+					else if(gp13v1) ADC->run_number = run->run_number;
 					// The event number - in raw data it is separate for each DU and thus not unique, while it needs to be unique in the TTree
 					ADC->event_number = event_counter;
 				}
