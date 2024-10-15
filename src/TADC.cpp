@@ -995,3 +995,29 @@ short TADC::ADC2short(short val)
 	value = (value & (~mask)) | (bit14 << 15);
 	return value;
 }
+
+//! Change the name of the file in which the TTree is stored
+void TADC::ChangeFileName(string new_file_name, bool write_tree)
+{
+	// Get the current tree name
+	auto tree_name = string(tadc->GetName());
+
+	// If writing requested, write the tree down in the file
+	if(write_tree)
+		tadc->Write("", TObject::kWriteDelete);
+
+	// Close the old TFile
+	auto old_file = tadc->GetCurrentFile();
+	auto old_file_name = old_file->GetName();
+	delete tadc;
+	old_file->Close();
+
+	// Rename the file in the filesystem
+	filesystem::rename(filesystem::path(old_file_name), filesystem::path(new_file_name));
+
+	// Open the new file
+	auto new_file = new TFile(new_file_name.c_str(), "update");
+
+	// Set the TTree to the one from the renamed file
+	tadc = (TTree*)new_file->Get(tree_name.c_str());
+}

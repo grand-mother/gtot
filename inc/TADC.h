@@ -9,11 +9,14 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <string>
+#include <filesystem>
 #include "scope.h"
 #include "Traces.h"
 #include "Traces_fv2.h"
 #include "TTree.h"
 #include "TTimeStamp.h"
+#include "TFile.h"
 #include "gtot.h"
 
 using namespace std;
@@ -357,6 +360,10 @@ public:
 	//! The default constructor
 	TADC(bool is_fv2=false);
 
+	//! Change the name of the file in which the TTree is stored
+	void ChangeFileName(string new_file_name, bool write=true);
+
+
 private:
 	//! Clear the vectors for another fill
 	void ClearVectors();
@@ -385,6 +392,7 @@ private:
 
 	//! Convert the 14-bit ADC value to short
 	static short ADC2short(short value);
+
 };
 
 
