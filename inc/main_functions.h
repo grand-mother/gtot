@@ -10,6 +10,7 @@
 #include "TADC.h"
 #include "TRawVoltage.h"
 
+//! Computes content of TRawVoltage from TADC, renames files for both, writes and closes
 void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, vector<string> fn_tokens, unsigned int first_event, unsigned int last_event, bool is_fv2=false, bool old_style_output=false)
 {
 	// Build the run_number/event_number index for ADC TTree
