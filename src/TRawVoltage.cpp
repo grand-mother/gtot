@@ -18,18 +18,30 @@ using namespace std;
 using namespace ROOT;
 
 //! General constructor
-TRawVoltage::TRawVoltage()
+TRawVoltage::TRawVoltage(TFile *out_file)
 {
 	// Initialize the TTree
 	CreateTree();
+
+	// Set the output file before filling, if provided
+	if (out_file != NULL)
+	{
+		this->trawvoltage->SetDirectory(out_file);
+	}
 }
 
 //! Constructor computing values from tadc
-TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRawVoltage()
+TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRawVoltage(out_file)
 {
 	// Initialise metadata
 	InitialiseMetadata();
 
+	ComputeFromADC(adc, is_fv2);
+}
+
+//! Compute values from tadc
+void TRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2)
+{
 	auto tadc = adc->tadc;
 
 	// Exclude these branches from copying, for the values need to be modified
@@ -53,10 +65,6 @@ TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRawVoltage(
 		}
 	}
 
-	// Set the output file before filling, if provided
-	if(out_file!=NULL)
-		this->trawvoltage->SetDirectory(out_file);
-
 	// Loop through the tadc events and fill the trawvoltage with the corresponding values
 	for(int entry_no=0; entry_no<tadc->GetEntries(); ++entry_no)
 	{
@@ -69,7 +77,6 @@ TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRawVoltage(
 		trawvoltage->Fill();
 	}
 	trawvoltage->BuildIndex("run_number", "event_number");
-	trawvoltage->AddFriend(tadc);
 }
 
 
@@ -420,4 +427,30 @@ void TRawVoltage::InitialiseMetadata()
 	this->trawvoltage->GetUserInfo()->Add(new TNamed("modification_software", this->modification_software));
 	this->trawvoltage->GetUserInfo()->Add(new TNamed("modification_software_version", this->modification_software_version));
 	this->trawvoltage->GetUserInfo()->Add(new TParameter<int>("analysis_level", this->analysis_level));
+}
+
+//! Change the name of the file in which the TTree is stored
+void TRawVoltage::ChangeFileName(string new_file_name, bool write_tree)
+{
+	// Get the current tree name
+	auto tree_name = string(trawvoltage->GetName());
+
+	// If writing requested, write the tree down in the file
+	if(write_tree)
+		trawvoltage->Write("", TObject::kWriteDelete);
+
+	// Close the old TFile
+	auto old_file = trawvoltage->GetCurrentFile();
+	auto old_file_name = old_file->GetName();
+	delete trawvoltage;
+	old_file->Close();
+
+	// Rename the file in the filesystem
+	filesystem::rename(filesystem::path(old_file_name), filesystem::path(new_file_name));
+
+	// Open the new file
+	auto new_file = new TFile(new_file_name.c_str(), "update");
+
+	// Set the TTree to the one from the renamed file
+	trawvoltage = (TTree*)new_file->Get(tree_name.c_str());
 }
