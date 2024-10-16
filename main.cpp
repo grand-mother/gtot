@@ -250,7 +250,8 @@ int main(int argc, char **argv)
 					if(file_run_num)
 					{
 						auto run_num = fn_tokens.at(3).substr(3, 10);
-						ADC->run_number = stoul(run_num);
+						run->run_number = stoul(run_num);
+						ADC->run_number = run->run_number;
 					}
 					else if(gp13v1) ADC->run_number = run->run_number;
 					// The event number - in raw data it is separate for each DU and thus not unique, while it needs to be unique in the TTree
