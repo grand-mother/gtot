@@ -206,7 +206,7 @@ int main(int argc, char **argv)
 			}
 
 			// If it is not the first file, and consecutive event numbering requested, update event numbers from the last file
-			if(j!=0)
+			if(j!=0 && cons_ev_num)
 			{
 				first_event = event_counter;
 			}
@@ -267,6 +267,7 @@ int main(int argc, char **argv)
 					first_event = ADC->event_number;
 					first_event_time = ADC->time_seconds;
 				}
+
 
 				// If the event_number higher than the last event, update the last event
 				if(ADC->event_number>last_event && !cons_ev_num)
@@ -363,7 +364,7 @@ int main(int argc, char **argv)
 				finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2, old_style_output);
 
 				trun_file->cd();
-				last_event=event_counter-1;
+				if(cons_ev_num) last_event=event_counter-1;
 				run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
 				trun_file->Close();
 				if(cons_ev_num) first_event = event_counter;
@@ -374,7 +375,7 @@ int main(int argc, char **argv)
 			return ret_val;
 		}
 
-		last_event = event_counter-1;
+		if(cons_ev_num) last_event = event_counter-1;
 
 		auto voltage = new TRawVoltage(trawvoltage_file);
 
