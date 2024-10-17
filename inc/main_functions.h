@@ -18,8 +18,8 @@ void print_help()
 	cout << "Options:" << endl;
 	cout << "\t-h, --help\t\t\t\tdisplay this help" << endl;
 	cout << "\t-g1, --gp13v1\t\t\t\tthe input file is a GP13 v1 file" << endl;
-	cout << "\t-e, --event_number_assignment\t\t\t\tdon't read event numbers from raw files, assign them consecutively" << endl;
-	cout << "\t-rn, --run_number_assignment\t\t\t\tdon't read raw numbers from raw files, but from the file name" << endl;
+	cout << "\t-e, --event_number_assignment\t\tdon't read event numbers from raw files, assign them consecutively" << endl;
+	cout << "\t-rn, --run_number_assignment\t\tdon't read raw numbers from raw files, but from the file name" << endl;
 	cout << "\t-f2, --firmware_v2\t\t\tthe input file is a firmware v2 file" << endl;
 	cout << "\t-os, --old_style_output\t\t\tall trees will be in the same file, no directory will be created" << endl;
 	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
