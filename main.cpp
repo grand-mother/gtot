@@ -18,7 +18,7 @@
 bool overbose = false;
 
 // Array holding filenames to analyse
-TObjArray filenames;
+vector<string> filenames;
 string output_filename="";
 bool gp13v1 = false;
 bool is_fv2 = false;
@@ -42,13 +42,13 @@ int main(int argc, char **argv)
 	std::ostream &vout = *pvout;
 
 	// No proper files given
-	if(filenames.GetEntries()==0)
+	if(filenames.size()==0)
 	{
 		cout << "No files with .dat/.bin extension provided! If you want to use other extension for a single file, use option -i." << endl;
 		return -1;
 	}
 	// No sense to use output filename if more than one input file was provided
-	if(!(output_filename=="") && (filenames.GetEntries()>1 || !old_style_output))
+	if(!(output_filename=="") && (filenames.size()>1 || !old_style_output))
 	{
 		cout << "Specifying output file name makes no sense in case of multiply input files and/or without --old_style_output flag" << endl;
 		return -1;
@@ -92,9 +92,9 @@ int main(int argc, char **argv)
 	int event_counter = 0;
 
 	// Loop through the input files
-	for(int j=0; j<filenames.GetEntries(); ++j)
+	for(int j=0; j<filenames.size(); ++j)
 	{
-		string filename  = ((TString *) (filenames.At(j)))->Data();
+		string filename  = filenames[j];
 
 		fn_tokens = parse_file_name(filename);
 
@@ -103,7 +103,8 @@ int main(int argc, char **argv)
 			// Check if the directory for the analysed files already exists
 			vector<filesystem::path> directories;
 			// Get all directories with proper names
-			for (const auto &entry: filesystem::directory_iterator(".")) {
+			for (const auto &entry: filesystem::directory_iterator("."))
+			{
 				auto dn = entry.path().string();
 				// Append if it is a directory and its name contain proper parts
 				if (entry.is_directory() && dn.find(string("exp_") + fn_tokens.at(0)) == 2 &&
@@ -121,7 +122,7 @@ int main(int argc, char **argv)
 				// Use the first directory
 				dir_name = directories[0];
 			}
-				// Build directory name
+			// Build directory name
 			else
 				dir_name = string("exp_") + fn_tokens.at(0) + string("_") + fn_tokens.at(1) + string("_") +
 						   fn_tokens.at(2) + string("_") + fn_tokens.at(3) + string("_") + fn_tokens.at(4) +
@@ -154,7 +155,7 @@ int main(int argc, char **argv)
 		}
 
 		// If no output was provided, replace the file extension with ".root"
-		if (output_filename == "" || filenames.GetEntries()>1)
+		if (output_filename == "" || filenames.size()>1)
 		{
 			output_filename = filename;
 			// Leaving the old extension inside the new filename, as it contains an ordinal number
