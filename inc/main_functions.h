@@ -216,8 +216,11 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 
 }
 
-void group_files_and_directories(vector<string> filenames, vector<vector<string>> &file_groups, vector<string> &directories)
+// Group filenames that would go in the same directory together as vector<string> and add these groups to file_groups
+void group_files_and_directories(vector<string> filenames, vector<vector<string>> &file_groups)
 {
+	vector<string> directories;
+
 	// Sort the filenames
 	sort(filenames.begin(), filenames.end());
 
@@ -241,7 +244,7 @@ void group_files_and_directories(vector<string> filenames, vector<vector<string>
 		for (auto directory : directories)
 		{
 			// If file matches an existing directory in the list
-			if (directory.find(string("exp_") + fn_tokens.at(0)) == 2 &&
+			if (directory.find(string("exp_") + fn_tokens.at(0)) == 0 &&
 					directory.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
 						string("_0000")) != string::npos)
 			{
