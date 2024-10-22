@@ -9,6 +9,7 @@
 #include "TNamed.h"
 #include "TParameter.h"
 #include "TFile.h"
+#include "TSystem.h"
 
 TRun::TRun()
 {
@@ -141,11 +142,13 @@ void TRun::UpdateAndWrite(unsigned int first_event, unsigned int first_event_tim
 	this->trun->Fill();
 	this->trun->BuildIndex("run_number");
 
+	this->trun->Write("", TObject::kWriteDelete);
+
 	// If there was an old TTree from which this one was cloned, delete it before writing this one down
 	if(old_tree!=NULL)
 	{
-		delete old_tree;
+		auto old_name = old_tree->GetCurrentFile()->GetName();
+		gSystem->Unlink(old_name);
+		gSystem->Rename(this->trun->GetCurrentFile()->GetName(), old_name);
 	}
-
-	this->trun->Write("", TObject::kWriteDelete);
 }

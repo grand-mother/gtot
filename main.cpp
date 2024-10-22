@@ -211,7 +211,6 @@ int main(int argc, char **argv)
 					old_trun = (TTree *) old_trun_file->Get("trun");
 					old_trun->SetName("old_trun");
 					old_trun->GetEntry(0);
-					trun_file = old_trun_file;
 
 					// Update first/last events from the previous run
 					first_event = old_trun->GetLeaf("first_event")->GetValue();
@@ -325,10 +324,15 @@ int main(int argc, char **argv)
 						if (!old_style_output)
 						{
 							// Create the run file only when analysing the first file and not cloning the previous run tree
-							if (j == 0 && !run_file_exists)
+							if (j == 0)
 							{
 								auto run_num = fn_tokens[3].substr(3, 10);
 								string trun_name = string("run_") + run_num + "_L0_0000.root";
+
+								// If the run file already exists, give this one a temporary name
+								if(run_file_exists)
+									trun_name = "new_"+trun_name;
+
 								trun_file = new TFile(trun_name.c_str(), "recreate");
 
 								// Set the time of the first event
@@ -451,6 +455,7 @@ int main(int argc, char **argv)
 		// For the new style output fill, write and close the run after all the files
 		if (!old_style_output)
 		{
+			filesystem::current_path(dir_name);
 			run->trun->SetDirectory(trun_file);
 			trun_file->cd();
 			if (cons_ev_num)
@@ -461,6 +466,7 @@ int main(int argc, char **argv)
 			}
 			run->UpdateAndWrite(first_first_event, first_first_event_time, last_event, last_event_time, old_trun);
 			trun_file->Close();
+			filesystem::current_path("../");
 		}
 	}
 
