@@ -28,7 +28,8 @@ void print_help()
 }
 
 // Analyse the command line parameters
-void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num)
+//void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num)
+void analyse_command_line_params(int argc, char **argv, vector<string> &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num)
 {
 	if(argc<2)
 	{
@@ -48,8 +49,9 @@ void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, st
 		else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-i")) || strstr(argv[i], "--input_filename"))
 		{
 			infile_forced = true;
-			filenames.Clear();
-			filenames.Add((TObject *) (new TString(argv[i + 1])));
+			filenames.clear();
+//			filenames.Add((TObject *) (new TString(argv[i + 1])));
+			filenames.push_back(string(argv[i + 1]));
 		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-o")) || strstr(argv[i], "--output_filename"))
 		{
 			output_filename = argv[i + 1];
@@ -91,8 +93,10 @@ void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, st
 			if ((fn_ext == ".dat" || strstr(fn_ext.c_str(), ".f0") || fn_ext == ".bin" || count(argv[i], argv[i] + strlen(argv[i]), '_') >= 5) && !infile_forced)
 //		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0")) && !infile_forced)
 			{
-				filenames.Add((TObject *) (new TString(argv[i])));
-				cout << "Added " << ((TString *) (filenames.Last()))->Data() << endl;
+//				filenames.Add((TObject *) (new TString(argv[i])));
+				filenames.push_back(argv[i]);
+//				cout << "Added " << ((TString *) (filenames.Last()))->Data() << endl;
+				cout << "Added " << filenames.back() << endl;
 			}
 		}
 		/*
@@ -210,6 +214,57 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 		run->trun->GetCurrentFile()->Close();
 	}
 
+}
+
+void group_files_and_directories(vector<string> filenames, vector<vector<string>> &file_groups, vector<string> &directories)
+{
+	// Sort the filenames
+	sort(filenames.begin(), filenames.end());
+
+	// Add existing directories to the directories list
+	for (const auto &entry: filesystem::directory_iterator("."))
+	{
+		auto dn = entry.path().string();
+		// If the entry is a directory and starts with "exp_" add it to the list of directories
+		if (entry.is_directory() && dn.find(string("exp_")) == 2)
+			directories.push_back(dn);
+	}
+
+	for (auto filename : filenames)
+	{
+		auto fn_tokens = parse_file_name(filename);
+
+		int i=0;
+
+		bool dir_found = false;
+
+		for (auto directory : directories)
+		{
+			// If file matches an existing directory in the list
+			if (directory.find(string("exp_") + fn_tokens.at(0)) == 2 &&
+					directory.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
+						string("_0000")) != string::npos)
+			{
+				file_groups[i].push_back(filename);
+				dir_found = true;
+				break;
+			}
+
+			++i;
+		}
+
+		// The directory for the file does not exist yet
+		if(!dir_found)
+		{
+			auto dir_name = string("exp_") + fn_tokens.at(0) + string("_") + fn_tokens.at(1) + string("_") +
+							fn_tokens.at(2) + string("_") + fn_tokens.at(3) + string("_") + fn_tokens.at(4) +
+							string("_") + fn_tokens.at(5) + string("_0000");
+
+			directories.push_back(dir_name);
+			file_groups.emplace_back();
+			file_groups.back().push_back(filename);
+		}
+	}
 }
 
 #endif //GTOT_MAIN_FUNCTIONS_H
