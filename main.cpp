@@ -70,14 +70,20 @@ int main(int argc, char **argv)
 
 	TRun *run = NULL;
 	TFile *trun_file = NULL;
+	TADC *ADC = NULL;
+	TFile *old_trun_file = NULL;
+	TTree *old_trun = NULL;
 
 	// Shows if a run tree file was already created in this directory before this run of gtot
 	bool run_file_exists = false;
 
 	// First and last events to be stored in the run file
-	unsigned int first_event, last_event=0, first_event_time, last_event_time;
-	if(cons_ev_num) first_event=0;
-	else first_event=numeric_limits<unsigned int>::max();
+	unsigned int first_event, last_event=0, first_event_time, last_event_time, first_first_event_time;
+	if(cons_ev_num) first_event = 0;
+	else first_event = numeric_limits<unsigned int>::max();
+
+	// The first event among all the analysed files
+	unsigned int first_first_event = first_event;
 
 	vector<string> fn_tokens;
 	string dir_name;
@@ -100,9 +106,10 @@ int main(int argc, char **argv)
 			for (const auto &entry: filesystem::directory_iterator(".")) {
 				auto dn = entry.path().string();
 				// Append if it is a directory and its name contain proper parts
-				if (entry.is_directory() && dn.find(string("exp_") + fn_tokens.at(0)) != string::npos &&
+				if (entry.is_directory() && dn.find(string("exp_") + fn_tokens.at(0)) == 2 &&
 					dn.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
-							string("_0000")) != string::npos) {
+							string("_0000")) != string::npos)
+				{
 					directories.push_back(entry.path().filename());
 				}
 			}
@@ -178,9 +185,6 @@ int main(int argc, char **argv)
 //	gInterpreter->GenerateDictionary("vector<vector<short> >", "vector");
 //	gInterpreter->GenerateDictionary("vector<vector<float> >", "vector");
 
-		TFile *old_trun_file = NULL;
-		TTree *old_trun = NULL;
-
 		// For event numbers read from the raw file, zero the event_counter
 		if(!cons_ev_num) event_counter=0;
 
@@ -193,16 +197,20 @@ int main(int argc, char **argv)
 			if (filesystem::is_regular_file(filesystem::path(trun_name)) && j==0)
 			{
 				run_file_exists = true;
-				cerr << "reading old tree" << endl;
-				old_trun_file = new TFile(string(trun_name).c_str(), "read");
+				old_trun_file = new TFile(string(trun_name).c_str(), "update");
 				old_trun = (TTree *) old_trun_file->Get("trun");
+				old_trun->SetName("old_trun");
 				old_trun->GetEntry(0);
+				trun_file = old_trun_file;
 
 				// Update first/last events from the previous run
 				first_event = old_trun->GetLeaf("first_event")->GetValue();
 				first_event_time = old_trun->GetLeaf("first_event_time")->GetValue();
+				first_first_event = first_event;
 				last_event = old_trun->GetLeaf("last_event")->GetValue();
 				last_event_time = old_trun->GetLeaf("last_event_time")->GetValue();
+				first_event = last_event+1;
+				event_counter = first_event;
 			}
 
 			// If it is not the first file, and consecutive event numbering requested, update event numbers from the last file
@@ -216,11 +224,14 @@ int main(int argc, char **argv)
 		if(j==0 || old_style_output)
 		{
 			run = new TRun();
+			if(run_file_exists)
+			{
+				run->trun->SetDirectory(old_trun_file);
+			}
 		}
 
 		// The ADC event class
-		auto ADC = new TADC(is_fv2);
-
+		ADC = new TADC(is_fv2);
 
 		// Read the file from the detector and fill in the TTrees with the read-out data
 //		if (grand_read_file_header(fp, &filehdr))
@@ -228,8 +239,19 @@ int main(int argc, char **argv)
 		{
 			// Read the file header and fill the Run TTree
 			// For every file in the old style output, and only for the first file in the new style output
-			if(old_style_output || j==0)
-				run->SetValuesFromPointers(filehdr, file_format);
+			if(old_style_output || (j==0 && !run_file_exists))
+			{
+				run->SetValuesFromPointers(filehdr, file_format, !(gp13v1 || cons_ev_num));
+				if(!cons_ev_num)
+				{
+					first_event = run->first_event;
+					last_event = run->last_event;
+				}
+				first_event_time = run->first_event_time;
+				last_event_time = run->last_event_time;
+				first_first_event = first_event;
+				first_first_event_time = first_event_time;
+			}
 
 			// For GP13 move in the file
 			if (gp13v1) fseek(fp, 256, 0);
@@ -268,26 +290,39 @@ int main(int argc, char **argv)
 					first_event_time = ADC->time_seconds;
 				}
 
+				// If the event_number is lower than the first first event, update the first first event
+				if(ADC->event_number<first_first_event && !cons_ev_num)
+				{
+					first_first_event = ADC->event_number;
+					if(gp13v1) first_first_event_time = *min_element(ADC->du_seconds.begin(), ADC->du_seconds.end());
+					else first_first_event_time = ADC->time_seconds;
+				}
+
 
 				// If the event_number higher than the last event, update the last event
 				if(ADC->event_number>last_event && !cons_ev_num)
 				{
 					last_event = ADC->event_number;
-					last_event_time = ADC->time_seconds;
+					if(gp13v1) last_event_time = *min_element(ADC->du_seconds.begin(), ADC->du_seconds.end());
+					else last_event_time = ADC->time_seconds;
 				}
 
 				// For the first event, create the TFile, fill some trun values read by tadc
-				if (event_counter == first_event || (!cons_ev_num && event_counter==0))
+				if (event_counter == first_event || (!cons_ev_num && event_counter==0) || (run_file_exists && event_counter == last_event+1))
 				{
 					// Create the TFiles in the output directory
 					if(!old_style_output)
 					{
-						// Create the run file only when analysing the first file
-						if(j==0)
+						// Create the run file only when analysing the first file and not cloning the previous run tree
+						if(j==0 && !run_file_exists)
 						{
 							auto run_num = fn_tokens[3].substr(3, 10);
 							string trun_name = string("run_") + run_num + "_L0_0000.root";
 							trun_file = new TFile(trun_name.c_str(), "recreate");
+
+							// Set the time of the first event
+							if(gp13v1) first_first_event_time = *min_element(ADC->du_seconds.begin(), ADC->du_seconds.end());
+							else first_first_event_time = ADC->time_seconds;
 						}
 
 						tadc_file = new TFile(string("adc.root").c_str(), "recreate");
@@ -326,7 +361,13 @@ int main(int argc, char **argv)
 						// Basically, I should not clone only, but reinit the whole run object from the old tree, but that requires adding capability of initialising classes from trees in gtot, just for that..
 						if (!old_style_output && run_file_exists)
 						{
+							old_trun->SetBranchStatus("last_event", 0);
+							old_trun->SetBranchStatus("last_event_time", 0);
 							run->trun = old_trun->CloneTree(0);
+							run->trun->Branch("last_event", &run->last_event, "last_event/i");
+							run->trun->Branch("last_event_time", &run->last_event_time, "last_event_time/i");
+							run->trun->SetDirectory(trun_file);
+							run->trun->SetName("trun");
 						}
 					}
 
@@ -354,7 +395,6 @@ int main(int argc, char **argv)
 		}
 		if (fp != NULL) fclose(fp); // close the file
 
-
 		// In case of a bad return above, just close the file and exit
 		if (ret_val < 0)
 		{
@@ -364,10 +404,18 @@ int main(int argc, char **argv)
 				finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2, old_style_output);
 
 				trun_file->cd();
-				if(cons_ev_num) last_event=event_counter-1;
-				run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
+				if(cons_ev_num)
+				{
+					last_event = event_counter - 1;
+					if(gp13v1) last_event_time = *min_element(ADC->du_seconds.begin(), ADC->du_seconds.end());
+					else last_event_time = ADC->time_seconds;
+				}
+				run->UpdateAndWrite(first_first_event, first_first_event_time, last_event, last_event_time, old_trun);
 				trun_file->Close();
-				if(cons_ev_num) first_event = event_counter;
+				if(cons_ev_num)
+				{
+					first_event = event_counter;
+				}
 			}
 			else
 				trun_file->Close();
@@ -389,8 +437,14 @@ int main(int argc, char **argv)
 	{
 		run->trun->SetDirectory(trun_file);
 		trun_file->cd();
-		last_event=event_counter-1;
-		run->UpdateAndWrite(first_event, first_event_time, last_event, last_event_time);
+		if(cons_ev_num)
+		{
+			last_event = event_counter - 1;
+			if(gp13v1) last_event_time = *min_element(ADC->du_seconds.begin(), ADC->du_seconds.end());
+			else last_event_time = ADC->time_seconds;
+		}
+		run->UpdateAndWrite(first_first_event, first_first_event_time, last_event, last_event_time, old_trun);
+		trun_file->Close();
 	}
 
 	cout << "\nFinished, quitting" << endl;

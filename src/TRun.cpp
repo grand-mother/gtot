@@ -13,6 +13,9 @@
 TRun::TRun()
 {
 	CreateTree();
+
+	first_event = numeric_limits<unsigned int>::max();
+	last_event = 0;
 }
 
 TTree *TRun::CreateTree()
@@ -55,16 +58,21 @@ TTree *TRun::CreateTree()
 	return trun;
 }
 
-int TRun::SetValuesFromPointers(int *pheader, string file_format)
+int TRun::SetValuesFromPointers(int *pheader, string file_format, bool init_first_last_event)
 {
 	using namespace fv1;
 	run_number = pheader[FILE_HDR_RUNNR];
 	run_mode = pheader[FILE_HDR_RUN_MODE];
 //	file_serial_number = pheader[FILE_HDR_SERIAL];
-	first_event = pheader[FILE_HDR_FIRST_EVENT];
-	first_event_time = pheader[FILE_HDR_FIRST_EVENT_SEC];
-	last_event = pheader[FILE_HDR_LAST_EVENT];
-	last_event_time = pheader[FILE_HDR_LAST_EVENT_SEC];
+	// Init first last event from the header if requested
+	// (not the case for GP13 now, where these values are rubbish)
+	if(init_first_last_event)
+	{
+		first_event = pheader[FILE_HDR_FIRST_EVENT];
+		first_event_time = pheader[FILE_HDR_FIRST_EVENT_SEC];
+		last_event = pheader[FILE_HDR_LAST_EVENT];
+		last_event_time = pheader[FILE_HDR_LAST_EVENT_SEC];
+	}
 
 	// GP13 case
 	if(strstr(file_format.c_str(), "GP13") || strstr(file_format.c_str(), "gp13") || strstr(file_format.c_str(), "Gp13"))
@@ -113,7 +121,7 @@ void TRun::InitialiseMetadata()
 }
 
 //! Update the first/last event info, fill, write and close
-void TRun::UpdateAndWrite(unsigned int first_event, unsigned int first_event_time, unsigned int last_event, unsigned int last_event_time)
+void TRun::UpdateAndWrite(unsigned int first_event, unsigned int first_event_time, unsigned int last_event, unsigned int last_event_time, TTree *old_tree)
 {
 	// If the given first event is smaller than the one in the tree, update the one in the tree
 	if(first_event<this->first_event)
@@ -126,12 +134,18 @@ void TRun::UpdateAndWrite(unsigned int first_event, unsigned int first_event_tim
 	if(last_event>this->last_event)
 	{
 		this->last_event = last_event;
-		this->last_event = last_event_time;
+		this->last_event_time = last_event_time;
 	}
 
 	// Fill the tree and write it
 	this->trun->Fill();
 	this->trun->BuildIndex("run_number");
-	this->trun->Write("", TObject::kWriteDelete);
 
+	// If there was an old TTree from which this one was cloned, delete it before writing this one down
+	if(old_tree!=NULL)
+	{
+		delete old_tree;
+	}
+
+	this->trun->Write("", TObject::kWriteDelete);
 }

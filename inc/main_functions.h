@@ -178,9 +178,10 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 		string trawvoltage_name = string("rawvoltage_") + fn_tokens[1] + string("_") + fn_tokens[2] + string("_") +
 								  to_string(first_event) + "-" + to_string(last_event) + "_L1_0000.root";
 		cout << "Renaming rawvoltage.root to " << trawvoltage_name << endl;
+		run->trun->Scan("run_number");
 		voltage->ChangeFileName(trawvoltage_name);
 		// Add the Run TTree as a friend
-		voltage->trawvoltage->AddFriend(run->trun);
+//		voltage->trawvoltage->AddFriend(run->trun);
 		voltage->trawvoltage->Write("", TObject::kWriteDelete);
 
 		ADC->tadc->GetCurrentFile()->Close();
