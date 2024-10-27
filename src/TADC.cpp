@@ -63,9 +63,10 @@ TTree *TADC::CreateTree()
 	tadc->Branch("atm_temperature", &atm_temperature);
 	tadc->Branch("atm_pressure", &atm_pressure);
 	tadc->Branch("atm_humidity", &atm_humidity);
-	tadc->Branch("acceleration_x", &acceleration_x);
-	tadc->Branch("acceleration_y", &acceleration_y);
-	tadc->Branch("acceleration_z", &acceleration_z);
+//	tadc->Branch("acceleration_x", &acceleration_x);
+//	tadc->Branch("acceleration_y", &acceleration_y);
+//	tadc->Branch("acceleration_z", &acceleration_z);
+	tadc->Branch("du_acceleration", &du_acceleration);
 	tadc->Branch("battery_level", &battery_level);
 	tadc->Branch("firmware_version", &firmware_version);
 	tadc->Branch("adc_sampling_frequency", &adc_sampling_frequency);
@@ -308,9 +309,13 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		atm_temperature.push_back(evdu[file_shift + EVT_ATM_TEMP]);
 		atm_pressure.push_back(evdu[file_shift + EVT_ATM_PRES]);
 		atm_humidity.push_back(evdu[file_shift + EVT_ATM_HUM]);
-		acceleration_x.push_back(evdu[file_shift + EVT_ACCEL_X]);
-		acceleration_y.push_back(evdu[file_shift + EVT_ACCEL_Y]);
-		acceleration_z.push_back(evdu[file_shift + EVT_ACCEL_Z]);
+//		acceleration_x.push_back(evdu[file_shift + EVT_ACCEL_X]);
+//		acceleration_y.push_back(evdu[file_shift + EVT_ACCEL_Y]);
+//		acceleration_z.push_back(evdu[file_shift + EVT_ACCEL_Z]);
+		du_acceleration.emplace_back();
+		du_acceleration.back().push_back(evdu[file_shift + EVT_ACCEL_X]);
+		du_acceleration.back().push_back(evdu[file_shift + EVT_ACCEL_Y]);
+		du_acceleration.back().push_back(evdu[file_shift + EVT_ACCEL_Z]);
 		battery_level.push_back(evdu[file_shift + EVT_BATTERY]);
 		// ToDo: Is this the same as event_version for the whole event?
 		firmware_version.push_back(evdu[file_shift + EVT_VERSION]);
@@ -514,9 +519,13 @@ int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
 		atm_temperature.push_back(evdu[EVT_ATM_TP]>>16);
 		atm_pressure.push_back(evdu[EVT_ATM_TP]&0xffff);
 		atm_humidity.push_back(evdu[EVT_HM_AX]>>16);
-		acceleration_x.push_back(evdu[EVT_HM_AX]&0xffff);
-		acceleration_y.push_back(evdu[EVT_AY_AZ]>>16);
-		acceleration_z.push_back(evdu[EVT_AY_AZ]&0xffff);
+//		acceleration_x.push_back(evdu[EVT_HM_AX]&0xffff);
+//		acceleration_y.push_back(evdu[EVT_AY_AZ]>>16);
+//		acceleration_z.push_back(evdu[EVT_AY_AZ]&0xffff);
+		du_acceleration.emplace_back();
+		du_acceleration.back().push_back(evdu[EVT_HM_AX]&0xffff);
+		du_acceleration.back().push_back(evdu[EVT_AY_AZ]>>16);
+		du_acceleration.back().push_back(evdu[EVT_AY_AZ]&0xffff);
 		battery_level.push_back(evdu[EVT_BATTERY]>>16);
 		// !ToDo: Is this the same as event_version for the whole event?
 		firmware_version.push_back((evdu[EVT_VERSION]>>16)&0xff);
@@ -680,9 +689,10 @@ void TADC::ClearVectors()
 	atm_temperature.clear();
 	atm_pressure.clear();
 	atm_humidity.clear();
-	acceleration_x.clear();
-	acceleration_y.clear();
-	acceleration_z.clear();
+//	acceleration_x.clear();
+//	acceleration_y.clear();
+//	acceleration_z.clear();
+	du_acceleration.clear();
 	battery_level.clear();
 	// ToDo: Is this the same as event_version for the whole event?
 	firmware_version.clear();

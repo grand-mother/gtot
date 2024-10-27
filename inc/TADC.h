@@ -90,12 +90,14 @@ public:
 	vector<unsigned short> atm_pressure;
 	//! Atmospheric humidity
 	vector<unsigned short> atm_humidity;
-	//! Acceleration of the antenna in X
-	vector<unsigned short> acceleration_x;
-	//! Acceleration of the antenna in Y
-	vector<unsigned short> acceleration_y;
-	//! Acceleration of the antenna in Z
-	vector<unsigned short> acceleration_z;
+//	! Acceleration of the antenna in X
+//	vector<unsigned short> acceleration_x;
+//	! Acceleration of the antenna in Y
+//	vector<unsigned short> acceleration_y;
+//	! Acceleration of the antenna in Z
+//	vector<unsigned short> acceleration_z;
+	//! Acceleration of the antenna in (x,y,z) in m/s2
+	vector<vector<unsigned short>> du_acceleration;
 	//! Battery level in ADC units (corresponding to some voltage)
 	vector<unsigned short> battery_level;
 	//! Firmware version
