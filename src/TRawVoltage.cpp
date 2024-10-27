@@ -45,7 +45,7 @@ void TRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2)
 	auto tadc = adc->tadc;
 
 	// Exclude these branches from copying, for the values need to be modified
-	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level", "fpga_temp", "adc_temp", "atm_temperature", "atm_pressure", "atm_humidity", "gain_correction_ch"};
+	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level", "fpga_temp", "adc_temp", "atm_temperature", "atm_pressure", "atm_humidity", "gain_correction_ch", "du_acceleration"};
 
 	// *** Transform the tadc events into trawvoltage events ***
 
@@ -107,6 +107,8 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 
 	gain_correction_ch.clear();
 
+	du_acceleration.clear();
+
 	// Loop through the DUs
 //	for (size_t i=0; i<adc->du_count; ++i)
 	for (size_t i=0; i<adc->trace_ch.size(); ++i)
@@ -151,6 +153,9 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 		atm_pressure.push_back(adc->atm_pressure[i]*1.);
 
 		gain_correction_ch.push_back(vector<float>{(float)((adc->gain_correction_ch[i][0]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][1]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][2]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][3]-0.5)*2.5*37.5/4096-14)});
+
+		// ToDo: here should be some proper acceleration conversion when... we get some acceleration information
+		du_acceleration.push_back(vector<float>{(float)adc->du_acceleration[i][0], (float)adc->du_acceleration[i][1], (float)adc->du_acceleration[i][2]});
 	}
 //	// Merge the traces
 //	trace_ch.push_back(trace_0);
