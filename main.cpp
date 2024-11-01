@@ -399,9 +399,11 @@ int main(int argc, char **argv)
 						}
 					}
 
-					cout << "\rFilled event " << event_counter;
+//					cout << "\rFilled event " << event_counter;
 					event_counter++;
+					cout << "end loop" << endl;
 				}
+				cout << "aft loop" << endl;
 
 				// In case of no events, just exit
 				if (event_counter == 0)
