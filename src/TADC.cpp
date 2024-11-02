@@ -416,7 +416,8 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
 
 		int start_addr = ioff.back();
-		if(gp13v1) start_addr+=NewDataAdded;
+		if(gp13v1cd) start_addr+=file_shift;
+		else if(gp13v1) start_addr+=NewDataAdded;
 
 		// Merge the traces
 //		trace_ch.push_back(vector<vector<short>>());
@@ -449,7 +450,10 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		if(gp13v1) idu +=(evdu[file_shift + EVT_LENGTH] + NewDataAdded);
 		else idu +=(evdu[file_shift + EVT_LENGTH]);
 
-		if(gp13v1cd) file_shift=event_size/du_count+12;
+		if(gp13v1cd)
+		{
+			file_shift += event_size / du_count/2;
+		}
 
 		du_counter++;
 		// Safety check of the amount of DUs in the event. If too big, the file reading most likely went wrong.
