@@ -89,7 +89,8 @@ namespace fv1
 		if (gp13v1) vout << "Tag!!!\n";
 		if (!fread(&isize, INTSIZE, 1, fp))
 		{
-			printf("\nCannot read the Event length\n");
+			if(feof(fp)) printf("\nReached the end of file\n");
+			else printf("\nCannot read the Event length\n");
 			return (0);                                                       //cannot read the header length
 		}
 		vout << "The event length is " << isize << "bytes \n";
