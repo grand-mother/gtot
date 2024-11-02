@@ -288,6 +288,8 @@ char *read_order_file_in_memory(FILE **fp)
 	map<unsigned int, vector<unsigned short*>> fmap;
 
 	unsigned short *event = NULL;
+	long last_good_pos = 0;
+
 	// Read the file event by event (which means DU by DU)
 	while(fv1::grand_read_event(*fp, &event, "gp13v1")>0)
 	{
@@ -295,10 +297,12 @@ char *read_order_file_in_memory(FILE **fp)
 
 		// Push the DU into the vector of this event
 		fmap[ev_num].push_back(event);
+		last_good_pos = ftell(*fp);
 	}
 
 	// Allocate the buffer for the whole file - header
-	unsigned int whole_size = ftell(*fp)-256;
+//	unsigned int whole_size = ftell(*fp)-256;
+	unsigned int whole_size = last_good_pos-256;
 	auto out_buf = (char*)malloc(whole_size);
 
 	long last_pos = 0;
