@@ -1,3 +1,6 @@
+#ifndef GTOT_TRACES1_H
+#define GTOT_TRACES1_H
+
 //#include "amsg.h"
 //#include "scope.h"
 #include "Traces.h"
@@ -89,7 +92,6 @@ namespace fv1
 			printf("\nCannot read the Event length\n");
 			return (0);                                                       //cannot read the header length
 		}
-		cout << "size " << isize << " pos " << ftell(fp) << endl;
 		vout << "The event length is " << isize << "bytes \n";
 		if (event != NULL)
 		{
@@ -235,3 +237,5 @@ int main(int argc, char **argv)
 
 */
 }
+
+#endif //GTOT_TRACES1_H
