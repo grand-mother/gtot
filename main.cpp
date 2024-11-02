@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 				if (gp13v1) fseek(fp, 256, 0);
 
 				char *out_buf = nullptr;
-				if(gp13v1cd) out_buf = read_order_file_in_memory(&fp);//, &out_buf, whole_size);
+				if(gp13v1cd) out_buf = read_order_file_in_memory(&fp);
 
 				// Loop-read the events
 				while (grand_read_event_ptr(fp, &event, file_format.c_str()) > 0)
