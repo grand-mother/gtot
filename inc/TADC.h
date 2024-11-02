@@ -44,7 +44,7 @@ public:
 	//! The version of the tool used to generate this tree's values from another tree
 	string modification_software_version = "";
 	//! The analysis level of this tree
-	int analysis_level = 0;
+	int analysis_level = 1;
 
 	// *** Entry values ***
 
