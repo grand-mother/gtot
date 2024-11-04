@@ -271,11 +271,15 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		// Temporarily for GPX CD msg_type holds du_count
 		if(gp13v1cd) du_count = msg_type;
 		else du_count = 1;
-		du_id.push_back(*evptr++);
-		vout << "duID is " << du_id[0] << endl;
+		if(!gp13v1cd)
+		{
+			du_id.push_back(*evptr++);
+			vout << "duID is " << du_id.back() << endl;
+		}
 		//memcpy(HitId, (char*)evptr++, 4);
 		//printf("hit id is %lld\n",*evptr++);
 		auto tmp_event_number = *evptr++;
+		vout << "event_number " << event_number << endl;
 		if(gp13v1cd && tmp_event_number!=event_number)
 			ClearVectors();
 		event_number = tmp_event_number;
@@ -324,7 +328,13 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		trigger_flag.push_back(evdu[file_shift + EVT_T3FLAG]);
 		atm_temperature.push_back(evdu[file_shift + EVT_ATM_TEMP]);
 		atm_pressure.push_back(evdu[file_shift + EVT_ATM_PRES]);
-		atm_humidity.push_back(evdu[file_shift + EVT_ATM_HUM]);
+		if(gp13v1cd)
+		{
+			du_id.push_back(evdu[file_shift + EVT_ATM_HUM]);
+			atm_humidity.push_back(0);
+		}
+		else
+			atm_humidity.push_back(evdu[file_shift + EVT_ATM_HUM]);
 //		acceleration_x.push_back(evdu[file_shift + EVT_ACCEL_X]);
 //		acceleration_y.push_back(evdu[file_shift + EVT_ACCEL_Y]);
 //		acceleration_z.push_back(evdu[file_shift + EVT_ACCEL_Z]);

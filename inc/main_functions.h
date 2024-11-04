@@ -328,6 +328,11 @@ char *read_order_file_in_memory(FILE **fp)
 				*((unsigned int*)(out_buf + last_pos+4))=val.size();
 			}
 
+			// Change atmospheric humidity to du_id
+			// ToDo: this is replacing a valid value is just a temporary solution!
+			auto du_id = *((unsigned int*)(out_buf + last_pos + 8));
+			*(unsigned int*)(out_buf + last_pos+(fv1::EVT_ATM_HUM+12)*2)=du_id;
+
 			last_pos+=size;
 			du_num++;
 		}
