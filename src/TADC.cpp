@@ -10,9 +10,9 @@
 #include "TNamed.h"
 #include "TParameter.h"
 
-
-TADC::TADC()
+TADC::TADC(bool is_fv2)
 {
+	this->is_fv2 = is_fv2;
 	CreateTree();
 }
 
@@ -36,18 +36,37 @@ TTree *TADC::CreateTree()
 	tadc->Branch("event_version", &event_version, "event_version/i");
 	tadc->Branch("du_count", &du_count, "du_count/i");
 	// Vector branches
-	tadc->Branch("event_id", &event_id);
+
 	tadc->Branch("du_id", &du_id);
+	if (is_fv2)
+	{
+		tadc->Branch("data_format_version", &data_format_version);
+		tadc->Branch("firmware_version", &firmware_version);
+		tadc->Branch("adaq_version", &adaq_version);
+		tadc->Branch("dudaq_version", &dudaq_version);
+		tadc->Branch("hardware_id", &hardware_id);
+	}
+
+	tadc->Branch("event_id", &event_id);
 	tadc->Branch("du_seconds", &du_seconds);
 	tadc->Branch("du_nanoseconds", &du_nanoseconds);
 	tadc->Branch("trigger_position", &trigger_position);
 	tadc->Branch("trigger_flag", &trigger_flag);
+
+	if (is_fv2)
+	{
+		tadc->Branch("pps_id", &pps_id);
+		tadc->Branch("fpga_temp", &fpga_temp);
+		tadc->Branch("adc_temp", &adc_temp);
+	}
+
 	tadc->Branch("atm_temperature", &atm_temperature);
 	tadc->Branch("atm_pressure", &atm_pressure);
 	tadc->Branch("atm_humidity", &atm_humidity);
-	tadc->Branch("acceleration_x", &acceleration_x);
-	tadc->Branch("acceleration_y", &acceleration_y);
-	tadc->Branch("acceleration_z", &acceleration_z);
+//	tadc->Branch("acceleration_x", &acceleration_x);
+//	tadc->Branch("acceleration_y", &acceleration_y);
+//	tadc->Branch("acceleration_z", &acceleration_z);
+	tadc->Branch("du_acceleration", &du_acceleration);
 	tadc->Branch("battery_level", &battery_level);
 	tadc->Branch("firmware_version", &firmware_version);
 	tadc->Branch("adc_sampling_frequency", &adc_sampling_frequency);
@@ -73,7 +92,22 @@ TTree *TADC::CreateTree()
 	tadc->Branch("trigger_pattern_10s", &trigger_pattern_10s);
 	tadc->Branch("trigger_pattern_external_test_pulse", &trigger_pattern_external_test_pulse);
 
+	if (is_fv2)
+	{
+		tadc->Branch("trigger_pattern_ch0_ch1_ch2", &trigger_pattern_ch0_ch1_ch2);
+		tadc->Branch("trigger_pattern_ch0_ch1_notch2", &trigger_pattern_ch0_ch1_notch2);
+		tadc->Branch("trigger_pattern_20Hz", &trigger_pattern_20Hz);
+		tadc->Branch("trigger_external_test_pulse_period", &trigger_external_test_pulse_period);
+	}
+
 	tadc->Branch("trigger_rate", &trigger_rate);
+
+	if (is_fv2)
+	{
+		tadc->Branch("trigger_status", &trigger_status);
+		tadc->Branch("trigger_ddr_storage", &trigger_ddr_storage);
+	}
+
 	tadc->Branch("clock_tick", &clock_tick);
 	tadc->Branch("clock_ticks_per_second", &clock_ticks_per_second);
 	tadc->Branch("gps_offset", &gps_offset);
@@ -86,6 +120,26 @@ TTree *TADC::CreateTree()
 	tadc->Branch("gps_lat", &gps_lat);
 	tadc->Branch("gps_alt", &gps_alt);
 	tadc->Branch("gps_temp", &gps_temp);
+
+	if (is_fv2)
+	{
+		tadc->Branch("gps_sec_sun", &gps_sec_sun);
+		tadc->Branch("gps_week_num", &gps_week_num);
+		tadc->Branch("gps_receiver_mode", &gps_receiver_mode);
+		tadc->Branch("gps_disciplining_mode", &gps_disciplining_mode);
+		tadc->Branch("gps_self_survey", &gps_self_survey);
+		tadc->Branch("gps_minor_alarms", &gps_minor_alarms);
+		tadc->Branch("gps_gnss_decoding", &gps_gnss_decoding);
+		tadc->Branch("gps_disciplining_activity", &gps_disciplining_activity);
+	}
+
+	tadc->Branch("gps_week_num", &gps_week_num);
+	tadc->Branch("gps_receiver_mode", &gps_receiver_mode);
+	tadc->Branch("gps_disciplining_mode", &gps_disciplining_mode);
+	tadc->Branch("gps_self_survey", &gps_self_survey);
+	tadc->Branch("gps_minor_alarms", &gps_minor_alarms);
+	tadc->Branch("gps_gnss_decoding", &gps_gnss_decoding);
+	tadc->Branch("gps_disciplining_activity", &gps_disciplining_activity);
 
 //	tadc->Branch("digi_ctrl", &digi_ctrl);
 	tadc->Branch("enable_auto_reset_timeout", &enable_auto_reset_timeout);
@@ -118,7 +172,11 @@ TTree *TADC::CreateTree()
 //	tadc->Branch("channel_properties2", &channel_properties2);
 //	tadc->Branch("channel_properties3", &channel_properties3);
 	tadc->Branch("gain_correction_ch", &gain_correction_ch);
-	tadc->Branch("integration_time_ch", &integration_time_ch);
+
+//	if(is_fv2) tadc->Branch("samples_in_baseline_ch", &integration_time_ch_fv2);
+	if(is_fv2) tadc->Branch("integration_time_ch", &integration_time_ch_fv2);
+	else tadc->Branch("integration_time_ch", &integration_time_ch);
+
 	tadc->Branch("offset_correction_ch", &offset_correction_ch);
 	tadc->Branch("base_maximum_ch", &base_maximum_ch);
 	tadc->Branch("base_minimum_ch", &base_minimum_ch);
@@ -129,13 +187,29 @@ TTree *TADC::CreateTree()
 //	tadc->Branch("channel_trig_settings3", &channel_trig_settings3);
 	tadc->Branch("signal_threshold_ch", &signal_threshold_ch);
 	tadc->Branch("noise_threshold_ch", &noise_threshold_ch);
-	tadc->Branch("tprev_ch", &tprev_ch);
-	tadc->Branch("tper_ch", &tper_ch);
-	tadc->Branch("tcmax_ch", &tcmax_ch);
-	tadc->Branch("ncmax_ch", &ncmax_ch);
-	tadc->Branch("ncmin_ch", &ncmin_ch);
+
+	if(is_fv2)
+	{
+		tadc->Branch("tprev_ch", &tprev_ch_fv2);
+		tadc->Branch("tper_ch", &tper_ch_fv2);
+		tadc->Branch("tcmax_ch", &tcmax_ch_fv2);
+		tadc->Branch("ncmin_ch", &ncmin_ch_fv2);
+		tadc->Branch("ncmax_ch", &ncmax_ch_fv2);
+	}
+	else
+	{
+		tadc->Branch("tprev_ch", &tprev_ch);
+		tadc->Branch("tper_ch", &tper_ch);
+		tadc->Branch("tcmax_ch", &tcmax_ch);
+		tadc->Branch("ncmin_ch", &ncmin_ch);
+		tadc->Branch("ncmax_ch", &ncmax_ch);
+	}
+
 	tadc->Branch("qmax_ch", &qmax_ch);
 	tadc->Branch("qmin_ch", &qmin_ch);
+
+	if (is_fv2)
+		tadc->Branch("notch_filters_no_ch", &notch_filters_no_ch);
 
 	tadc->Branch("ioff", &ioff);
 //	tadc->Branch("trace_0", &trace_0);
@@ -149,6 +223,9 @@ TTree *TADC::CreateTree()
 
 int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 {
+	// Use the binary blob addressing from firmware version 1
+	using namespace fv1;
+
 	std::ostream &vout = *pvout;
 
 	// The allowed amount of DUs in the event. If it is exceeded, probably the reading of the file went wrong.
@@ -158,14 +235,17 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 
 	// A bool means a lot of bools for more formats, but hopefully it won't come to that
 	bool gp13v1 = false;
+	bool gp13v1cd = false;
 	if(strstr(file_format.c_str(),"gp13v1"))
 	{
 		gp13v1 = true;
 		file_shift = 8;
+		if(strstr(file_format.c_str(),"gp13v1cd")) gp13v1cd = true;
 	}
 
 	// Clear the vectors
-	ClearVectors();
+	if(!gp13v1cd)
+		ClearVectors();
 
 	unsigned int *evptr = (unsigned int *)pevent;
 
@@ -186,12 +266,23 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 	{
 		run_number=event_size;
 		vout << "\nevent_size is " << event_size << endl;
-		vout << "msg_type is " << *evptr++ << endl;
-		du_id.push_back(*evptr++);
-		vout << "duID is " << du_id[0] << endl;
+		auto msg_type = *evptr++;
+		vout << "msg_type is " << msg_type << endl;
+		// Temporarily for GPX CD msg_type holds du_count
+		if(gp13v1cd) du_count = msg_type;
+		else du_count = 1;
+		if(!gp13v1cd)
+		{
+			du_id.push_back(*evptr++);
+			vout << "duID is " << du_id.back() << endl;
+		}
 		//memcpy(HitId, (char*)evptr++, 4);
 		//printf("hit id is %lld\n",*evptr++);
-		event_number = *evptr++;
+		auto tmp_event_number = *evptr++;
+		vout << "event_number " << event_number << endl;
+		if(gp13v1cd && tmp_event_number!=event_number)
+			ClearVectors();
+		event_number = tmp_event_number;
 	}
 	else
 	{
@@ -218,9 +309,15 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 
 	int du_counter=0;
 
-	while(idu<ev_end)
+	if(gp13v1cd) file_shift=12;
+
+	int iter=0;
+
+	evdu = (uint16_t *)(&pevent[idu]);
+
+	while(idu<ev_end && iter<du_count)
 	{
-		evdu = (uint16_t *)(&pevent[idu]);
+//		evdu = (uint16_t *)(&pevent[idu]);
 		if(gp13v1) vout<<"EVT_LENGTH "<<evdu[file_shift + EVT_LENGTH]<<endl;
 
 		event_id.push_back(evdu[file_shift + EVT_ID]);
@@ -231,10 +328,20 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		trigger_flag.push_back(evdu[file_shift + EVT_T3FLAG]);
 		atm_temperature.push_back(evdu[file_shift + EVT_ATM_TEMP]);
 		atm_pressure.push_back(evdu[file_shift + EVT_ATM_PRES]);
-		atm_humidity.push_back(evdu[file_shift + EVT_ATM_HUM]);
-		acceleration_x.push_back(evdu[file_shift + EVT_ACCEL_X]);
-		acceleration_y.push_back(evdu[file_shift + EVT_ACCEL_Y]);
-		acceleration_z.push_back(evdu[file_shift + EVT_ACCEL_Z]);
+		if(gp13v1cd)
+		{
+			du_id.push_back(evdu[file_shift + EVT_ATM_HUM]);
+			atm_humidity.push_back(0);
+		}
+		else
+			atm_humidity.push_back(evdu[file_shift + EVT_ATM_HUM]);
+//		acceleration_x.push_back(evdu[file_shift + EVT_ACCEL_X]);
+//		acceleration_y.push_back(evdu[file_shift + EVT_ACCEL_Y]);
+//		acceleration_z.push_back(evdu[file_shift + EVT_ACCEL_Z]);
+		du_acceleration.emplace_back();
+		du_acceleration.back().push_back(evdu[file_shift + EVT_ACCEL_X]);
+		du_acceleration.back().push_back(evdu[file_shift + EVT_ACCEL_Y]);
+		du_acceleration.back().push_back(evdu[file_shift + EVT_ACCEL_Z]);
 		battery_level.push_back(evdu[file_shift + EVT_BATTERY]);
 		// ToDo: Is this the same as event_version for the whole event?
 		firmware_version.push_back(evdu[file_shift + EVT_VERSION]);
@@ -282,6 +389,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		gps_long.push_back(*(unsigned long long*)&evdu[file_shift + EVT_LONGITUDE]);
 		gps_lat.push_back(*(unsigned long long*)&evdu[file_shift + EVT_LATITUDE]);
 		gps_alt.push_back(*(unsigned long long*)&evdu[file_shift + EVT_ALTITUDE]);
+		// ToDo: I think this casting is a bug, and it should be unsigned int
 		gps_temp.push_back(*(unsigned long long*)&evdu[file_shift + EVT_GPS_TEMP]);
 
 //		digi_ctrl.push_back(vector<unsigned short>());
@@ -318,7 +426,8 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
 
 		int start_addr = ioff.back();
-		if(gp13v1) start_addr+=NewDataAdded;
+		if(gp13v1cd) start_addr+=file_shift;
+		else if(gp13v1) start_addr+=NewDataAdded;
 
 		// Merge the traces
 //		trace_ch.push_back(vector<vector<short>>());
@@ -351,6 +460,238 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		if(gp13v1) idu +=(evdu[file_shift + EVT_LENGTH] + NewDataAdded);
 		else idu +=(evdu[file_shift + EVT_LENGTH]);
 
+		if(gp13v1cd)
+		{
+			file_shift += event_size / du_count/2;
+		}
+
+		du_counter++;
+		// Safety check of the amount of DUs in the event. If too big, the file reading most likely went wrong.
+		if(du_counter>=safe_du_amount)
+		{
+			cerr << "The amount of DUs in the event exceeded " << safe_du_amount << ". Too much!" << endl;
+			cerr << "Make sure that the file format is correct and the file is not corrupted." << endl;
+			cerr << "Exiting, to avoid a memory hog." << endl;
+			return -1;
+		}
+		iter++;
+	}
+
+	return 0;
+}
+
+int TADC::SetValuesFromPointers_fv2(unsigned short *pevent, string file_format)
+{
+	using namespace fv2;
+
+	std::ostream &vout = *pvout;
+
+	// The allowed amount of DUs in the event. If it is exceeded, probably the reading of the file went wrong.
+	int safe_du_amount = 10000;
+
+	int file_shift = 0;
+
+	// A bool means a lot of bools for more formats, but hopefully it won't come to that
+	bool gp13v1 = false;
+
+	// Clear the vectors
+	ClearVectors();
+
+	unsigned int *evptr = (unsigned int *)pevent;
+	unsigned int *event = (unsigned int *)pevent;
+
+	int idu = EVENT_DU; //parameter indicating start of LS
+	int ev_end = event[EVENT_HDR_LENGTH]/4;
+
+	unsigned int *evdu;
+	char Event_ID[4];
+	char TriggerDuNumber[4];
+	char HitId[4];
+
+	event_size = event[EVENT_HDR_LENGTH];
+	run_number = event[EVENT_HDR_RUNNR];
+	event_number = event[EVENT_HDR_EVENTNR];
+	t3_number = event[EVENT_HDR_T3EVENTNR];
+	first_du = event[EVENT_HDR_FIRST_DU];
+	time_seconds = event[EVENT_HDR_EVENT_SEC];
+	time_nanoseconds = event[EVENT_HDR_EVENT_NSEC];
+//	evdu = (uint16_t *) evptr;
+//	event_type = evdu[0];
+//	event_version = *evdu++;
+//	evptr += 2;
+	du_count = event[EVENT_HDR_NDU];
+
+	int NewDataAdded = 8;//Byte
+	int du_counter=0;
+
+	while(idu<ev_end)
+	{
+		evdu = (unsigned int *)(&event[idu]);
+
+		event_id.push_back(evdu[EVT_EVT_ID]);
+		du_id.push_back(evdu[EVT_STATION_ID]);
+		// !ToDo: Add hardware_id
+		hardware_id.push_back(evdu[EVT_HARDWARE_ID]);
+		du_seconds.push_back(evdu[EVT_SECOND]);
+		du_nanoseconds.push_back(evdu[EVT_NANOSEC]);
+		trigger_position.push_back(evdu[EVT_TRIGGER_POS]>>16);
+
+		pre_coincidence_window_ch.push_back(vector<unsigned short>{trigger_position.back(), trigger_position.back(), trigger_position.back(), trigger_position.back()});
+		unsigned short post_coinc_window = 2*(evdu[EVT_TRACELENGTH]>>16)-(evdu[EVT_TRACELENGTH]>>16);
+		post_coincidence_window_ch.push_back(vector<unsigned short>{post_coinc_window, post_coinc_window, post_coinc_window, post_coinc_window});
+
+		trigger_flag.push_back(evdu[EVT_TRIGGER_STAT]>>16);
+		// !ToDo: Add trigger status
+		// ToDo: Ask Charles, as he says it is similar to trigger pattern in the old format, but this was being decoded
+		trigger_status.push_back(evdu[EVT_TRIGGER_STAT]&0xffff);
+
+		pps_id.push_back(evdu[EVT_PPS_ID]);
+		fpga_temp.push_back(evdu[EVT_FPGA_TEMP]>>16);
+		adc_temp.push_back(evdu[EVT_FPGA_TEMP]&0xffff);
+
+		atm_temperature.push_back(evdu[EVT_ATM_TP]>>16);
+		atm_pressure.push_back(evdu[EVT_ATM_TP]&0xffff);
+		atm_humidity.push_back(evdu[EVT_HM_AX]>>16);
+//		acceleration_x.push_back(evdu[EVT_HM_AX]&0xffff);
+//		acceleration_y.push_back(evdu[EVT_AY_AZ]>>16);
+//		acceleration_z.push_back(evdu[EVT_AY_AZ]&0xffff);
+		du_acceleration.emplace_back();
+		du_acceleration.back().push_back(evdu[EVT_HM_AX]&0xffff);
+		du_acceleration.back().push_back(evdu[EVT_AY_AZ]>>16);
+		du_acceleration.back().push_back(evdu[EVT_AY_AZ]&0xffff);
+		battery_level.push_back(evdu[EVT_BATTERY]>>16);
+		// !ToDo: Is this the same as event_version for the whole event?
+		firmware_version.push_back((evdu[EVT_VERSION]>>16)&0xff);
+		// !ToDo: Add Data format version
+		data_format_version.push_back((evdu[EVT_VERSION]>>24)&0xff);
+		adaq_version.push_back((evdu[EVT_VERSION]>>8)&0xff);
+		dudaq_version.push_back((evdu[EVT_VERSION]&0xff));
+
+		adc_sampling_frequency.push_back(evdu[EVT_ADCINFO]>>16);
+		adc_sampling_resolution.push_back(evdu[EVT_ADCINFO]&0xffff);
+
+		// !ToDo: Add decoding from print_channel_info()
+		ADCInputChannelsDecodeAndFill_fv2(evdu[EVT_INP_SELECT]);
+
+		// !ToDo: Add decoding from print_channel_info()
+		// Added above
+//		ADCEnabledChannelsDecodeAndFill(evdu[file_shift + EVT_CH_ENABLE]);
+
+		// ToDo: Check if before it was also sample _pairs_, or should I change the variable name
+//		adc_samples_count_total.push_back(16*evdu[file_shift + EVT_TOT_SAMPLES]);
+		adc_samples_count_total.push_back(evdu[EVT_TOT_SAMPLEP]*2);
+
+		// ToDo: Add decoding from print_channel_info()
+//		adc_samples_count_ch.emplace_back();
+//		for(int i=0;i<3;i++) adc_samples_count_ch.back().push_back(evdu[file_shift + EVT_TOT_SAMPLES+i]);
+
+		// !ToDo: Add decoding from print_channel_info()
+		TriggerPatternDecodeAndFill_fv2(evdu[EVT_TRIG_SELECT]);
+
+		trigger_rate.push_back(evdu[EVT_STATISTICS]>>16);
+		// !ToDo: Add DDR Storage
+		trigger_ddr_storage.push_back(evdu[EVT_STATISTICS]&0xffff);
+
+		clock_tick.push_back(evdu[EVT_CTD]);
+		clock_ticks_per_second.push_back(evdu[EVT_CTP]);
+		gps_offset.push_back(*(float *)&evdu[EVT_OFFSET]);
+
+		// !ToDo: Check if there is leap second stored
+		gps_leap_second.push_back(evdu[EVT_WEEKOFFSET]&0xffff);
+		gps_status.push_back((evdu[EVT_SECMINHOUR]>>24)&0xff);
+
+		// !ToDo: Check which one in new data correspond to alarms and warning below
+//		gps_alarms.push_back(evdu[file_shift + EVT_GPS_CRITICAL]);
+//		gps_warnings.push_back(evdu[file_shift + EVT_GPS_WARNING]);
+
+		// Convert the GPS times into unix time. This assumes we get UTC from the GPS
+		TTimeStamp ts;
+		ts.Set(evdu[EVT_YEAR], (evdu[EVT_DAYMONTH]>>16)&0xff, (evdu[EVT_DAYMONTH]>>24)&0xff, evdu[EVT_SECMINHOUR]&0xff, (evdu[EVT_SECMINHOUR]>>8)&0xff, (evdu[EVT_SECMINHOUR]>>16)&0xff, 0, true, 0);
+		gps_time.push_back(ts.GetSec());
+
+		gps_long.push_back(*(unsigned long long*)&evdu[EVT_LONGITUDE-1]);
+		gps_lat.push_back(*(unsigned long long*)&evdu[EVT_LATITUDE-1]);
+		gps_alt.push_back(*(unsigned long long*)&evdu[EVT_ALTITUDE-1]);
+		gps_temp.push_back(*(unsigned int*)&evdu[EVT_TEMPERATURE]);
+
+		// !ToDo: Add seconds since sunday, week, utc offset, modes and work on alarms
+		gps_sec_sun.push_back(evdu[EVT_WEEKTIME]);
+		gps_week_num.push_back(evdu[EVT_WEEKOFFSET]>>16);
+		gps_receiver_mode.push_back((evdu[EVT_GPSMODE]>>24)&0xff);
+		gps_disciplining_mode.push_back((evdu[EVT_GPSMODE]>>16)&0xff);
+		gps_self_survey.push_back((evdu[EVT_GPSMODE]>>8)&0xff);
+		gps_minor_alarms.push_back((evdu[EVT_GPSSTATUS]>>16)&0xffff);
+		gps_gnss_decoding.push_back((evdu[EVT_GPSSTATUS]>>8)&0xff);
+		gps_disciplining_activity.push_back((evdu[EVT_GPSSTATUS])&0xff);
+
+		// ToDo: All 4 below from print_channel_info()
+		// Nothing from it is called here I think
+//		DigiCtrlDecodeAndFill(&evdu[file_shift + EVT_CTRL]);
+		// This is now NOT in the event
+//		DigiWindowDecodeAndFill(&evdu[file_shift + EVT_WINDOWS]);
+		// Replaced by below
+//		ChannelPropertyDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_CHANNEL]);
+		gain_correction_ch.push_back(vector<unsigned short>{(unsigned short)(evdu[EVT_GAIN_AB]>>16), (unsigned short)(evdu[EVT_GAIN_AB]&0xffff), (unsigned short)(evdu[EVT_GAIN_CD]>>16), (unsigned short)(evdu[EVT_GAIN_CD]&0xffff)});
+		integration_time_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(2*(1<<((evdu[EVT_BASELINE_12]>>10)&0x7))), (unsigned short)(2*(1<<((evdu[EVT_BASELINE_12]>>23)&0x7))), (unsigned short)(2*(1<<((evdu[EVT_BASELINE_3]>>10)&0x7)))});
+		base_maximum_ch.push_back(vector<unsigned short>{(unsigned short)(evdu[EVT_BASELINE_12]&0x3ff), (unsigned short)((evdu[EVT_BASELINE_12]>>13)&0x3ff), (unsigned short)(evdu[EVT_BASELINE_3]&0x3ff)});
+
+		// Replaced by below
+//		ChannelTriggerParameterDecodeAndFill((unsigned short*)&evdu[file_shift + EVT_TRIGGER]);
+
+		signal_threshold_ch.push_back(vector<unsigned short>{(unsigned short)((evdu[EVT_THRES_C1+0]>>12)&0xfff), (unsigned short)((evdu[EVT_THRES_C1+1]>>12)&0xfff), (unsigned short)((evdu[EVT_THRES_C1+2]>>12)&0xfff)});
+		noise_threshold_ch.push_back(vector<unsigned short>{(unsigned short)((evdu[EVT_THRES_C1+0]&0xfff)), (unsigned short)((evdu[EVT_THRES_C1+1]&0xfff)), (unsigned short)((evdu[EVT_THRES_C1+2]&0xfff))});
+
+		tprev_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(4*((evdu[EVT_TRIG_C1+2*0]>>21)&0x1ff)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*1]>>21)&0x1ff)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*2]>>21)&0x1ff))});
+		tper_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(4*((evdu[EVT_TRIG_C1+2*0]>>12)&0x1ff)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*1]>>12)&0x1ff)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*2]>>12)&0x1ff))});
+		tcmax_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(4*((evdu[EVT_TRIG_C1+2*0]>>9)&0x7)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*1]>>9)&0x7)), (unsigned short)(4*((evdu[EVT_TRIG_C1+2*2]>>9)&0x7))});
+		ncmin_ch_fv2.push_back(vector<unsigned short>{(unsigned short)(((evdu[EVT_TRIG_C1+2*0]>>5)&0xf)), (unsigned short)(((evdu[EVT_TRIG_C1+2*1]>>5)&0xf)), (unsigned short)(((evdu[EVT_TRIG_C1+2*2]>>5)&0xf))});
+		ncmax_ch_fv2.push_back(vector<unsigned short>{(unsigned short)((evdu[EVT_TRIG_C1+2*0]&0x1f)), (unsigned short)((evdu[EVT_TRIG_C1+2*1]&0x1f)), (unsigned short)((evdu[EVT_TRIG_C1+2*2]&0x1f))});
+
+		// !ToDo: Add notch filters
+		notch_filters_no_ch.push_back(vector<unsigned char>{(unsigned char)((evdu[EVT_TRIG_SELECT]>>17)&0x7), (unsigned char)((evdu[EVT_TRIG_SELECT]>>20)&0x7), (unsigned char)((evdu[EVT_TRIG_SELECT]>>23)&0x7)});
+
+		// ToDo: check if there is anything like ioff now
+//		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
+
+		int start_addr = EVT_START_ADC;
+
+		// Merge the traces
+		trace_ch.emplace_back();
+		int end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
+		trace_ch.back().emplace_back();
+		// Swapping the order of bytes in the traces values
+		for(int i=0; i<(evdu[EVT_TRACELENGTH]>>16); ++i)
+		{
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2]);
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2+1]);
+		}
+		start_addr=end_addr;
+		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
+		trace_ch.back().emplace_back();
+		for(int i=0; i<(evdu[EVT_TRACELENGTH]>>16); ++i)
+		{
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2]);
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2+1]);
+		}
+		start_addr=end_addr;
+		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
+		trace_ch.back().emplace_back();
+		for(int i=0; i<(evdu[EVT_TRACELENGTH]>>16); ++i)
+		{
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2]);
+			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2+1]);
+		}
+//		start_addr=end_addr;
+//		end_addr = start_addr+(evdu[EVT_TRACELENGTH]>>16);
+//		trace_ch.back().emplace_back();
+//		for(int i=0; i<(evdu[EVT_TRACELENGTH]>>16); ++i)
+//		{
+//			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2]);
+//			trace_ch.back().back().push_back(((short*)(&evdu[start_addr]))[i*2+1]);
+//		}
+
+		idu += (evdu[EVT_LENGTH]>>16);
+
 		du_counter++;
 		// Safety check of the amount of DUs in the event. If too big, the file reading most likely went wrong.
 		if(du_counter>=safe_du_amount)
@@ -373,12 +714,18 @@ void TADC::ClearVectors()
 	du_nanoseconds.clear();
 	trigger_position.clear();
 	trigger_flag.clear();
+
+	pps_id.clear();
+	fpga_temp.clear();
+	adc_temp.clear();
+
 	atm_temperature.clear();
 	atm_pressure.clear();
 	atm_humidity.clear();
-	acceleration_x.clear();
-	acceleration_y.clear();
-	acceleration_z.clear();
+//	acceleration_x.clear();
+//	acceleration_y.clear();
+//	acceleration_z.clear();
+	du_acceleration.clear();
 	battery_level.clear();
 	// ToDo: Is this the same as event_version for the whole event?
 	firmware_version.clear();
@@ -420,6 +767,15 @@ void TADC::ClearVectors()
 	gps_alt.clear();
 	gps_temp.clear();
 
+	gps_sec_sun.clear();
+	gps_week_num.clear();
+	gps_receiver_mode.clear();
+	gps_disciplining_mode.clear();
+	gps_self_survey.clear();
+	gps_minor_alarms.clear();
+	gps_gnss_decoding.clear();
+	gps_disciplining_activity.clear();
+
 //	digi_ctrl.clear();
 	enable_auto_reset_timeout.clear();
 	force_firmware_reset.clear();
@@ -450,6 +806,7 @@ void TADC::ClearVectors()
 //	channel_properties3.clear();
 	gain_correction_ch.clear();
 	integration_time_ch.clear();
+	integration_time_ch_fv2.clear();
 	offset_correction_ch.clear();
 	base_maximum_ch.clear();
 	base_minimum_ch.clear();
@@ -465,6 +822,11 @@ void TADC::ClearVectors()
 	tcmax_ch.clear();
 	ncmax_ch.clear();
 	ncmin_ch.clear();
+	tprev_ch_fv2.clear();
+	tper_ch_fv2.clear();
+	tcmax_ch_fv2.clear();
+	ncmax_ch_fv2.clear();
+	ncmin_ch_fv2.clear();
 	qmax_ch.clear();
 	qmin_ch.clear();
 
@@ -475,6 +837,31 @@ void TADC::ClearVectors()
 //	trace_2.clear();
 //	trace_3.clear();
 	trace_ch.clear();
+
+	hardware_id.clear();
+	trigger_status.clear();
+	trigger_ddr_storage.clear();
+	data_format_version.clear();
+	adaq_version.clear();
+	dudaq_version.clear();
+	trigger_pattern_ch0_ch1_ch2.clear();
+	trigger_pattern_ch0_ch1_notch2.clear();
+	trigger_pattern_20Hz.clear();
+	trigger_external_test_pulse_period.clear();
+	gps_week_num.clear();
+	gps_receiver_mode.clear();
+	gps_disciplining_mode.clear();
+	gps_self_survey.clear();
+	gps_minor_alarms.clear();
+	gps_gnss_decoding.clear();
+	gps_disciplining_activity.clear();
+	integration_time_ch_fv2.clear();
+	tper_ch_fv2.clear();
+	tprev_ch_fv2.clear();
+	ncmax_ch_fv2.clear();
+	tcmax_ch_fv2.clear();
+	ncmin_ch_fv2.clear();
+	notch_filters_no_ch.clear();
 }
 
 //! Initialises the TTree metadata fields
@@ -507,6 +894,27 @@ void TADC::TriggerPatternDecodeAndFill(unsigned short trigger_pattern)
 	trigger_pattern_external_test_pulse.push_back(bits[4]);
 }
 
+// ToDo: Not sure if this is actually trigger pattern or trigger enabling
+void TADC::TriggerPatternDecodeAndFill_fv2(unsigned short trigger_pattern)
+{
+	auto bits = bitset<16>{trigger_pattern};
+
+	trigger_pattern_ch.push_back(vector<bool>{bits[0], bits[1], bits[2], bits[3]});
+
+	trigger_pattern_ch0_ch1.push_back(bits[4]);
+	trigger_pattern_ch0_ch1_ch2.push_back(bits[5]);
+	trigger_pattern_ch0_ch1_notch2.push_back(bits[6]);
+	trigger_pattern_20Hz.push_back(bits[7]);
+	trigger_pattern_10s.push_back(bits[8]);
+	trigger_pattern_external_test_pulse.push_back(bits[9]);
+
+	int period =((trigger_pattern>>13)&0xf)<<(2+((trigger_pattern>>9)&0xf));
+//	trigger_external_test_pulse_period.push_back(period);
+	// ToDo: I am not sure if this is test_pulse_rate_divider
+	test_pulse_rate_divider.push_back(period);
+}
+
+
 void TADC::DigiCtrlDecodeAndFill(unsigned short digi_ctrl[8])
 {
 
@@ -515,20 +923,20 @@ void TADC::DigiCtrlDecodeAndFill(unsigned short digi_ctrl[8])
 
 	enable_auto_reset_timeout.push_back(bits[15]);
 	force_firmware_reset.push_back(bits[14]);
-	enable_filter_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]});
+	enable_filter_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]}); //
 	enable_1PPS.push_back(bits[1]);
 	enable_DAQ.push_back(bits[0]);
 
 	// Trigger enable mask register
 	bits = bitset<16>{digi_ctrl[1]};
 
-	enable_trigger_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]});
-	enable_trigger_ch0_ch1.push_back(bits[7]);
+	enable_trigger_ch.push_back(vector<bool>{bits[8], bits[9], bits[10], bits[11]}); //
+	enable_trigger_ch0_ch1.push_back(bits[7]); //
 	enable_trigger_notch0_ch1.push_back(bits[2]);
 	enable_trigger_redch0_ch1.push_back(bits[1]);
 	enable_trigger_ch2_ch3.push_back(bits[0]);
 	enable_trigger_calibration.push_back(bits[6]);
-	enable_trigger_10s.push_back(bits[5]);
+	enable_trigger_10s.push_back(bits[5]); //
 	enable_trigger_external_test_pulse.push_back(bits[4]);
 
 	// Test pulse rate divider and channel readout enable
@@ -583,6 +991,37 @@ void TADC::ADCInputChannelsDecodeAndFill(unsigned short val)
 	adc_input_channels_ch.push_back(vector<unsigned char>{(unsigned char)((val>>0)&0b0111), (unsigned char)((val>>4)&0b0111), (unsigned char)((val>>8)&0b0111), (unsigned char)((val>>12)&0b0111)});
 }
 
+void TADC::ADCInputChannelsDecodeAndFill_fv2(unsigned short val)
+{
+	unsigned char adc_val[3] = {0, 0, 0};
+	bool filter_val[3] = {false, false, false};
+	bool enabled_ch[3] = {true, true, true};
+	for(int ich=0;ich<3;ich++)
+	{
+		// Channel off
+		if(((val>>5*ich)&0x1e) == 0)
+		{
+			// Filling with a dummy highest value for non-enable channel
+			adc_val[ich] = 15;
+			enabled_ch[ich] = false;
+		}
+		else
+		{
+			for(int iadc=0;iadc<4;iadc++){
+				if(val&(1<<(5*ich+iadc+1)))
+				{
+					adc_val[ich] = iadc;
+					// Filtered channel
+					if (val & (1 << (5 * ich))) filter_val[ich] = true;
+				}
+			}
+		}
+	}
+	adc_input_channels_ch.push_back(vector<unsigned char>{adc_val[0], adc_val[1], adc_val[2]});
+	enable_filter_ch.push_back(vector<bool>{filter_val[0], filter_val[1], filter_val[2]});
+	enable_readout_ch.push_back(vector<bool>{enabled_ch[0], enabled_ch[1], enabled_ch[2]});
+}
+
 void TADC::ADCEnabledChannelsDecodeAndFill(unsigned short val)
 {
 	auto bits = bitset<16>{val};
@@ -598,4 +1037,30 @@ short TADC::ADC2short(short val)
 	mask = 1 << 15; // --- bit 16
 	value = (value & (~mask)) | (bit14 << 15);
 	return value;
+}
+
+//! Change the name of the file in which the TTree is stored
+void TADC::ChangeFileName(string new_file_name, bool write_tree)
+{
+	// Get the current tree name
+	auto tree_name = string(tadc->GetName());
+
+	// If writing requested, write the tree down in the file
+	if(write_tree)
+		tadc->Write("", TObject::kWriteDelete);
+
+	// Close the old TFile
+	auto old_file = tadc->GetCurrentFile();
+	auto old_file_name = old_file->GetName();
+	delete tadc;
+	old_file->Close();
+
+	// Rename the file in the filesystem
+	filesystem::rename(filesystem::path(old_file_name), filesystem::path(new_file_name));
+
+	// Open the new file
+	auto new_file = new TFile(new_file_name.c_str(), "update");
+
+	// Set the TTree to the one from the renamed file
+	tadc = (TTree*)new_file->Get(tree_name.c_str());
 }

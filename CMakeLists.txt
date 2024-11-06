@@ -4,10 +4,28 @@ project(gtot)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_PREFIX_PATH ${ROOT_INCLUDE_DIRS} ${ROOT_LIBRARY_DIR})
+
+#get_cmake_property(_variableNames VARIABLES)
+#list (SORT _variableNames)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+#execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "environment")
+
+#set(CMAKE_MODULE_PATH ${})
+#find_package(Vdt)
+set(VDT_INCLUDE_DIR $ENV{ROOTSYS}/include)
+set(VDT_LIBRARY $ENV{ROOTSYS}/lib)
+
 # Require CERN ROOT.
 find_package(ROOT CONFIG REQUIRED)
+#include(CMakePrintHelpers)
+#cmake_print_variables($ENV{ROOTSYS})
+#cmake_print_variables(ROOT_LIBRARY_DIR)
 
-add_executable(gtot main.cpp src/TADC.cpp inc/TADC.h inc/Traces.h src/TRawVoltage.cpp inc/TRawVoltage.h src/TRun.cpp inc/TRun.h inc/LinkDef.h inc/gtot.h inc/gp13.h)
+add_executable(gtot main.cpp src/TADC.cpp inc/TADC.h inc/Traces.h inc/Traces_fv2.h src/TRawVoltage.cpp inc/TRawVoltage.h src/TRun.cpp inc/TRun.h inc/LinkDef.h inc/gtot.h inc/gp13.h
+        inc/main_functions.h)
 
 # If includes are not set, set them the old way
 # This is the "manual" way to add ROOT, the old "make" style, in case one does not source root (like me)

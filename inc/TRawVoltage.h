@@ -38,7 +38,7 @@ public:
 	//! The version of the tool used to generate this tree's values from another tree
 	string modification_software_version = "";
 	//! The analysis level of this tree
-	int analysis_level = 0;
+	int analysis_level = 1;
 
 	// *** Entry values ***
 
@@ -79,7 +79,7 @@ public:
 //	//! Nanoseconds of the start of the trace for this DU
 //	vector<unsigned int> du_t0_nanoseconds;
 //	//! Trigger position in the trace (trigger start = nanoseconds - 2*sample number)
-//	vector<unsigned short> trigger_position;
+	vector<unsigned short> trigger_position;
 	//! Same as event_type, but event_type could consist of different triggered DUs
 	vector<unsigned short> trigger_flag;
 	//! Atmospheric temperature (read via I2C)
@@ -183,6 +183,18 @@ public:
 //	vector<vector<float>> trace_3;
 	vector<vector<vector<float>>> trace_ch;
 
+	//! PPS-ID
+	vector<unsigned int> pps_id;
+
+	//! FPGA temperature
+	vector<float> fpga_temp;
+
+	//! ADC temperature
+	vector<float> adc_temp;
+
+	// Added 29.02.2024
+	vector<vector<float>> gain_correction_ch;
+
 	//! The TTree for holding the data
 	TTree *trawvoltage;
 
@@ -190,22 +202,31 @@ public:
 	TTree *CreateTree();
 
 	//! General constructor
-	TRawVoltage();
+	TRawVoltage(TFile *out_file=NULL);
 	//! Constructor computing values from TADC
-	TRawVoltage(TADC *adc);
+	TRawVoltage(TADC *adc, bool is_fv2=false, TFile *out_file=NULL);
+
+	//! Compute values from tadc
+	void ComputeFromADC(TADC *adc, bool is_fv2);
+
+	//! Change the name of the file in which the TTree is stored
+	void ChangeFileName(string new_file_name, bool write_tree=true);
 
 private:
 //	//! Clear the vectors for another fill
 //	void ClearVectors();
 
 	//! Converts the ADC traces from tadc into Voltage traces
-	void ADCs2Real(TADC *adc);
+	void ADCs2Real(TADC *adc, bool is_fv2=false);
 
 	//! Converts a specific ADC trace from tadc into a Voltage trace
 	void TraceADC2Voltage(int du_num, TADC *adc);
 
 	//! Converts a specific GPS ADC values from tadc into a real values
 	void GPSADC2Real(int du_num, TADC *adc);
+
+	//! Converts a specific GPS ADC values from tadc into a real values for firmware v2
+	void GPSADC2Real_fv2(int du_num, TADC *adc);
 
 	//! Converts battery level from ADCs to Voltage
 	void BatteryADC2Voltage(int du_num, TADC *adc);

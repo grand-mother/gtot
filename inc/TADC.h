@@ -9,10 +9,14 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <string>
+#include <filesystem>
 #include "scope.h"
 #include "Traces.h"
+#include "Traces_fv2.h"
 #include "TTree.h"
 #include "TTimeStamp.h"
+#include "TFile.h"
 #include "gtot.h"
 
 using namespace std;
@@ -40,7 +44,7 @@ public:
 	//! The version of the tool used to generate this tree's values from another tree
 	string modification_software_version = "";
 	//! The analysis level of this tree
-	int analysis_level = 0;
+	int analysis_level = 1;
 
 	// *** Entry values ***
 
@@ -86,12 +90,14 @@ public:
 	vector<unsigned short> atm_pressure;
 	//! Atmospheric humidity
 	vector<unsigned short> atm_humidity;
-	//! Acceleration of the antenna in X
-	vector<unsigned short> acceleration_x;
-	//! Acceleration of the antenna in Y
-	vector<unsigned short> acceleration_y;
-	//! Acceleration of the antenna in Z
-	vector<unsigned short> acceleration_z;
+//	! Acceleration of the antenna in X
+//	vector<unsigned short> acceleration_x;
+//	! Acceleration of the antenna in Y
+//	vector<unsigned short> acceleration_y;
+//	! Acceleration of the antenna in Z
+//	vector<unsigned short> acceleration_z;
+	//! Acceleration of the antenna in (x,y,z) in m/s2
+	vector<vector<unsigned short>> du_acceleration;
 	//! Battery level in ADC units (corresponding to some voltage)
 	vector<unsigned short> battery_level;
 	//! Firmware version
@@ -103,6 +109,7 @@ public:
 
 	//! ADC input channels - > 16 BIT WORD (4*4 BITS) LOWEST IS CHANNEL 1, HIGHEST CHANNEL 4. FOR EACH CHANNEL IN THE EVENT WE HAVE: 0: ADC1, 1: ADC2, 2:ADC3, 3:ADC4 4:FILTERED ADC1, 5:FILTERED ADC 2, 6:FILTERED ADC3, 7:FILTERED ADC4.
 //	vector<unsigned short> adc_input_channels;
+	//! ADC input channels for fv2: 0: ADC1, 1: ADC2, 2:ADC3, 3:ADC4, 4:FILTERED ADC1, 5:FILTERED ADC2, 6:FILTERED ADC3, 7:FILTERED ADC4, 15: off
 	vector<vector<unsigned char>> adc_input_channels_ch;
 
 	//! ADC enabled channels - LOWEST 4 BITS STATE WHICH CHANNEL IS READ OUT
@@ -200,7 +207,7 @@ public:
 	vector<vector<unsigned char>> selector_readout_ch;
 
 
-	//! Digitizer window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual).
+	//! Digitizer window parameters - describe Pre Coincidence, Coincidence and Post Coincidence readout windows (Digitizer window parameters in the manual). The unit is samples (to get time, multiply by 2).
 //	vector<vector<unsigned short>> digi_prepost_trig_windows;
 	vector<vector<unsigned short>> pre_coincidence_window_ch;
 	vector<vector<unsigned short>> post_coincidence_window_ch;
@@ -235,6 +242,7 @@ public:
 
 	vector<vector<unsigned short>> signal_threshold_ch;
 	vector<vector<unsigned short>> noise_threshold_ch;
+	// The unit is samples (to get time, multiply by 2)
 	vector<vector<unsigned char>> tper_ch;
 	vector<vector<unsigned char>> tprev_ch;
 	vector<vector<unsigned char>> ncmax_ch;
@@ -257,6 +265,87 @@ public:
 	//! ADC traces for channels (0,1,2,3)
 	vector<vector<vector<short>>> trace_ch;
 
+	// Added after 21.02.2024
+
+	//! PPS-ID
+	vector<unsigned int> pps_id;
+
+	//! FPGA temperature
+	vector<unsigned int> fpga_temp;
+
+	//! ADC temperature
+	vector<unsigned int> adc_temp;
+
+	// Added on 23.02.2024
+
+	//! Hardware ID
+	vector<unsigned int> hardware_id;
+
+	//! Trigger status
+	vector<unsigned short> trigger_status;
+
+	//! Trigger DDR storage
+	vector<unsigned short> trigger_ddr_storage;
+
+	//! Data format version
+	vector<unsigned short> data_format_version;
+
+	//! ADAQ version
+	vector<unsigned short> adaq_version;
+
+	//! DUDAQ version
+	vector<unsigned short> dudaq_version;
+
+	//! Trigger selection: ch0&ch1&ch2
+	vector<bool> trigger_pattern_ch0_ch1_ch2;
+	//! Trigger selection: ch0&ch1&~ch2
+	vector<bool> trigger_pattern_ch0_ch1_notch2;
+	//! Trigger selection: 20 Hz
+	vector<bool> trigger_pattern_20Hz;
+
+	//! External pulse trigger period
+	vector<int> trigger_external_test_pulse_period;
+
+	// Added on 26.02.2024
+
+	//! GPS seconds since Sunday 00:00
+	vector<unsigned int> gps_sec_sun;
+
+	//! GPS week number
+	vector<unsigned short> gps_week_num;
+
+	//! GPS receiver mode
+	vector<unsigned char> gps_receiver_mode;
+
+	//! GPS disciplining mode
+	vector<unsigned char> gps_disciplining_mode;
+
+	//! GPS self-survey progress
+	vector<unsigned char> gps_self_survey;
+
+	//! GPS minor alarms
+	vector<unsigned short> gps_minor_alarms;
+
+	//! GPS GNSS decoding
+	vector<unsigned char> gps_gnss_decoding;
+
+	//! GPS disciplining activity
+	vector<unsigned short> gps_disciplining_activity;
+
+
+	// Added on 29.02.2024
+
+	//! Samples in baseline subtraction - same as integration time in fv1, but now a short not a char
+	vector<vector<unsigned short>> integration_time_ch_fv2;
+
+	vector<vector<unsigned short>> tper_ch_fv2;
+	vector<vector<unsigned short>> tprev_ch_fv2;
+	vector<vector<unsigned short>> ncmax_ch_fv2;
+	vector<vector<unsigned short>> tcmax_ch_fv2;
+	vector<vector<unsigned short>> ncmin_ch_fv2;
+
+	vector<vector<unsigned char>> notch_filters_no_ch;
+
 	//! The TTree for holding the data
 	TTree *tadc;
 
@@ -265,9 +354,17 @@ public:
 
 	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
 	int SetValuesFromPointers(unsigned short *pevent, string file_format="");
+	int SetValuesFromPointers_fv2(unsigned short *pevent, string file_format="");
+
+	//! Is it firmware v2
+	bool is_fv2;
 
 	//! The default constructor
-	TADC();
+	TADC(bool is_fv2=false);
+
+	//! Change the name of the file in which the TTree is stored
+	void ChangeFileName(string new_file_name, bool write=true);
+
 
 private:
 	//! Clear the vectors for another fill
@@ -278,6 +375,8 @@ private:
 
 	//! Decode the trigger pattern
 	void TriggerPatternDecodeAndFill(unsigned short);
+	//! Decode the trigger pattern in firmware v2
+	void TriggerPatternDecodeAndFill_fv2(unsigned short);
 	//! Decode the digital control
 	void DigiCtrlDecodeAndFill(unsigned short[8]);
 	//! Decode the digital window
@@ -288,11 +387,14 @@ private:
 	void ChannelTriggerParameterDecodeAndFill(unsigned short[24]);
 	//! Decode the ADC input channels
 	void ADCInputChannelsDecodeAndFill(unsigned short);
+	//! Decode the ADC input channels in firmware v2
+	void ADCInputChannelsDecodeAndFill_fv2(unsigned short);
 	//! Decode the ADC enabled channels
 	void ADCEnabledChannelsDecodeAndFill(unsigned short);
 
 	//! Convert the 14-bit ADC value to short
 	static short ADC2short(short value);
+
 };
 
 

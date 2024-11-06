@@ -12,27 +12,40 @@
 #include "TNamed.h"
 #include "TParameter.h"
 #include "inc/TRawVoltage.h"
+#include "TFile.h"
 
 using namespace std;
 using namespace ROOT;
 
 //! General constructor
-TRawVoltage::TRawVoltage()
+TRawVoltage::TRawVoltage(TFile *out_file)
 {
 	// Initialize the TTree
 	CreateTree();
+
+	// Set the output file before filling, if provided
+	if (out_file != NULL)
+	{
+		this->trawvoltage->SetDirectory(out_file);
+	}
+
+	// Initialise metadata
+	InitialiseMetadata();
 }
 
 //! Constructor computing values from tadc
-TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
+TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRawVoltage(out_file)
 {
-	// Initialise metadata
-	InitialiseMetadata();
+	ComputeFromADC(adc, is_fv2);
+}
 
+//! Compute values from tadc
+void TRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2)
+{
 	auto tadc = adc->tadc;
 
 	// Exclude these branches from copying, for the values need to be modified
-	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level"};
+	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level", "fpga_temp", "adc_temp", "atm_temperature", "atm_pressure", "atm_humidity", "gain_correction_ch", "du_acceleration"};
 
 	// *** Transform the tadc events into trawvoltage events ***
 
@@ -51,6 +64,7 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 			br->SetAddress(adc_br->GetAddress());
 		}
 	}
+
 	// Loop through the tadc events and fill the trawvoltage with the corresponding values
 	for(int entry_no=0; entry_no<tadc->GetEntries(); ++entry_no)
 	{
@@ -58,16 +72,15 @@ TRawVoltage::TRawVoltage(TADC *adc) : TRawVoltage()
 
 		// *** Calculate the values not existing in TADC ***
 		// ToDo: Calling to separate functions results in two loops over traces. Definitely not optimal, but maybe fast enough for now.
-		ADCs2Real(adc);
+		ADCs2Real(adc, is_fv2);
 //		CalculateT0s(adc);
 		trawvoltage->Fill();
 	}
 	trawvoltage->BuildIndex("run_number", "event_number");
-	trawvoltage->AddFriend(tadc);
 }
 
 
-void TRawVoltage::ADCs2Real(TADC *adc)
+void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 {
 	// Clear the traces vectors
 //	trace_0.clear();
@@ -85,6 +98,17 @@ void TRawVoltage::ADCs2Real(TADC *adc)
 	// Clear the battery
 	battery_level.clear();
 
+	fpga_temp.clear();
+	adc_temp.clear();
+
+	atm_temperature.clear();
+	atm_humidity.clear();
+	atm_pressure.clear();
+
+	gain_correction_ch.clear();
+
+	du_acceleration.clear();
+
 	// Loop through the DUs
 //	for (size_t i=0; i<adc->du_count; ++i)
 	for (size_t i=0; i<adc->trace_ch.size(); ++i)
@@ -96,18 +120,42 @@ void TRawVoltage::ADCs2Real(TADC *adc)
 //		trace_ch.back().push_back(vector<float>());
 //		trace_ch.back().push_back(vector<float>());
 		trace_ch.emplace_back();
-		trace_ch.back().emplace_back();
-		trace_ch.back().emplace_back();
-		trace_ch.back().emplace_back();
-		trace_ch.back().emplace_back();
+
+		// Loop through traces dimensions
+		for (int j = 0; j < adc->trace_ch[0].size(); ++j)
+		{
+			trace_ch.back().emplace_back();
+		}
+//		trace_ch.back().emplace_back();
+//		trace_ch.back().emplace_back();
+//		trace_ch.back().emplace_back();
 
 
 		// Convert this specific DU's ADCs to Voltage
 		TraceADC2Voltage(i, adc);
 		// Convert GPS ADC to real values
-		GPSADC2Real(i, adc);
+		if(is_fv2)
+		{
+			// Firmware v2
+			GPSADC2Real_fv2(i, adc);
+			fpga_temp.push_back(adc->fpga_temp[i]*509.3140064/(1<<16)-280.23087870);
+			adc_temp.push_back((adc->adc_temp[i]-819)/2.654+25);
+		}
+		else
+			// Firmware v1
+			GPSADC2Real(i, adc);
 		// Convert battery level from ADCs to Voltage
 		BatteryADC2Voltage(i, adc);
+
+		atm_temperature.push_back(((adc->atm_temperature[i]*2500./4096)-400)/19.5);
+		atm_humidity.push_back(((adc->atm_humidity[i]*2.5/4096/3.3)-0.1515)/0.00636);
+		// ToDo: find the conversion
+		atm_pressure.push_back(adc->atm_pressure[i]*1.);
+
+		gain_correction_ch.push_back(vector<float>{(float)((adc->gain_correction_ch[i][0]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][1]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][2]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][3]-0.5)*2.5*37.5/4096-14)});
+
+		// ToDo: here should be some proper acceleration conversion when... we get some acceleration information
+		du_acceleration.push_back(vector<float>{(float)adc->du_acceleration[i][0], (float)adc->du_acceleration[i][1], (float)adc->du_acceleration[i][2]});
 	}
 //	// Merge the traces
 //	trace_ch.push_back(trace_0);
@@ -121,7 +169,7 @@ void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
 	// Probably in the future adc2voltageconst will be replaced in the transform by some array_x/y/z[du_id], or corresponding function in some non-linear case
 	// Also, at the moment I assume trace_0/1/2 are x/y/z - this may also change in the future
 	// The conversion factor is just taken from the information for XiHu data, that "For currently ADC, the differential input voltage range is 1.8V (Vpp), that is -0.9V to 0.9V corresponding to ADC value -8192 to 8192"
-	float adc2voltageconst=0.9/8192*1e6;
+	float adc2voltageconst = 0.9 / 8192 * 1e6;
 //	trace_0[du_num].resize(adc->trace_0[du_num].size());
 //	transform(adc->trace_0[du_num].begin(), adc->trace_0[du_num].end(), trace_0[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
 //	trace_1[du_num].resize(adc->trace_1[du_num].size());
@@ -131,14 +179,18 @@ void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
 //	trace_3[du_num].resize(adc->trace_3[du_num].size());
 //	transform(adc->trace_3[du_num].begin(), adc->trace_3[du_num].end(), trace_3[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
 
-	trace_ch[du_num][0].resize(adc->trace_ch[du_num][0].size());
-	transform(adc->trace_ch[du_num][0].begin(), adc->trace_ch[du_num][0].end(), trace_ch[du_num][0].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
-	trace_ch[du_num][1].resize(adc->trace_ch[du_num][1].size());
-	transform(adc->trace_ch[du_num][1].begin(), adc->trace_ch[du_num][1].end(), trace_ch[du_num][1].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
-	trace_ch[du_num][2].resize(adc->trace_ch[du_num][2].size());
-	transform(adc->trace_ch[du_num][2].begin(), adc->trace_ch[du_num][2].end(), trace_ch[du_num][2].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
-	trace_ch[du_num][3].resize(adc->trace_ch[du_num][3].size());
-	transform(adc->trace_ch[du_num][3].begin(), adc->trace_ch[du_num][3].end(), trace_ch[du_num][3].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
+	// Loop through traces dimensions
+	for (int i = 0; i < adc->trace_ch[du_num].size(); ++i)
+	{
+		trace_ch[du_num][i].resize(adc->trace_ch[du_num][i].size());
+		transform(adc->trace_ch[du_num][i].begin(), adc->trace_ch[du_num][i].end(), trace_ch[du_num][i].begin(), [adc2voltageconst](short &c) { return c * adc2voltageconst; });
+//		trace_ch[du_num][1].resize(adc->trace_ch[du_num][1].size());
+//		transform(adc->trace_ch[du_num][1].begin(), adc->trace_ch[du_num][1].end(), trace_ch[du_num][1].begin(), [adc2voltageconst](short &c) { return c * adc2voltageconst; });
+//		trace_ch[du_num][2].resize(adc->trace_ch[du_num][2].size());
+//		transform(adc->trace_ch[du_num][2].begin(), adc->trace_ch[du_num][2].end(), trace_ch[du_num][2].begin(), [adc2voltageconst](short &c) { return c * adc2voltageconst; });
+//		trace_ch[du_num][3].resize(adc->trace_ch[du_num][3].size());
+//		transform(adc->trace_ch[du_num][3].begin(), adc->trace_ch[du_num][3].end(), trace_ch[du_num][3].begin(), [adc2voltageconst](short &c) { return c * adc2voltageconst; });
+	}
 }
 
 void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
@@ -147,6 +199,22 @@ void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
 		gps_lat.push_back(57.3*(*(double*)&adc->gps_lat[du_num]));
 		gps_alt.push_back(*(double*)&adc->gps_alt[du_num]);
 		gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
+}
+
+void TRawVoltage::GPSADC2Real_fv2(int du_num, TADC *adc)
+{
+	double longitude,latitude,altitude;
+	((int *)&longitude)[1] = ((int*)&adc->gps_long[du_num])[0];
+	((int *)&longitude)[0] = ((int*)&adc->gps_long[du_num])[1];
+	((int *)&latitude)[1] = ((int*)&adc->gps_lat[du_num])[0];
+	((int *)&latitude)[0] = ((int*)&adc->gps_lat[du_num])[1];
+	((int *)&altitude)[1] = ((int*)&adc->gps_alt[du_num])[0];
+	((int *)&altitude)[0] = ((int*)&adc->gps_alt[du_num])[1];
+
+	gps_long.push_back(57.3*longitude);
+	gps_lat.push_back(57.3*latitude);
+	gps_alt.push_back(altitude);
+	gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
 }
 
 void TRawVoltage::BatteryADC2Voltage(int du_num, TADC *adc)
@@ -222,8 +290,13 @@ TTree *TRawVoltage::CreateTree()
 	trawvoltage->Branch("du_nanoseconds", &du_nanoseconds);
 //	trawvoltage->Branch("du_t0_seconds", &du_t0_seconds);
 //	trawvoltage->Branch("du_t0_nanoseconds", &du_t0_nanoseconds);
-//	trawvoltage->Branch("trigger_position", &trigger_position);
+	trawvoltage->Branch("trigger_position", &trigger_position);
 	trawvoltage->Branch("trigger_flag", &trigger_flag);
+
+	trawvoltage->Branch("pps_id", &pps_id);
+	trawvoltage->Branch("fpga_temp", &fpga_temp);
+	trawvoltage->Branch("adc_temp", &adc_temp);
+
 	trawvoltage->Branch("atm_temperature", &atm_temperature);
 	trawvoltage->Branch("atm_pressure", &atm_pressure);
 	trawvoltage->Branch("atm_humidity", &atm_humidity);
@@ -233,6 +306,7 @@ TTree *TRawVoltage::CreateTree()
 //	trawvoltage->Branch("acceleration_z", &acceleration_z);
 	trawvoltage->Branch("battery_level", &battery_level);
 	trawvoltage->Branch("adc_samples_count_channel", &adc_samples_count_channel);
+	trawvoltage->Branch("gain_correction_ch", &gain_correction_ch);
 //	trawvoltage->Branch("firmware_version", &firmware_version);
 //	trawvoltage->Branch("adc_sampling_frequency", &adc_sampling_frequency);
 //	trawvoltage->Branch("adc_sampling_resolution", &adc_sampling_resolution);
@@ -358,4 +432,30 @@ void TRawVoltage::InitialiseMetadata()
 	this->trawvoltage->GetUserInfo()->Add(new TNamed("modification_software", this->modification_software));
 	this->trawvoltage->GetUserInfo()->Add(new TNamed("modification_software_version", this->modification_software_version));
 	this->trawvoltage->GetUserInfo()->Add(new TParameter<int>("analysis_level", this->analysis_level));
+}
+
+//! Change the name of the file in which the TTree is stored
+void TRawVoltage::ChangeFileName(string new_file_name, bool write_tree)
+{
+	// Get the current tree name
+	auto tree_name = string(trawvoltage->GetName());
+
+	// If writing requested, write the tree down in the file
+	if(write_tree)
+		trawvoltage->Write("", TObject::kWriteDelete);
+
+	// Close the old TFile
+	auto old_file = trawvoltage->GetCurrentFile();
+	auto old_file_name = old_file->GetName();
+	delete trawvoltage;
+	old_file->Close();
+
+	// Rename the file in the filesystem
+	filesystem::rename(filesystem::path(old_file_name), filesystem::path(new_file_name));
+
+	// Open the new file
+	auto new_file = new TFile(new_file_name.c_str(), "update");
+
+	// Set the TTree to the one from the renamed file
+	trawvoltage = (TTree*)new_file->Get(tree_name.c_str());
 }
