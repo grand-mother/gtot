@@ -28,14 +28,14 @@ TRawVoltage::TRawVoltage(TFile *out_file)
 	{
 		this->trawvoltage->SetDirectory(out_file);
 	}
+
+	// Initialise metadata
+	InitialiseMetadata();
 }
 
 //! Constructor computing values from tadc
 TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRawVoltage(out_file)
 {
-	// Initialise metadata
-	InitialiseMetadata();
-
 	ComputeFromADC(adc, is_fv2);
 }
 

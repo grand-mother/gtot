@@ -235,14 +235,17 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 
 	// A bool means a lot of bools for more formats, but hopefully it won't come to that
 	bool gp13v1 = false;
+	bool gp13v1cd = false;
 	if(strstr(file_format.c_str(),"gp13v1"))
 	{
 		gp13v1 = true;
 		file_shift = 8;
+		if(strstr(file_format.c_str(),"gp13v1cd")) gp13v1cd = true;
 	}
 
 	// Clear the vectors
-	ClearVectors();
+	if(!gp13v1cd)
+		ClearVectors();
 
 	unsigned int *evptr = (unsigned int *)pevent;
 
@@ -263,12 +266,23 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 	{
 		run_number=event_size;
 		vout << "\nevent_size is " << event_size << endl;
-		vout << "msg_type is " << *evptr++ << endl;
-		du_id.push_back(*evptr++);
-		vout << "duID is " << du_id[0] << endl;
+		auto msg_type = *evptr++;
+		vout << "msg_type is " << msg_type << endl;
+		// Temporarily for GPX CD msg_type holds du_count
+		if(gp13v1cd) du_count = msg_type;
+		else du_count = 1;
+		if(!gp13v1cd)
+		{
+			du_id.push_back(*evptr++);
+			vout << "duID is " << du_id.back() << endl;
+		}
 		//memcpy(HitId, (char*)evptr++, 4);
 		//printf("hit id is %lld\n",*evptr++);
-		event_number = *evptr++;
+		auto tmp_event_number = *evptr++;
+		vout << "event_number " << event_number << endl;
+		if(gp13v1cd && tmp_event_number!=event_number)
+			ClearVectors();
+		event_number = tmp_event_number;
 	}
 	else
 	{
@@ -295,9 +309,15 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 
 	int du_counter=0;
 
-	while(idu<ev_end)
+	if(gp13v1cd) file_shift=12;
+
+	int iter=0;
+
+	evdu = (uint16_t *)(&pevent[idu]);
+
+	while(idu<ev_end && iter<du_count)
 	{
-		evdu = (uint16_t *)(&pevent[idu]);
+//		evdu = (uint16_t *)(&pevent[idu]);
 		if(gp13v1) vout<<"EVT_LENGTH "<<evdu[file_shift + EVT_LENGTH]<<endl;
 
 		event_id.push_back(evdu[file_shift + EVT_ID]);
@@ -308,7 +328,13 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		trigger_flag.push_back(evdu[file_shift + EVT_T3FLAG]);
 		atm_temperature.push_back(evdu[file_shift + EVT_ATM_TEMP]);
 		atm_pressure.push_back(evdu[file_shift + EVT_ATM_PRES]);
-		atm_humidity.push_back(evdu[file_shift + EVT_ATM_HUM]);
+		if(gp13v1cd)
+		{
+			du_id.push_back(evdu[file_shift + EVT_ATM_HUM]);
+			atm_humidity.push_back(0);
+		}
+		else
+			atm_humidity.push_back(evdu[file_shift + EVT_ATM_HUM]);
 //		acceleration_x.push_back(evdu[file_shift + EVT_ACCEL_X]);
 //		acceleration_y.push_back(evdu[file_shift + EVT_ACCEL_Y]);
 //		acceleration_z.push_back(evdu[file_shift + EVT_ACCEL_Z]);
@@ -400,7 +426,8 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		ioff.push_back(evdu[file_shift + EVT_HDRLEN]);
 
 		int start_addr = ioff.back();
-		if(gp13v1) start_addr+=NewDataAdded;
+		if(gp13v1cd) start_addr+=file_shift;
+		else if(gp13v1) start_addr+=NewDataAdded;
 
 		// Merge the traces
 //		trace_ch.push_back(vector<vector<short>>());
@@ -433,6 +460,11 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 		if(gp13v1) idu +=(evdu[file_shift + EVT_LENGTH] + NewDataAdded);
 		else idu +=(evdu[file_shift + EVT_LENGTH]);
 
+		if(gp13v1cd)
+		{
+			file_shift += event_size / du_count/2;
+		}
+
 		du_counter++;
 		// Safety check of the amount of DUs in the event. If too big, the file reading most likely went wrong.
 		if(du_counter>=safe_du_amount)
@@ -442,6 +474,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 			cerr << "Exiting, to avoid a memory hog." << endl;
 			return -1;
 		}
+		iter++;
 	}
 
 	return 0;

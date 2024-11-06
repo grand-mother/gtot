@@ -21,6 +21,7 @@ bool overbose = false;
 vector<string> all_filenames;
 string output_filename="";
 bool gp13v1 = false;
+bool gp13v1cd = false;
 bool is_fv2 = false;
 string file_format = "";
 bool infile_forced = false;
@@ -32,7 +33,7 @@ std::ostream *pvout;
 
 int main(int argc, char **argv)
 {
-	analyse_command_line_params(argc, argv, all_filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num);
+	analyse_command_line_params(argc, argv, all_filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num, gp13v1cd);
 
 	// Create verbose output stream if requested
 	std::ofstream dev_null("/dev/null");
@@ -264,6 +265,10 @@ int main(int argc, char **argv)
 
 				// For GP13 move in the file
 				if (gp13v1) fseek(fp, 256, 0);
+
+				char *out_buf = nullptr;
+				if(gp13v1cd) out_buf = read_order_file_in_memory(&fp);
+
 				// Loop-read the events
 				while (grand_read_event_ptr(fp, &event, file_format.c_str()) > 0)
 				{
@@ -402,6 +407,7 @@ int main(int argc, char **argv)
 					cout << "\rFilled event " << event_counter;
 					event_counter++;
 				}
+				free(out_buf);
 
 				// In case of no events, just exit
 				if (event_counter == 0)

@@ -1,3 +1,6 @@
+#ifndef GTOT_TRACES1_H
+#define GTOT_TRACES1_H
+
 //#include "amsg.h"
 //#include "scope.h"
 #include "Traces.h"
@@ -86,7 +89,8 @@ namespace fv1
 		if (gp13v1) vout << "Tag!!!\n";
 		if (!fread(&isize, INTSIZE, 1, fp))
 		{
-			printf("\nCannot read the Event length\n");
+			if(feof(fp)) printf("\nReached the end of file\n");
+			else printf("\nCannot read the Event length\n");
 			return (0);                                                       //cannot read the header length
 		}
 		vout << "The event length is " << isize << "bytes \n";
@@ -234,3 +238,5 @@ int main(int argc, char **argv)
 
 */
 }
+
+#endif //GTOT_TRACES1_H
