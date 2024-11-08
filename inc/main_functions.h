@@ -28,13 +28,14 @@ void print_help()
 	cout << "\t-f2, --firmware_v2\t\t\tthe input file is a firmware v2 file" << endl;
 	cout << "\t-os, --old_style_output\t\t\tall trees will be in the same file, no directory will be created" << endl;
 	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
+	cout << "\t-od, --output_directory <directory>\tname of the directory in which to store the files" << endl;
 	cout << "\t-i, --input_filename <filename>\t\tname of the single file to analyse, regardless of extension. No other files accepted." << endl;
 	cout << "\t-v, --verbose\t\t\t\tswitch on verbose output" << endl;
 }
 
 // Analyse the command line parameters
 //void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num)
-void analyse_command_line_params(int argc, char **argv, vector<string> &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num, bool &gp13v1cd)
+void analyse_command_line_params(int argc, char **argv, vector<string> &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num, bool &gp13v1cd, string &output_directory)
 {
 	if(argc<2)
 	{
@@ -60,6 +61,16 @@ void analyse_command_line_params(int argc, char **argv, vector<string> &filename
 		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-o")) || strstr(argv[i], "--output_filename"))
 		{
 			output_filename = argv[i + 1];
+			++i;
+		} else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-od")) || strstr(argv[i], "--output_directory"))
+		{
+			// The output filename and output directory are mutually exclusive (because I'm lazy - please give a file's full path with -o)
+			if(output_filename!="")
+			{
+				cout << "Output directory and output filename options are mutually exclusive. Please provide the output file with a requested path.";
+				exit(0);
+			}
+			output_directory = argv[i + 1];
 			++i;
 		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-g1")) || strstr(argv[i], "--gp13v1"))
 		{
@@ -229,7 +240,7 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 }
 
 // Group filenames that would go in the same directory together as vector<string> and add these groups to file_groups
-void group_files_and_directories(vector<string> filenames, vector<vector<string>> &file_groups)
+void group_files_and_directories(vector<string> filenames, vector<vector<string>> &file_groups, string output_directory=".")
 {
 	vector<string> directories;
 
@@ -237,11 +248,12 @@ void group_files_and_directories(vector<string> filenames, vector<vector<string>
 	sort(filenames.begin(), filenames.end());
 
 	// Add existing directories to the directories list
-	for (const auto &entry: filesystem::directory_iterator("."))
+//	for (const auto &entry: filesystem::directory_iterator("."))
+	for (const auto &entry: filesystem::directory_iterator(output_directory))
 	{
-		auto dn = entry.path().string();
+		auto dn = entry.path().filename().string();
 		// If the entry is a directory and starts with "exp_" add it to the list of directories
-		if (entry.is_directory() && dn.find(string("exp_")) == 2)
+		if (entry.is_directory() && dn.find(string("exp_")) == 0)
 			directories.push_back(dn);
 	}
 

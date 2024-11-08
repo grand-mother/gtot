@@ -20,6 +20,7 @@ bool overbose = false;
 // Array holding filenames to analyse
 vector<string> all_filenames;
 string output_filename="";
+string output_directory=".";
 bool gp13v1 = false;
 bool gp13v1cd = false;
 bool is_fv2 = false;
@@ -33,7 +34,7 @@ std::ostream *pvout;
 
 int main(int argc, char **argv)
 {
-	analyse_command_line_params(argc, argv, all_filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num, gp13v1cd);
+	analyse_command_line_params(argc, argv, all_filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num, gp13v1cd, output_directory);
 
 	// Create verbose output stream if requested
 	std::ofstream dev_null("/dev/null");
@@ -55,6 +56,9 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	// Get the current directory
+	auto input_files_dir = filesystem::current_path();
+
 	// Initialise pointers to functions depending on the input file type
 	int (*grand_read_file_header_ptr)(FILE *fp, int **pfilehdr);
 	int (*grand_read_event_ptr)(FILE *fp, unsigned short **pevent, const char *file_format);
@@ -71,7 +75,7 @@ int main(int argc, char **argv)
 
 	// Group filenames that would go in the same directory together
 	vector<vector<string>> file_groups;
-	group_files_and_directories(all_filenames, file_groups);
+	group_files_and_directories(all_filenames, file_groups, output_directory);
 
 	// Loop through groups of files that go into the same directory
 	for(auto filenames : file_groups)
@@ -111,11 +115,11 @@ int main(int argc, char **argv)
 				// Check if the directory for the analysed files already exists
 				vector<filesystem::path> directories;
 				// Get all directories with proper names
-				for (const auto &entry: filesystem::directory_iterator("."))
+				for (const auto &entry: filesystem::directory_iterator(output_directory))
 				{
-					auto dn = entry.path().string();
+					auto dn = entry.path().filename().string();
 					// Append if it is a directory and its name contain proper parts
-					if (entry.is_directory() && dn.find(string("exp_") + fn_tokens.at(0)) == 2 &&
+					if (entry.is_directory() && dn.find(string("exp_") + fn_tokens.at(0)) == 0 &&
 						dn.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
 								string("_0000")) != string::npos)
 					{
@@ -131,11 +135,14 @@ int main(int argc, char **argv)
 					// Use the first directory
 					dir_name = directories[0];
 				}
-					// Build directory name
+				// Build directory name
 				else
 					dir_name = string("exp_") + fn_tokens.at(0) + string("_") + fn_tokens.at(1) + string("_") +
 							   fn_tokens.at(2) + string("_") + fn_tokens.at(3) + string("_") + fn_tokens.at(4) +
 							   string("_") + fn_tokens.at(5) + string("_0000");
+
+				// Add the requested output directory to dir_name
+				dir_name = output_directory+"/"+dir_name;
 			}
 
 			// Assume the file to analyse is the last parameter
@@ -455,7 +462,7 @@ int main(int argc, char **argv)
 			finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
 										   old_style_output);
 
-			if (!old_style_output) filesystem::current_path("../");
+			if (!old_style_output) filesystem::current_path(input_files_dir);
 		}
 
 		// For the new style output fill, write and close the run after all the files
@@ -472,7 +479,7 @@ int main(int argc, char **argv)
 			}
 			run->UpdateAndWrite(first_first_event, first_first_event_time, last_event, last_event_time, old_trun);
 			trun_file->Close();
-			filesystem::current_path("../");
+			filesystem::current_path(input_files_dir);
 		}
 	}
 
