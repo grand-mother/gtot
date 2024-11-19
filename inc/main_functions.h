@@ -109,26 +109,23 @@ void analyse_command_line_params(int argc, char **argv, vector<string> &filename
 			old_style_output = true;
 		}
 
-			// File to analyse
+		// File to analyse
 		else
 		{
-			auto fn_ext = filesystem::path(argv[i]).extension();
+			auto file_path = filesystem::path(argv[i]);
+			auto fn_ext = file_path.extension();
 			if ((fn_ext == ".dat" || strstr(fn_ext.c_str(), ".f0") || fn_ext == ".bin" || count(argv[i], argv[i] + strlen(argv[i]), '_') >= 5) && !infile_forced)
-//		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0")) && !infile_forced)
 			{
-//				filenames.Add((TObject *) (new TString(argv[i])));
+				// Check if file exists
+				if(!filesystem::exists(file_path))
+				{
+					cout << "File " << file_path.string() << " does not exist. Exiting." << endl;
+					exit(-1);
+				}
 				filenames.push_back(argv[i]);
-//				cout << "Added " << ((TString *) (filenames.Last()))->Data() << endl;
 				cout << "Added " << filenames.back() << endl;
 			}
 		}
-		/*
-		else
-		{
-			cout << argv[i] << " count " << count(argv[i], argv[i]+sizeof(argv[i]), '_') << " " << strlen(argv[i]) << endl;
-		}
-		 */
-
 	}
 };
 
