@@ -267,7 +267,7 @@ void group_files_and_directories(vector<string> filenames, vector<vector<string>
 			// If file matches an existing directory in the list
 			if (directory.find(string("exp_") + fn_tokens.at(0)) == 0 &&
 					directory.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
-						string("_0000")) != string::npos)
+						string("_0000")) != string::npos && file_groups.size()>i)
 			{
 				file_groups[i].push_back(filename);
 				dir_found = true;
