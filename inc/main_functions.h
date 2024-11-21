@@ -72,6 +72,8 @@ void analyse_command_line_params(int argc, char **argv, vector<string> &filename
 				exit(0);
 			}
 			output_directory = argv[i + 1];
+            // Create the output directory
+            filesystem::create_directory(filesystem::path(output_directory));
 			++i;
 		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-g1")) || strstr(argv[i], "--gp13v1"))
 		{
