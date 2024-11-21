@@ -30,12 +30,13 @@ void print_help()
 	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
 	cout << "\t-od, --output_directory <directory>\tname of the directory in which to store the files" << endl;
 	cout << "\t-i, --input_filename <filename>\t\tname of the single file to analyse, regardless of extension. No other files accepted." << endl;
+	cout << "\t-ow, --overwrite \toverwrites ROOT files if they exist (by default will quit if they do)" << endl;
 	cout << "\t-v, --verbose\t\t\t\tswitch on verbose output" << endl;
 }
 
 // Analyse the command line parameters
 //void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num)
-void analyse_command_line_params(int argc, char **argv, vector<string> &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num, bool &gp13v1cd, string &output_directory)
+void analyse_command_line_params(int argc, char **argv, vector<string> &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num, bool &gp13v1cd, string &output_directory, bool &overwrite_files)
 {
 	if(argc<2)
 	{
@@ -107,6 +108,11 @@ void analyse_command_line_params(int argc, char **argv, vector<string> &filename
 		{
 			cout << "Storing trees in the old way" << endl;
 			old_style_output = true;
+		}
+		else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-ow")) || strstr(argv[i], "--overwrite"))
+		{
+			cout << "Overwriting ROOT files if they exist" << endl;
+			overwrite_files = true;
 		}
 
 		// File to analyse
@@ -245,7 +251,6 @@ void group_files_and_directories(vector<string> filenames, vector<vector<string>
 	sort(filenames.begin(), filenames.end());
 
 	// Add existing directories to the directories list
-//	for (const auto &entry: filesystem::directory_iterator("."))
 	for (const auto &entry: filesystem::directory_iterator(output_directory))
 	{
 		auto dn = entry.path().filename().string();
@@ -264,16 +269,15 @@ void group_files_and_directories(vector<string> filenames, vector<vector<string>
 
 		for (auto directory : directories)
 		{
-			// If file matches an existing directory in the list
+			// If file matches an existing directory in the list and a file group for this directory has been created
 			if (directory.find(string("exp_") + fn_tokens.at(0)) == 0 &&
 					directory.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
-						string("_0000")) != string::npos)
+						string("_0000")) != string::npos && file_groups.size()>i)
 			{
 				file_groups[i].push_back(filename);
 				dir_found = true;
 				break;
 			}
-
 			++i;
 		}
 
