@@ -29,12 +29,13 @@ bool infile_forced = false;
 bool old_style_output = false;
 bool cons_ev_num = false;
 bool file_run_num = false;
+bool overwrite_files = false;
 
 std::ostream *pvout;
 
 int main(int argc, char **argv)
 {
-	analyse_command_line_params(argc, argv, all_filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num, gp13v1cd, output_directory);
+	analyse_command_line_params(argc, argv, all_filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num, gp13v1cd, output_directory, overwrite_files);
 
 	// Create verbose output stream if requested
 	std::ofstream dev_null("/dev/null");
@@ -42,6 +43,11 @@ int main(int argc, char **argv)
 	if(overbose)
 		pvout = &cout;
 	std::ostream &vout = *pvout;
+
+	// Files write flag depending on overwrite_files command line option
+	auto write_flag = "NEW";
+	if(overwrite_files)
+		write_flag = "RECREATE";
 
 	// No proper files given
 	if(all_filenames.size()==0)
@@ -55,7 +61,6 @@ int main(int argc, char **argv)
 		cout << "Specifying output file name makes no sense in case of multiply input files and/or without --old_style_output flag" << endl;
 		return -1;
 	}
-
 	// Get the current directory
 	auto input_files_dir = filesystem::current_path();
 
@@ -72,11 +77,9 @@ int main(int argc, char **argv)
 		grand_read_file_header_ptr = fv1::grand_read_file_header;
 		grand_read_event_ptr = fv1::grand_read_event;
 	}
-
 	// Group filenames that would go in the same directory together
 	vector<vector<string>> file_groups;
 	group_files_and_directories(all_filenames, file_groups, output_directory);
-
 	// Loop through groups of files that go into the same directory
 	for(auto filenames : file_groups)
 	{
@@ -162,6 +165,13 @@ int main(int argc, char **argv)
 
 			if (!old_style_output)
 			{
+             	// If the directory exists, but overwrite was requested, delete it
+                if (filesystem::is_directory(filesystem::path(dir_name)) && overwrite_files)
+                {
+                    cout << "\n*** Deleting existing directory " << dir_name << endl;
+                	filesystem::remove_all(filesystem::path(dir_name));
+                }
+
 				// If directory does not exist, create it
 				if (!filesystem::is_directory(filesystem::path(dir_name)))
 				{
@@ -212,7 +222,7 @@ int main(int argc, char **argv)
 				string trun_name = string("run_") + run_num + "_L0_0000.root";
 
 				// If the run file already exist and we are reading the first file, clone it for updating later
-				if (filesystem::is_regular_file(filesystem::path(trun_name)) && j == 0)
+				if (filesystem::is_regular_file(filesystem::path(trun_name)) && j == 0 && !overwrite_files)
 				{
 					run_file_exists = true;
 					old_trun_file = new TFile(string(trun_name).c_str(), "update");
@@ -345,7 +355,7 @@ int main(int argc, char **argv)
 								if(run_file_exists)
 									trun_name = "new_"+trun_name;
 
-								trun_file = new TFile(trun_name.c_str(), "recreate");
+								trun_file = new TFile(trun_name.c_str(), write_flag);
 
 								// Set the time of the first event
 								if (gp13v1)
@@ -354,13 +364,13 @@ int main(int argc, char **argv)
 								else first_first_event_time = ADC->time_seconds;
 							}
 
-							tadc_file = new TFile(string("adc.root").c_str(), "recreate");
-							trawvoltage_file = new TFile(string("rawvoltage.root").c_str(), "recreate");
+							tadc_file = new TFile(string("adc.root").c_str(), write_flag);
+							trawvoltage_file = new TFile(string("rawvoltage.root").c_str(), write_flag);
 						}
 							// For old style output, store trees in just one file in the current directory
 						else
 						{
-							trun_file = new TFile(output_filename.c_str(), "recreate");
+							trun_file = new TFile(output_filename.c_str(), write_flag);
 							tadc_file = trun_file;
 							trawvoltage_file = trun_file;
 						}
