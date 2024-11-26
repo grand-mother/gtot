@@ -18,6 +18,7 @@
 #include "TTimeStamp.h"
 #include "TFile.h"
 #include "gtot.h"
+#include "TADC.h"
 
 using namespace std;
 
@@ -73,7 +74,7 @@ public:
 
 	// Channel property parameters
 	vector<vector<unsigned short>> gain_correction_ch;
-	vector<vector<unsigned char>> integration_time_ch;
+	vector<vector<unsigned short>> integration_time_ch;
 	vector<vector<unsigned char>> offset_correction_ch;
 	vector<vector<unsigned short>> base_maximum_ch;
 	vector<vector<unsigned short>> base_minimum_ch;
@@ -93,7 +94,7 @@ public:
 	// Added on 29.02.2024
 
 	//! Samples in baseline subtraction - same as integration time in fv1, but now a short not a char
-	vector<vector<unsigned short>> integration_time_ch_fv2;
+	// vector<vector<unsigned short>> integration_time_ch_fv2;
 
 //	vector<vector<unsigned short>> tper_ch_fv2;
 //	vector<vector<unsigned short>> tprev_ch_fv2;
@@ -110,13 +111,22 @@ public:
 	vector<float> adc_conversion;
 
 	//! The TTree for holding the data
-	TTree *trunvoltage;
+	TTree *trunrawvoltage;
 
 	//! Create the TTree and its branches
 	TTree *CreateTree();
 
 	//! The default constructor
-	TRunRawVoltage(bool is_fv2=false);
+	TRunRawVoltage();
+
+	//! Constructor with outfile
+	TRunRawVoltage(TFile *out_file=NULL);
+
+	//! Constructor computing values from TADC
+	TRunRawVoltage(TADC *adc, bool is_fv2=false, TFile *out_file=NULL);
+
+	//! Compute values from tadc
+	void ComputeFromADC(TADC *adc, bool is_fv2);
 
 	//! Change the name of the file in which the TTree is stored
 	void ChangeFileName(string new_file_name, bool write=true);

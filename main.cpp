@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string.h>
 #include <filesystem>
+#include "inc/TRunRawVoltage.h"
 #include "inc/main_functions.h"
 #include "inc/Traces1.h"
 #include "inc/Traces1_fv2.h"
@@ -77,14 +78,18 @@ int main(int argc, char **argv)
 		grand_read_file_header_ptr = fv1::grand_read_file_header;
 		grand_read_event_ptr = fv1::grand_read_event;
 	}
+
 	// Group filenames that would go in the same directory together
 	vector<vector<string>> file_groups;
 	group_files_and_directories(all_filenames, file_groups, output_directory);
+
 	// Loop through groups of files that go into the same directory
 	for(auto filenames : file_groups)
 	{
 		TRun *run = NULL;
+		TRunRawVoltage *runrawvoltage = NULL;
 		TFile *trun_file = NULL;
+		TFile *trunrawvoltage_file = NULL;
 		TADC *ADC = NULL;
 		TFile *old_trun_file = NULL;
 		TTree *old_trun = NULL;
@@ -220,6 +225,7 @@ int main(int argc, char **argv)
 			{
 				auto run_num = fn_tokens.at(3).substr(3, 10);
 				string trun_name = string("run_") + run_num + "_L0_0000.root";
+				string trunrawvoltage_name = string("runrawvoltage_") + run_num + "_L0_0000.root";
 
 				// If the run file already exist and we are reading the first file, clone it for updating later
 				if (filesystem::is_regular_file(filesystem::path(trun_name)) && j == 0 && !overwrite_files)
@@ -350,6 +356,7 @@ int main(int argc, char **argv)
 							{
 								auto run_num = fn_tokens[3].substr(3, 10);
 								string trun_name = string("run_") + run_num + "_L0_0000.root";
+								string trunrawvoltage_name = string("runrawvoltage_") + run_num + "_L0_0000.root";
 
 								// If the run file already exists, give this one a temporary name
 								if(run_file_exists)
@@ -357,6 +364,8 @@ int main(int argc, char **argv)
 
 								trun_file = new TFile(trun_name.c_str(), write_flag);
 								is_file_opened(trun_file);
+								trunrawvoltage_file = new TFile(trunrawvoltage_name.c_str(), "recreate");
+								is_file_opened(trunrawvoltage_file);
 
 								// Set the time of the first event
 								if (gp13v1)
@@ -377,6 +386,7 @@ int main(int argc, char **argv)
 							is_file_opened(trun_file);
 							tadc_file = trun_file;
 							trawvoltage_file = trun_file;
+							trunrawvoltage_file = trun_file;
 						}
 
 						// Move TTrees to it
@@ -413,12 +423,20 @@ int main(int argc, char **argv)
 								run->trun->SetDirectory(trun_file);
 								run->trun->SetName("trun");
 							}
+
+							// Fill the trunrawvoltage
+							trunrawvoltage_file->cd();
+							runrawvoltage = new TRunRawVoltage(ADC, is_fv2, trunrawvoltage_file);
+							// Write the trunrawvoltage
+							runrawvoltage->trunrawvoltage->Write("", TObject::kWriteDelete);
+							delete runrawvoltage;
 						}
 
 						// Fill and write the Run TTree
 						// For each file in the old case only (for the new case, fill & write only for the last file)
 						if (old_style_output)
 						{
+							run->trun->SetDirectory(trun_file);
 							run->trun->Fill();
 							run->trun->BuildIndex("run_number");
 							run->trun->Write("", TObject::kWriteDelete);
@@ -445,6 +463,7 @@ int main(int argc, char **argv)
 			{
 				if (!old_style_output)
 				{
+					trawvoltage_file->cd();
 					auto voltage = new TRawVoltage(trawvoltage_file);
 					finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
 												   old_style_output);
@@ -471,6 +490,7 @@ int main(int argc, char **argv)
 
 			if (cons_ev_num) last_event = event_counter - 1;
 
+			trawvoltage_file->cd();
 			auto voltage = new TRawVoltage(trawvoltage_file);
 
 			finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
