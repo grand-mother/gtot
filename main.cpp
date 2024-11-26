@@ -339,7 +339,7 @@ int main(int argc, char **argv)
 					}
 
 					// For the first event, create the TFile, fill some trun values read by tadc
-					if (event_counter == first_event || (!cons_ev_num && event_counter == 0) ||
+					if ((cons_ev_num && event_counter == first_event) || (!cons_ev_num && event_counter == 0) ||
 						(run_file_exists && event_counter == last_event + 1))
 					{
 						// Create the TFiles in the output directory
