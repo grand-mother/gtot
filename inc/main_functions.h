@@ -367,4 +367,13 @@ char *read_order_file_in_memory(FILE **fp)
 
 }
 
+void is_file_opened(TFile *f)
+{
+	if (!f->IsOpen())
+	{
+		cout << "To overwrite files automatically, use the --overwrite option. Exiting." << endl;
+		exit(1);
+	}
+}
+
 #endif //GTOT_MAIN_FUNCTIONS_H
