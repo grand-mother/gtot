@@ -13,6 +13,7 @@
 #include "TParameter.h"
 #include "inc/TRawVoltage.h"
 #include "TFile.h"
+#include "TMath.h"
 
 using namespace std;
 using namespace ROOT;
@@ -195,8 +196,8 @@ void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
 
 void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
 {
-		gps_long.push_back(57.3*(*(double*)&adc->gps_long[du_num]));
-		gps_lat.push_back(57.3*(*(double*)&adc->gps_lat[du_num]));
+		gps_long.push_back(TMath::RadToDeg()*(*(double*)&adc->gps_long[du_num]));
+		gps_lat.push_back(TMath::RadToDeg()*(*(double*)&adc->gps_lat[du_num]));
 		gps_alt.push_back(*(double*)&adc->gps_alt[du_num]);
 		gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
 }

@@ -7,10 +7,11 @@
 
 #include <ostream>
 #include <string>
+//#include <icecream.hpp>
 
 extern std::ostream *pvout;
 
 // GtoT version
-inline std::string gtot_version = "0.40";
+inline std::string gtot_version = "0.42";
 
 #endif //GTOT_GTOT_H

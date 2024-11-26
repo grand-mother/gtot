@@ -61,7 +61,7 @@ namespace fv2
 
 		if (!fread(&isize, INTSIZE, 1, fp))
 		{
-			printf("Cannot read the Event length\n");
+			printf("\nCannot read the Event length\n");
 			return (0);                                                       //cannot read the header length
 		}
 		vout << "The event length is " << isize << " bytes \n";

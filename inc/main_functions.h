@@ -28,13 +28,15 @@ void print_help()
 	cout << "\t-f2, --firmware_v2\t\t\tthe input file is a firmware v2 file" << endl;
 	cout << "\t-os, --old_style_output\t\t\tall trees will be in the same file, no directory will be created" << endl;
 	cout << "\t-o, --output_filename <filename>\tname of the file to which store the TTrees" << endl;
+	cout << "\t-od, --output_directory <directory>\tname of the directory in which to store the files" << endl;
 	cout << "\t-i, --input_filename <filename>\t\tname of the single file to analyse, regardless of extension. No other files accepted." << endl;
+	cout << "\t-ow, --overwrite \toverwrites ROOT files if they exist (by default will quit if they do)" << endl;
 	cout << "\t-v, --verbose\t\t\t\tswitch on verbose output" << endl;
 }
 
 // Analyse the command line parameters
 //void analyse_command_line_params(int argc, char **argv, TObjArray &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num)
-void analyse_command_line_params(int argc, char **argv, vector<string> &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num, bool &gp13v1cd)
+void analyse_command_line_params(int argc, char **argv, vector<string> &filenames, string &output_filename, string &file_format, bool &infile_forced, bool &gp13v1, bool &cons_ev_num, bool &overbose, bool &is_fv2, bool &old_style_output, bool &file_run_num, bool &gp13v1cd, string &output_directory, bool &overwrite_files)
 {
 	if(argc<2)
 	{
@@ -60,6 +62,18 @@ void analyse_command_line_params(int argc, char **argv, vector<string> &filename
 		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-o")) || strstr(argv[i], "--output_filename"))
 		{
 			output_filename = argv[i + 1];
+			++i;
+		} else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-od")) || strstr(argv[i], "--output_directory"))
+		{
+			// The output filename and output directory are mutually exclusive (because I'm lazy - please give a file's full path with -o)
+			if(output_filename!="")
+			{
+				cout << "Output directory and output filename options are mutually exclusive. Please provide the output file with a requested path.";
+				exit(0);
+			}
+			output_directory = argv[i + 1];
+            // Create the output directory
+            filesystem::create_directory(filesystem::path(output_directory));
 			++i;
 		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-g1")) || strstr(argv[i], "--gp13v1"))
 		{
@@ -97,27 +111,29 @@ void analyse_command_line_params(int argc, char **argv, vector<string> &filename
 			cout << "Storing trees in the old way" << endl;
 			old_style_output = true;
 		}
+		else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-ow")) || strstr(argv[i], "--overwrite"))
+		{
+			cout << "Overwriting ROOT files if they exist" << endl;
+			overwrite_files = true;
+		}
 
-			// File to analyse
+		// File to analyse
 		else
 		{
-			auto fn_ext = filesystem::path(argv[i]).extension();
+			auto file_path = filesystem::path(argv[i]);
+			auto fn_ext = file_path.extension();
 			if ((fn_ext == ".dat" || strstr(fn_ext.c_str(), ".f0") || fn_ext == ".bin" || count(argv[i], argv[i] + strlen(argv[i]), '_') >= 5) && !infile_forced)
-//		else if((strstr(argv[i],".dat") || strstr(argv[i],".f0")) && !infile_forced)
 			{
-//				filenames.Add((TObject *) (new TString(argv[i])));
+				// Check if file exists
+				if(!filesystem::exists(file_path))
+				{
+					cout << "File " << file_path.string() << " does not exist. Exiting." << endl;
+					exit(-1);
+				}
 				filenames.push_back(argv[i]);
-//				cout << "Added " << ((TString *) (filenames.Last()))->Data() << endl;
 				cout << "Added " << filenames.back() << endl;
 			}
 		}
-		/*
-		else
-		{
-			cout << argv[i] << " count " << count(argv[i], argv[i]+sizeof(argv[i]), '_') << " " << strlen(argv[i]) << endl;
-		}
-		 */
-
 	}
 };
 
@@ -229,7 +245,7 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 }
 
 // Group filenames that would go in the same directory together as vector<string> and add these groups to file_groups
-void group_files_and_directories(vector<string> filenames, vector<vector<string>> &file_groups)
+void group_files_and_directories(vector<string> filenames, vector<vector<string>> &file_groups, string output_directory=".")
 {
 	vector<string> directories;
 
@@ -237,11 +253,11 @@ void group_files_and_directories(vector<string> filenames, vector<vector<string>
 	sort(filenames.begin(), filenames.end());
 
 	// Add existing directories to the directories list
-	for (const auto &entry: filesystem::directory_iterator("."))
+	for (const auto &entry: filesystem::directory_iterator(output_directory))
 	{
-		auto dn = entry.path().string();
+		auto dn = entry.path().filename().string();
 		// If the entry is a directory and starts with "exp_" add it to the list of directories
-		if (entry.is_directory() && dn.find(string("exp_")) == 2)
+		if (entry.is_directory() && dn.find(string("exp_")) == 0)
 			directories.push_back(dn);
 	}
 
@@ -255,16 +271,15 @@ void group_files_and_directories(vector<string> filenames, vector<vector<string>
 
 		for (auto directory : directories)
 		{
-			// If file matches an existing directory in the list
+			// If file matches an existing directory in the list and a file group for this directory has been created
 			if (directory.find(string("exp_") + fn_tokens.at(0)) == 0 &&
 					directory.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
-						string("_0000")) != string::npos)
+						string("_0000")) != string::npos && file_groups.size()>i)
 			{
 				file_groups[i].push_back(filename);
 				dir_found = true;
 				break;
 			}
-
 			++i;
 		}
 
@@ -350,6 +365,15 @@ char *read_order_file_in_memory(FILE **fp)
 
 	return out_buf;
 
+}
+
+void is_file_opened(TFile *f)
+{
+	if (!f->IsOpen())
+	{
+		cout << "To overwrite files automatically, use the --overwrite option. Exiting." << endl;
+		exit(1);
+	}
 }
 
 #endif //GTOT_MAIN_FUNCTIONS_H

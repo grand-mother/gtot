@@ -20,6 +20,7 @@ bool overbose = false;
 // Array holding filenames to analyse
 vector<string> all_filenames;
 string output_filename="";
+string output_directory=".";
 bool gp13v1 = false;
 bool gp13v1cd = false;
 bool is_fv2 = false;
@@ -28,12 +29,13 @@ bool infile_forced = false;
 bool old_style_output = false;
 bool cons_ev_num = false;
 bool file_run_num = false;
+bool overwrite_files = false;
 
 std::ostream *pvout;
 
 int main(int argc, char **argv)
 {
-	analyse_command_line_params(argc, argv, all_filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num, gp13v1cd);
+	analyse_command_line_params(argc, argv, all_filenames, output_filename, file_format, infile_forced, gp13v1, cons_ev_num, overbose, is_fv2, old_style_output, file_run_num, gp13v1cd, output_directory, overwrite_files);
 
 	// Create verbose output stream if requested
 	std::ofstream dev_null("/dev/null");
@@ -41,6 +43,11 @@ int main(int argc, char **argv)
 	if(overbose)
 		pvout = &cout;
 	std::ostream &vout = *pvout;
+
+	// Files write flag depending on overwrite_files command line option
+	auto write_flag = "NEW";
+	if(overwrite_files)
+		write_flag = "RECREATE";
 
 	// No proper files given
 	if(all_filenames.size()==0)
@@ -54,6 +61,8 @@ int main(int argc, char **argv)
 		cout << "Specifying output file name makes no sense in case of multiply input files and/or without --old_style_output flag" << endl;
 		return -1;
 	}
+	// Get the current directory
+	auto input_files_dir = filesystem::current_path();
 
 	// Initialise pointers to functions depending on the input file type
 	int (*grand_read_file_header_ptr)(FILE *fp, int **pfilehdr);
@@ -68,11 +77,9 @@ int main(int argc, char **argv)
 		grand_read_file_header_ptr = fv1::grand_read_file_header;
 		grand_read_event_ptr = fv1::grand_read_event;
 	}
-
 	// Group filenames that would go in the same directory together
 	vector<vector<string>> file_groups;
-	group_files_and_directories(all_filenames, file_groups);
-
+	group_files_and_directories(all_filenames, file_groups, output_directory);
 	// Loop through groups of files that go into the same directory
 	for(auto filenames : file_groups)
 	{
@@ -111,11 +118,11 @@ int main(int argc, char **argv)
 				// Check if the directory for the analysed files already exists
 				vector<filesystem::path> directories;
 				// Get all directories with proper names
-				for (const auto &entry: filesystem::directory_iterator("."))
+				for (const auto &entry: filesystem::directory_iterator(output_directory))
 				{
-					auto dn = entry.path().string();
+					auto dn = entry.path().filename().string();
 					// Append if it is a directory and its name contain proper parts
-					if (entry.is_directory() && dn.find(string("exp_") + fn_tokens.at(0)) == 2 &&
+					if (entry.is_directory() && dn.find(string("exp_") + fn_tokens.at(0)) == 0 &&
 						dn.find(fn_tokens.at(3) + string("_") + fn_tokens.at(4) + string("_") + fn_tokens.at(5) +
 								string("_0000")) != string::npos)
 					{
@@ -131,11 +138,14 @@ int main(int argc, char **argv)
 					// Use the first directory
 					dir_name = directories[0];
 				}
-					// Build directory name
+				// Build directory name
 				else
 					dir_name = string("exp_") + fn_tokens.at(0) + string("_") + fn_tokens.at(1) + string("_") +
 							   fn_tokens.at(2) + string("_") + fn_tokens.at(3) + string("_") + fn_tokens.at(4) +
 							   string("_") + fn_tokens.at(5) + string("_0000");
+
+				// Add the requested output directory to dir_name
+				dir_name = output_directory+"/"+dir_name;
 			}
 
 			// Assume the file to analyse is the last parameter
@@ -155,6 +165,13 @@ int main(int argc, char **argv)
 
 			if (!old_style_output)
 			{
+             	// If the directory exists, but overwrite was requested, delete it
+                if (filesystem::is_directory(filesystem::path(dir_name)) && overwrite_files)
+                {
+                    cout << "\n*** Deleting existing directory " << dir_name << endl;
+                	filesystem::remove_all(filesystem::path(dir_name));
+                }
+
 				// If directory does not exist, create it
 				if (!filesystem::is_directory(filesystem::path(dir_name)))
 				{
@@ -205,7 +222,7 @@ int main(int argc, char **argv)
 				string trun_name = string("run_") + run_num + "_L0_0000.root";
 
 				// If the run file already exist and we are reading the first file, clone it for updating later
-				if (filesystem::is_regular_file(filesystem::path(trun_name)) && j == 0)
+				if (filesystem::is_regular_file(filesystem::path(trun_name)) && j == 0 && !overwrite_files)
 				{
 					run_file_exists = true;
 					old_trun_file = new TFile(string(trun_name).c_str(), "update");
@@ -251,7 +268,7 @@ int main(int argc, char **argv)
 				// For every file in the old style output, and only for the first file in the new style output
 				if (old_style_output || (j == 0 && !run_file_exists))
 				{
-					run->SetValuesFromPointers(filehdr, file_format, !(gp13v1 || cons_ev_num));
+					run->SetValuesFromPointers(filehdr, file_format, !(gp13v1 || cons_ev_num) || old_style_output);
 					if (!cons_ev_num)
 					{
 						first_event = run->first_event;
@@ -322,7 +339,7 @@ int main(int argc, char **argv)
 					}
 
 					// For the first event, create the TFile, fill some trun values read by tadc
-					if (event_counter == first_event || (!cons_ev_num && event_counter == 0) ||
+					if ((cons_ev_num && event_counter == first_event) || (!cons_ev_num && event_counter == 0) ||
 						(run_file_exists && event_counter == last_event + 1))
 					{
 						// Create the TFiles in the output directory
@@ -338,7 +355,8 @@ int main(int argc, char **argv)
 								if(run_file_exists)
 									trun_name = "new_"+trun_name;
 
-								trun_file = new TFile(trun_name.c_str(), "recreate");
+								trun_file = new TFile(trun_name.c_str(), write_flag);
+								is_file_opened(trun_file);
 
 								// Set the time of the first event
 								if (gp13v1)
@@ -347,13 +365,16 @@ int main(int argc, char **argv)
 								else first_first_event_time = ADC->time_seconds;
 							}
 
-							tadc_file = new TFile(string("adc.root").c_str(), "recreate");
-							trawvoltage_file = new TFile(string("rawvoltage.root").c_str(), "recreate");
+							tadc_file = new TFile(string("adc.root").c_str(), write_flag);
+							is_file_opened(tadc_file);
+							trawvoltage_file = new TFile(string("rawvoltage.root").c_str(), write_flag);
+							is_file_opened(trawvoltage_file);
 						}
 							// For old style output, store trees in just one file in the current directory
 						else
 						{
-							trun_file = new TFile(output_filename.c_str(), "recreate");
+							trun_file = new TFile(output_filename.c_str(), write_flag);
+							is_file_opened(trun_file);
 							tadc_file = trun_file;
 							trawvoltage_file = trun_file;
 						}
@@ -455,7 +476,7 @@ int main(int argc, char **argv)
 			finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
 										   old_style_output);
 
-			if (!old_style_output) filesystem::current_path("../");
+			if (!old_style_output) filesystem::current_path(input_files_dir);
 		}
 
 		// For the new style output fill, write and close the run after all the files
@@ -472,7 +493,7 @@ int main(int argc, char **argv)
 			}
 			run->UpdateAndWrite(first_first_event, first_first_event_time, last_event, last_event_time, old_trun);
 			trun_file->Close();
-			filesystem::current_path("../");
+			filesystem::current_path(input_files_dir);
 		}
 	}
 
