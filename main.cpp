@@ -356,6 +356,7 @@ int main(int argc, char **argv)
 									trun_name = "new_"+trun_name;
 
 								trun_file = new TFile(trun_name.c_str(), write_flag);
+								is_file_opened(trun_file);
 
 								// Set the time of the first event
 								if (gp13v1)
@@ -365,12 +366,15 @@ int main(int argc, char **argv)
 							}
 
 							tadc_file = new TFile(string("adc.root").c_str(), write_flag);
+							is_file_opened(tadc_file);
 							trawvoltage_file = new TFile(string("rawvoltage.root").c_str(), write_flag);
+							is_file_opened(trawvoltage_file);
 						}
 							// For old style output, store trees in just one file in the current directory
 						else
 						{
 							trun_file = new TFile(output_filename.c_str(), write_flag);
+							is_file_opened(trun_file);
 							tadc_file = trun_file;
 							trawvoltage_file = trun_file;
 						}
