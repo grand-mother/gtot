@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 				// For every file in the old style output, and only for the first file in the new style output
 				if (old_style_output || (j == 0 && !run_file_exists))
 				{
-					run->SetValuesFromPointers(filehdr, file_format, !(gp13v1 || cons_ev_num) || old_style_output);
+					run->SetValuesFromPointers(filehdr, file_format, !(gp13v1 || cons_ev_num) || old_style_output, fn_tokens[0]);
 					if (!cons_ev_num)
 					{
 						first_event = run->first_event;

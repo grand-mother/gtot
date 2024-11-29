@@ -107,7 +107,7 @@ public:
 	void UpdateAndWrite(unsigned int first_event, unsigned int first_event_time, unsigned int last_event, unsigned int last_event_time, TTree *old_tree=NULL);
 
 	//! Set the object variables from pointer intialised by Charles' functions from Traces.c
-	int SetValuesFromPointers(int *pheader, string file_format="", bool init_first_last_event=true);
+	int SetValuesFromPointers(int *pheader, string file_format="", bool init_first_last_event=true, string site_name="");
 
 	//! Set the values of t_bin_size vector from adc_sampling_frequency vector in the TADC tree
 	void SetTBinSizeFromADCSamplingFrequency(TADC *t);

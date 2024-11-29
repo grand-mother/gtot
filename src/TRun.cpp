@@ -59,7 +59,7 @@ TTree *TRun::CreateTree()
 	return trun;
 }
 
-int TRun::SetValuesFromPointers(int *pheader, string file_format, bool init_first_last_event)
+int TRun::SetValuesFromPointers(int *pheader, string file_format, bool init_first_last_event, string site_name)
 {
 	using namespace fv1;
 	run_number = pheader[FILE_HDR_RUNNR];
@@ -76,7 +76,10 @@ int TRun::SetValuesFromPointers(int *pheader, string file_format, bool init_firs
 	}
 
 	// GP13 case
-	if(strstr(file_format.c_str(), "GP13") || strstr(file_format.c_str(), "gp13") || strstr(file_format.c_str(), "Gp13"))
+	auto tfile_format = TString(file_format);
+	tfile_format.ToLower();
+	if (tfile_format.Index("gp13")>=0)
+	// if(strstr(.ToLower().Data(), "GP13") || strstr(file_format.c_str(), "gp13") || strstr(file_format.c_str(), "Gp13"))
 	{
 		site = "GP13";
 		site_layout = "GP13";
@@ -92,6 +95,15 @@ int TRun::SetValuesFromPointers(int *pheader, string file_format, bool init_firs
 		this->du_ground_tilt = gp13::du_ground_tilt;
 		this->du_nut = gp13::du_nut;
 		this->du_feb = gp13::du_feb;
+	}
+
+	// If site name was provided and conforms to the standards, set site and site_layout to it (regardless of the file format)
+	auto tsite_name = TString(site_name);
+	tsite_name.ToLower();
+	if (tsite_name=="gaa" || (tsite_name.Length()>3 && tsite_name(0,2)=="gp"))
+	{
+		site = site_name;
+		site_layout = site_name;
 	}
 
 	return 0;
