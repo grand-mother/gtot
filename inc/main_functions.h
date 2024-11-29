@@ -151,6 +151,35 @@ vector<string> parse_file_name(string &filename)
 		parts.push_back(chunk);
 	}
 
+	// If less than 6 parts, it is an old file or has a malformed name. Setting artificial tokens
+	if (parts.size()<6)
+	{
+		cout << "The file name " << filename << " is not in the expected format. Setting artificial parts of the file name." << endl;
+
+		parts.resize(6);
+		// If the first part is not a date, set a dummy date
+		if(parts[1].size()!=8 || parts[1].find_first_not_of("0123456789") != std::string::npos)
+			parts[1] = "19700101";
+
+		// If the second part is not a time, set a dummy date
+		if(parts[2].size()!=8 || parts[2].find_first_not_of("0123456789") != std::string::npos)
+			parts[2] = "000000";
+
+		// If the third part does not contain a run number, set a dummy run number
+		if (parts[3].size()>3)
+		{
+			if (parts[3].substr(0,3)=="RUN" && parts[3].substr(4).find_first_not_of("0123456789") != std::string::npos)
+				parts[3] = "RUN000";
+		}
+		else parts[3] = "RUN000";
+
+		// If the fourth part does not contain a valid acquisition type, make it "XD"
+		if(parts[4]!="CD" && parts[4]!="MD" && parts[4]!="UD")
+			parts[4] = "XD";
+
+		return parts;
+	}
+
 	// The last part should contain all the remaining filename ("extra" comment) with _ replaced by -
 	for (size_t i = 5; i < parts.size(); ++i)
 	{
