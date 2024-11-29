@@ -22,6 +22,8 @@
 
 using namespace std;
 
+extern float glob_adc2voltageconst;
+
 class TRunRawVoltage
 {
 	// I assume we don't need getters and setters for these properties, because they are simple values

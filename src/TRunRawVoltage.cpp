@@ -21,6 +21,8 @@
 using namespace std;
 using namespace ROOT;
 
+float glob_adc2voltageconst = 0.9 / 8192 * 1e6;
+
 //! General constructor
 TRunRawVoltage::TRunRawVoltage(TFile *out_file)
 {
@@ -92,6 +94,11 @@ void TRunRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2=false)
 			tcmax_ch.emplace_back(adc->tcmax_ch[i].begin(), adc->tcmax_ch[i].end());
 			ncmin_ch.emplace_back(adc->ncmin_ch[i].begin(), adc->ncmin_ch[i].end());
 		}
+
+		// The same ADC conversion for each unit, now hardcoded in GtoT
+		adc_conversion.push_back(glob_adc2voltageconst);
+
+		trace_length.push_back(adc->trace_ch[i][0].size());
 	}
 
 	trunrawvoltage->Fill();
