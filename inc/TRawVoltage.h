@@ -12,6 +12,7 @@
 #include "TTimeStamp.h"
 #include "TLeaf.h"
 #include "TADC.h"
+#include "TRunRawVoltage.h"
 
 using namespace std;
 

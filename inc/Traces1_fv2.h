@@ -84,7 +84,7 @@ namespace fv2
 		event[0] = isize;
 		if ((return_code = fread(&(event[1]), 1, isize, fp)) != (isize))
 		{
-			printf("Cannot read the full event (%d)\n", return_code);
+			printf("\nCannot read the full event (%d)\n", return_code);
 			return (0);                                                       //cannot read the full event
 		}
 

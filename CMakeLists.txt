@@ -25,7 +25,7 @@ find_package(ROOT CONFIG REQUIRED)
 #cmake_print_variables(ROOT_LIBRARY_DIR)
 
 add_executable(gtot main.cpp src/TADC.cpp inc/TADC.h inc/Traces.h inc/Traces_fv2.h src/TRawVoltage.cpp inc/TRawVoltage.h src/TRun.cpp inc/TRun.h inc/LinkDef.h inc/gtot.h inc/gp13.h
-        inc/main_functions.h)
+        inc/main_functions.h src/TRunRawVoltage.cpp inc/TRunRawVoltage.h)
 
 # If includes are not set, set them the old way
 # This is the "manual" way to add ROOT, the old "make" style, in case one does not source root (like me)

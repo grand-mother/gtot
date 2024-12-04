@@ -11,9 +11,9 @@
 #include "TDatime.h"
 #include "TNamed.h"
 #include "TParameter.h"
-#include "inc/TRawVoltage.h"
 #include "TFile.h"
 #include "TMath.h"
+#include "inc/TRawVoltage.h"
 
 using namespace std;
 using namespace ROOT;
@@ -170,7 +170,7 @@ void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
 	// Probably in the future adc2voltageconst will be replaced in the transform by some array_x/y/z[du_id], or corresponding function in some non-linear case
 	// Also, at the moment I assume trace_0/1/2 are x/y/z - this may also change in the future
 	// The conversion factor is just taken from the information for XiHu data, that "For currently ADC, the differential input voltage range is 1.8V (Vpp), that is -0.9V to 0.9V corresponding to ADC value -8192 to 8192"
-	float adc2voltageconst = 0.9 / 8192 * 1e6;
+	auto adc2voltageconst = glob_adc2voltageconst;
 //	trace_0[du_num].resize(adc->trace_0[du_num].size());
 //	transform(adc->trace_0[du_num].begin(), adc->trace_0[du_num].end(), trace_0[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
 //	trace_1[du_num].resize(adc->trace_1[du_num].size());
