@@ -75,7 +75,7 @@ public:
 	//! The T3 trigger number
 	vector<unsigned short> event_id;
 	//! Detector unit (antenna) ID
-	vector<unsigned short> du_id;
+	vector<unsigned int> du_id;
 	//! Unix time of the trigger for this DU
 	vector<unsigned int> du_seconds;
 	//! Nanoseconds of the trigger for this DU

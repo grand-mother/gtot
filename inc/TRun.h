@@ -78,7 +78,7 @@ public:
 	//! Origin of the coordinate system used for the array
 	float origin_geoid[3]={0,0,0};
 	//! Detector unit (antenna) ID
-	vector<int> du_id;
+	vector<unsigned int> du_id;
 	//! Detector unit (antenna) (lat,lon,alt) position
 	vector<vector<float>> du_geoid;
 	//! Detector unit (antenna) (x,y,z) position in site's referential

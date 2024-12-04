@@ -16,7 +16,7 @@ namespace gp13
 	// Position of the 6th antenna counting from 1
 	const float origin_geoid[3] = {40.98456, 93.95225, 1200};
 	//! Detector unit (antenna) ID
-	const vector<int> du_id = {1078, 1086, 1081, 1087, 1079, 1077, 1076, 1080, 1024, 1039, 1082, 1085, 1094};
+	const vector<unsigned int> du_id = {1078, 1086, 1081, 1087, 1079, 1077, 1076, 1080, 1024, 1039, 1082, 1085, 1094};
 	//! Detector unit (antenna) (lat,lon,alt) position
 	const vector<vector<float>> du_geoid = {{40.99066, 93.94717, 1205.9284},
 											{40.98818, 93.95256, 1200.0},
