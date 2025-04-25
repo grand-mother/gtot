@@ -190,8 +190,8 @@ vector<string> parse_file_name(string &filename)
 		rest += parts[i];
 	}
 
-	// In GP13 the "extra" may contain serial number, which needs to be removed
-	if(parts[0]=="gp13" || parts[0]=="GP13")
+	// In GP13/GP80 the "extra" may contain serial number, which needs to be removed
+	if(parts[0]=="gp13" || parts[0]=="GP13" || parts[0]=="GP80")
 	{
 		auto last_part = rest.substr(rest.find_last_of('-')+1);
 		// If the last part after "-" is a number, remove it
