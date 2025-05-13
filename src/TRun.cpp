@@ -121,7 +121,8 @@ void TRun::SetTBinSizeFromADCSamplingFrequency(TADC *t)
 //! Initialises the TTree metadata fields
 void TRun::InitialiseMetadata()
 {
-	this->creation_datetime = (new TDatime())->Convert(true);
+	TDatime datetime;
+	this->creation_datetime = datetime.Convert(true);
 
 	this->trun->GetUserInfo()->Add(new TNamed("type", this->type));
 	this->trun->GetUserInfo()->Add(new TNamed("comment", this->comment));
