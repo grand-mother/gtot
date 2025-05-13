@@ -1,3 +1,7 @@
+# At the top of CMakeLists.txt, before any code that checks CMAKE_BUILD_TYPE:
+set(CMAKE_BUILD_TYPE "" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel")
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
+
 set(CMAKE_VERBOSE_MAKEFILE ON)
 cmake_minimum_required(VERSION 3.16)
 project(gtot)
