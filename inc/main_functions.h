@@ -244,8 +244,11 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 //		voltage->trawvoltage->AddFriend(run->trun);
 		voltage->trawvoltage->Write("", TObject::kWriteDelete);
 
-		ADC->tadc->GetCurrentFile()->Close();
-		voltage->trawvoltage->GetCurrentFile()->Close();
+		delete ADC->tadc->GetCurrentFile();
+		delete voltage->trawvoltage->GetCurrentFile();
+
+		// ADC->tadc->GetCurrentFile()->Close();
+		// voltage->trawvoltage->GetCurrentFile()->Close();
 	}
 	else
 	{
@@ -268,7 +271,8 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 
 		// Close TFiles with the TTrees for the old style output
 		// the trun_file contains also the event trees
-		run->trun->GetCurrentFile()->Close();
+		delete run->trun->GetCurrentFile();
+		// run->trun->GetCurrentFile()->Close();
 	}
 
 }
@@ -331,7 +335,7 @@ char *read_order_file_in_memory(FILE **fp)
 {
 	map<unsigned int, vector<unsigned short*>> fmap;
 
-	unsigned short *event = NULL;
+	unsigned short *event = nullptr;
 	long last_good_pos = 0;
 
 	// Read the file event by event (which means DU by DU)
@@ -352,7 +356,7 @@ char *read_order_file_in_memory(FILE **fp)
 	long last_pos = 0;
 
 	// Loop through the map of events - the map is ordered by events
-	for (auto const& [key, val] : fmap)
+	for (auto & [key, val] : fmap)
 	{
 		int du_num = 0;
 		// Loop through the vector of DUs in the event
@@ -379,6 +383,8 @@ char *read_order_file_in_memory(FILE **fp)
 
 			last_pos+=size;
 			du_num++;
+
+			free(ev);
 		}
 	}
 
