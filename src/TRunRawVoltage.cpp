@@ -146,7 +146,7 @@ TTree *TRunRawVoltage::CreateTree()
 //! Initialises the TTree metadata fields
 void TRunRawVoltage::InitialiseMetadata()
 {
-	this->creation_datetime = (new TDatime())->Convert(true);
+	this->creation_datetime = TDatime().Convert(true);
 
 	this->trunrawvoltage->GetUserInfo()->Add(new TNamed("type", this->type));
 	this->trunrawvoltage->GetUserInfo()->Add(new TNamed("comment", this->comment));
