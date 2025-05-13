@@ -77,7 +77,7 @@ void TRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2)
 //		CalculateT0s(adc);
 		trawvoltage->Fill();
 	}
-	trawvoltage->BuildIndex("run_number", "event_number");
+//	trawvoltage->BuildIndex("run_number", "event_number");
 }
 
 
@@ -423,7 +423,8 @@ TTree *TRawVoltage::CreateTree()
 //! Initialises the TTree metadata fields
 void TRawVoltage::InitialiseMetadata()
 {
-	this->creation_datetime = (new TDatime())->Convert(true);
+	TDatime datetime;
+	this->creation_datetime = datetime.Convert(true);
 
 	this->trawvoltage->GetUserInfo()->Add(new TNamed("type", this->type));
 	this->trawvoltage->GetUserInfo()->Add(new TNamed("comment", this->comment));
