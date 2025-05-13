@@ -379,6 +379,7 @@ int TADC::SetValuesFromPointers(unsigned short *pevent, string file_format)
 
 		// Convert the GPS times into unix time. This assumes we get UTC from the GPS
 		TTimeStamp ts;
+		// ToDo: the fields are sometimes empty (uninitialised value according to valgrind, on, for example, event 675 of GP80_20250331_070230_RUN10075_CD_20dB_GP43-16DUs-ChY-Y2FLOAT-X2Z-CD-10000-202.bin. Probably a bug in hardware, but should be tracked
 		ts.Set(evdu[file_shift + EVT_YEAR], evdu[file_shift + EVT_DAYMONTH]&0xff, (evdu[file_shift + EVT_DAYMONTH]>>8)&0xff, evdu[file_shift + EVT_MINHOUR]&0xff,(evdu[file_shift + EVT_MINHOUR]>>8)&0xff,evdu[file_shift + EVT_STATSEC]&0xff, 0, true, 0);
 		gps_time.push_back(ts.GetSec());
 
@@ -867,7 +868,7 @@ void TADC::ClearVectors()
 //! Initialises the TTree metadata fields
 void TADC::InitialiseMetadata()
 {
-	this->creation_datetime = (new TDatime())->Convert(true);
+	this->creation_datetime = TDatime().Convert(true);
 
 	this->tadc->GetUserInfo()->Add(new TNamed("type", this->type));
 	this->tadc->GetUserInfo()->Add(new TNamed("comment", this->comment));
