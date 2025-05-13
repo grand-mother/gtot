@@ -86,13 +86,23 @@ int main(int argc, char **argv)
 	// Loop through groups of files that go into the same directory
 	for(auto filenames : file_groups)
 	{
-		TRun *run = NULL;
-		TRunRawVoltage *runrawvoltage = NULL;
-		TFile *trun_file = NULL;
-		TFile *trunrawvoltage_file = NULL;
-		TADC *ADC = NULL;
-		TFile *old_trun_file = NULL;
-		TTree *old_trun = NULL;
+		cerr << "group start" << endl;
+		unique_ptr<TRun> run_up;
+		TRun *run = nullptr;
+		unique_ptr<TRunRawVoltage> runrawvoltage_up;
+		TRunRawVoltage *runrawvoltage = nullptr;
+		unique_ptr<TFile> trun_file_up;
+		TFile *trun_file = nullptr;
+		std::unique_ptr<TFile> trunrawvoltage_file_up;
+		TFile *trunrawvoltage_file = nullptr;
+		unique_ptr<TADC> ADC_up;
+		TADC *ADC = nullptr;
+		// TFile *old_trun_file = NULL;
+		std::unique_ptr<TFile> old_trun_file_up;
+		TFile* old_trun_file = nullptr;
+		TTree *old_trun = nullptr;
+		unique_ptr<TRawVoltage> voltage_up;
+
 
 		// Shows if a run tree file was already created in this directory before this run of gtot
 		bool run_file_exists = false;
@@ -161,10 +171,10 @@ int main(int argc, char **argv)
 			int i, ich, ib;
 
 			fp = fopen(filename.c_str(), "r");
-			if (fp == NULL) printf("Error opening file %s\n", filename.c_str());
+			if (fp == nullptr) printf("Error opening file %s\n", filename.c_str());
 
-			int *filehdr = NULL;
-			unsigned short *event = NULL;
+			int *filehdr = nullptr;
+			unsigned short *event = nullptr;
 
 			int ret_val = 0;
 
@@ -208,7 +218,8 @@ int main(int argc, char **argv)
 				cout << "Storing output in " << output_filename << endl;
 			}
 			// Created on the disk after the first successfull event read
-			TFile *tadc_file, *trawvoltage_file;
+			unique_ptr<TFile> tadc_file_up, trawvoltage_file_up;
+			TFile *tadc_file=nullptr, *trawvoltage_file=nullptr;
 
 			// Just for debugging for now
 //	tree_file->SetCompressionLevel(0);
@@ -231,7 +242,9 @@ int main(int argc, char **argv)
 				if (filesystem::is_regular_file(filesystem::path(trun_name)) && j == 0 && !overwrite_files)
 				{
 					run_file_exists = true;
-					old_trun_file = new TFile(string(trun_name).c_str(), "update");
+					// old_trun_file = new TFile(string(trun_name).c_str(), "update");
+					old_trun_file_up = unique_ptr<TFile>{new TFile(string(trun_name).c_str(), "update")};
+					old_trun_file = old_trun_file_up.get();
 					old_trun = (TTree *) old_trun_file->Get("trun");
 					old_trun->SetName("old_trun");
 					old_trun->GetEntry(0);
@@ -256,7 +269,9 @@ int main(int argc, char **argv)
 			// The whole Run class, init only for the first file or for the old output style
 			if (j == 0 || old_style_output)
 			{
-				run = new TRun();
+				// run = new TRun();
+				run_up = make_unique<TRun>();
+				run = run_up.get();
 				if (run_file_exists)
 				{
 					run->trun->SetDirectory(old_trun_file);
@@ -265,6 +280,8 @@ int main(int argc, char **argv)
 
 			// The ADC event class
 			ADC = new TADC(is_fv2);
+			ADC_up = make_unique<TADC>();
+			ADC = ADC_up.get();
 
 			// Read the file from the detector and fill in the TTrees with the read-out data
 //		if (grand_read_file_header(fp, &filehdr))
@@ -300,7 +317,12 @@ int main(int argc, char **argv)
 					else
 						ret_val = ADC->SetValuesFromPointers(event, file_format);
 
-					if (ret_val < 0) break;
+					if (ret_val < 0)
+					{
+						free(event);
+						event = nullptr;
+						break;
+					}
 
 					// For GP13v1 overwrite some values
 					if (gp13v1 || cons_ev_num || file_run_num)
@@ -362,9 +384,13 @@ int main(int argc, char **argv)
 								if(run_file_exists)
 									trun_name = "new_"+trun_name;
 
-								trun_file = new TFile(trun_name.c_str(), write_flag);
+								trun_file_up = make_unique<TFile>(trun_name.c_str(), write_flag);
+								trun_file = trun_file_up.get();
+								// trun_file = new TFile(trun_name.c_str(), write_flag);
 								is_file_opened(trun_file);
-								trunrawvoltage_file = new TFile(trunrawvoltage_name.c_str(), "recreate");
+								trunrawvoltage_file_up = make_unique<TFile>(trunrawvoltage_name.c_str(), "recreate");
+								trunrawvoltage_file = trunrawvoltage_file_up.get();
+								// trunrawvoltage_file = new TFile(trunrawvoltage_name.c_str(), "recreate");
 								is_file_opened(trunrawvoltage_file);
 
 								// Set the time of the first event
@@ -374,15 +400,21 @@ int main(int argc, char **argv)
 								else first_first_event_time = ADC->time_seconds;
 							}
 
-							tadc_file = new TFile(string("adc.root").c_str(), write_flag);
+							// tadc_file = new TFile(string("adc.root").c_str(), write_flag);
+							tadc_file_up = make_unique<TFile>(string("adc.root").c_str(), write_flag);
+							tadc_file = tadc_file_up.get();
 							is_file_opened(tadc_file);
-							trawvoltage_file = new TFile(string("rawvoltage.root").c_str(), write_flag);
+							// trawvoltage_file = new TFile(string("rawvoltage.root").c_str(), write_flag);
+							trawvoltage_file_up = make_unique<TFile>(string("rawvoltage.root").c_str(), write_flag);
+							trawvoltage_file = trawvoltage_file_up.get();
 							is_file_opened(trawvoltage_file);
 						}
-							// For old style output, store trees in just one file in the current directory
+						// For old style output, store trees in just one file in the current directory
 						else
 						{
-							trun_file = new TFile(output_filename.c_str(), write_flag);
+							// trun_file = new TFile(output_filename.c_str(), write_flag);
+							trun_file_up = make_unique<TFile>(output_filename.c_str(), write_flag);
+							trun_file = trun_file_up.get();
 							is_file_opened(trun_file);
 							tadc_file = trun_file;
 							trawvoltage_file = trun_file;
@@ -426,10 +458,12 @@ int main(int argc, char **argv)
 
 							// Fill the trunrawvoltage
 							trunrawvoltage_file->cd();
-							runrawvoltage = new TRunRawVoltage(ADC, is_fv2, trunrawvoltage_file);
+							// runrawvoltage = new TRunRawVoltage(ADC, is_fv2, trunrawvoltage_file);
+							runrawvoltage_up = make_unique<TRunRawVoltage>(ADC, is_fv2, trunrawvoltage_file);
+							runrawvoltage = runrawvoltage_up.get();
 							// Write the trunrawvoltage
 							runrawvoltage->trunrawvoltage->Write("", TObject::kWriteDelete);
-							delete runrawvoltage;
+							// delete runrawvoltage;
 						}
 
 						// Fill and write the Run TTree
@@ -442,6 +476,9 @@ int main(int argc, char **argv)
 							run->trun->Write("", TObject::kWriteDelete);
 						}
 					}
+
+					free(event);
+					event = nullptr;
 
 					cout << "\rFilled event " << event_counter;
 					event_counter++;
@@ -456,7 +493,11 @@ int main(int argc, char **argv)
 				}
 
 			}
-			if (fp != NULL) fclose(fp); // close the file
+			if (fp != nullptr)
+			{
+				fclose(fp); // close the file
+				free(filehdr);
+			}
 
 			// In case of a bad return above, just close the file and exit
 			if (ret_val < 0)
@@ -464,9 +505,13 @@ int main(int argc, char **argv)
 				if (!old_style_output)
 				{
 					trawvoltage_file->cd();
-					auto voltage = new TRawVoltage(trawvoltage_file);
+					// auto voltage = new TRawVoltage(trawvoltage_file);
+					voltage_up = make_unique<TRawVoltage>(trawvoltage_file);
+					auto voltage = voltage_up.get();
 					finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
 												   old_style_output);
+					// delete ADC;
+					// delete voltage;
 
 					trun_file->cd();
 					if (cons_ev_num)
@@ -477,24 +522,34 @@ int main(int argc, char **argv)
 					}
 					run->UpdateAndWrite(first_first_event, first_first_event_time, last_event, last_event_time,
 										old_trun);
-					trun_file->Close();
 					if (cons_ev_num)
 					{
 						first_event = event_counter;
 					}
-				} else
-					trun_file->Close();
+				}
 
+				// delete run;
+				// delete trun_file;
+				// delete tadc_file;
+				// delete trawvoltage_file;
+				// delete trunrawvoltage_file;
 				return ret_val;
 			}
 
 			if (cons_ev_num) last_event = event_counter - 1;
 
 			trawvoltage_file->cd();
-			auto voltage = new TRawVoltage(trawvoltage_file);
+			// auto voltage = new TRawVoltage(trawvoltage_file);
+			voltage_up = make_unique<TRawVoltage>(trawvoltage_file);
+			auto voltage = voltage_up.get();
 
 			finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
 										   old_style_output);
+
+			// delete ADC;
+			// delete voltage;
+			// delete tadc_file;
+			// delete trawvoltage_file;
 
 			if (!old_style_output) filesystem::current_path(input_files_dir);
 		}
@@ -514,6 +569,10 @@ int main(int argc, char **argv)
 			run->UpdateAndWrite(first_first_event, first_first_event_time, last_event, last_event_time, old_trun);
 			trun_file->Close();
 			filesystem::current_path(input_files_dir);
+
+			// delete run;
+			// delete trunrawvoltage_file;
+			// delete trun_file;
 		}
 	}
 
