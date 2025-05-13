@@ -55,19 +55,19 @@ public:
 	//! Run number
 	unsigned int run_number;
 	//! Event in the run number
-	unsigned int event_number;
+	unsigned int event_number = 0;
 	//! Trigger number from T3 maker
-	unsigned int t3_number;
+	unsigned int t3_number = 0;
 	//! First detector unit that triggered in the event
-	unsigned int first_du;
+	unsigned int first_du = 0;
 	//! Unix time corresponding to the GPS seconds of the earliest trigger time of all the stations
-	unsigned int time_seconds;
+	unsigned int time_seconds = 0;
 	//! GPS nanoseconds corresponding to the earliest trigger time of all the stations
-	unsigned int time_nanoseconds;
+	unsigned int time_nanoseconds = 0;
 	//! Trigger type 0x1000 10 s trigger and 0x8000 random trigger, else shower
-	unsigned int event_type;
+	unsigned int event_type = 0;
 	//! Event format version of the DAQ
-	unsigned int event_version;
+	unsigned int event_version = 0;
 	//! Number of detector units in the event - basically the antennas count
 	unsigned int du_count;
 	// Separate for each DU (antenna) in the event
