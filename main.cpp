@@ -86,7 +86,6 @@ int main(int argc, char **argv)
 	// Loop through groups of files that go into the same directory
 	for(auto filenames : file_groups)
 	{
-		cerr << "group start" << endl;
 		unique_ptr<TRun> run_up;
 		TRun *run = nullptr;
 		unique_ptr<TRunRawVoltage> runrawvoltage_up;
@@ -95,8 +94,7 @@ int main(int argc, char **argv)
 		TFile *trun_file = nullptr;
 		std::unique_ptr<TFile> trunrawvoltage_file_up;
 		TFile *trunrawvoltage_file = nullptr;
-		unique_ptr<TADC> ADC_up;
-		TADC *ADC = nullptr;
+		unique_ptr<TADC> ADC;
 		// TFile *old_trun_file = NULL;
 		std::unique_ptr<TFile> old_trun_file_up;
 		TFile* old_trun_file = nullptr;
@@ -243,9 +241,9 @@ int main(int argc, char **argv)
 				{
 					run_file_exists = true;
 					// old_trun_file = new TFile(string(trun_name).c_str(), "update");
-					old_trun_file_up = unique_ptr<TFile>{new TFile(string(trun_name).c_str(), "update")};
+					old_trun_file_up = make_unique<TFile>(string(trun_name).c_str(), "update");
 					old_trun_file = old_trun_file_up.get();
-					old_trun = (TTree *) old_trun_file->Get("trun");
+					old_trun = static_cast<TTree*>(old_trun_file->Get("trun"));
 					old_trun->SetName("old_trun");
 					old_trun->GetEntry(0);
 
@@ -280,8 +278,7 @@ int main(int argc, char **argv)
 
 			// The ADC event class
 			// ADC = new TADC(is_fv2);
-			ADC_up = make_unique<TADC>(is_fv2);
-			ADC = ADC_up.get();
+			ADC = make_unique<TADC>(is_fv2);
 
 			// Read the file from the detector and fill in the TTrees with the read-out data
 //		if (grand_read_file_header(fp, &filehdr))
@@ -434,7 +431,7 @@ int main(int argc, char **argv)
 							run->event_type = ADC->event_type;
 							// The time bin size
 							// ToDo: BUG!!! It fills only the first event DUs, while it should all the DUs, like in TRun::SetValuesFromPointers
-							run->SetTBinSizeFromADCSamplingFrequency(ADC);
+							run->SetTBinSizeFromADCSamplingFrequency(*ADC);
 
 							// Add a comment
 							TString comment =
@@ -459,7 +456,7 @@ int main(int argc, char **argv)
 							// Fill the trunrawvoltage
 							trunrawvoltage_file->cd();
 							// runrawvoltage = new TRunRawVoltage(ADC, is_fv2, trunrawvoltage_file);
-							runrawvoltage_up = make_unique<TRunRawVoltage>(ADC, is_fv2, trunrawvoltage_file);
+							runrawvoltage_up = make_unique<TRunRawVoltage>(*ADC, is_fv2, trunrawvoltage_file);
 							runrawvoltage = runrawvoltage_up.get();
 							// Write the trunrawvoltage
 							runrawvoltage->trunrawvoltage->Write("", TObject::kWriteDelete);
@@ -508,7 +505,7 @@ int main(int argc, char **argv)
 					// auto voltage = new TRawVoltage(trawvoltage_file);
 					voltage_up = make_unique<TRawVoltage>(trawvoltage_file);
 					auto voltage = voltage_up.get();
-					finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
+					finalise_and_close_event_trees(*ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
 												   old_style_output);
 					// delete ADC;
 					// delete voltage;
@@ -543,7 +540,7 @@ int main(int argc, char **argv)
 			voltage_up = make_unique<TRawVoltage>(trawvoltage_file);
 			auto voltage = voltage_up.get();
 
-			finalise_and_close_event_trees(ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
+			finalise_and_close_event_trees(*ADC, voltage, run, fn_tokens, first_event, last_event, is_fv2,
 										   old_style_output);
 
 			// delete ADC;
