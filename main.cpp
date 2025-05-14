@@ -279,8 +279,8 @@ int main(int argc, char **argv)
 			}
 
 			// The ADC event class
-			ADC = new TADC(is_fv2);
-			ADC_up = make_unique<TADC>();
+			// ADC = new TADC(is_fv2);
+			ADC_up = make_unique<TADC>(is_fv2);
 			ADC = ADC_up.get();
 
 			// Read the file from the detector and fill in the TTrees with the read-out data
