@@ -110,11 +110,11 @@ int TRun::SetValuesFromPointers(int *pheader, string file_format, bool init_firs
 }
 
 // ToDo: BUG!!! It fills only the first event DUs, while it should all the DUs, like in TRun::SetValuesFromPointers
-void TRun::SetTBinSizeFromADCSamplingFrequency(TADC *t)
+void TRun::SetTBinSizeFromADCSamplingFrequency(TADC &t)
 {
-	for(int i=0; i<t->adc_sampling_frequency.size(); ++i)
+	for(int i=0; i<t.adc_sampling_frequency.size(); ++i)
 	{
-		this->t_bin_size.push_back(1./t->adc_sampling_frequency[i]*1000);
+		this->t_bin_size.push_back(1./t.adc_sampling_frequency[i]*1000);
 	}
 }
 

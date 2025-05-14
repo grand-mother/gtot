@@ -35,15 +35,15 @@ TRawVoltage::TRawVoltage(TFile *out_file)
 }
 
 //! Constructor computing values from tadc
-TRawVoltage::TRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRawVoltage(out_file)
+TRawVoltage::TRawVoltage(TADC &adc, bool is_fv2, TFile *out_file) : TRawVoltage(out_file)
 {
 	ComputeFromADC(adc, is_fv2);
 }
 
 //! Compute values from tadc
-void TRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2)
+void TRawVoltage::ComputeFromADC(TADC &adc, bool is_fv2)
 {
-	auto tadc = adc->tadc;
+	auto tadc = adc.tadc;
 
 	// Exclude these branches from copying, for the values need to be modified
 	vector<string> excluded_branches = {"gps_long", "gps_lat", "gps_alt", "gps_temp", "trace_0", "trace_1", "trace_2", "trace_3", "trace_ch", "battery_level", "fpga_temp", "adc_temp", "atm_temperature", "atm_pressure", "atm_humidity", "gain_correction_ch", "du_acceleration"};
@@ -81,7 +81,7 @@ void TRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2)
 }
 
 
-void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
+void TRawVoltage::ADCs2Real(TADC &adc, bool is_fv2)
 {
 	// Clear the traces vectors
 //	trace_0.clear();
@@ -112,7 +112,7 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 
 	// Loop through the DUs
 //	for (size_t i=0; i<adc->du_count; ++i)
-	for (size_t i=0; i<adc->trace_ch.size(); ++i)
+	for (size_t i=0; i<adc.trace_ch.size(); ++i)
 	{
 		// Create this DU's vectors
 //		trace_ch.push_back(vector<vector<float>>());
@@ -123,7 +123,7 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 		trace_ch.emplace_back();
 
 		// Loop through traces dimensions
-		for (int j = 0; j < adc->trace_ch[0].size(); ++j)
+		for (int j = 0; j < adc.trace_ch[0].size(); ++j)
 		{
 			trace_ch.back().emplace_back();
 		}
@@ -139,8 +139,8 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 		{
 			// Firmware v2
 			GPSADC2Real_fv2(i, adc);
-			fpga_temp.push_back(adc->fpga_temp[i]*509.3140064/(1<<16)-280.23087870);
-			adc_temp.push_back((adc->adc_temp[i]-819)/2.654+25);
+			fpga_temp.push_back(adc.fpga_temp[i]*509.3140064/(1<<16)-280.23087870);
+			adc_temp.push_back((adc.adc_temp[i]-819)/2.654+25);
 		}
 		else
 			// Firmware v1
@@ -148,15 +148,15 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 		// Convert battery level from ADCs to Voltage
 		BatteryADC2Voltage(i, adc);
 
-		atm_temperature.push_back(((adc->atm_temperature[i]*2500./4096)-400)/19.5);
-		atm_humidity.push_back(((adc->atm_humidity[i]*2.5/4096/3.3)-0.1515)/0.00636);
+		atm_temperature.push_back(((adc.atm_temperature[i]*2500./4096)-400)/19.5);
+		atm_humidity.push_back(((adc.atm_humidity[i]*2.5/4096/3.3)-0.1515)/0.00636);
 		// ToDo: find the conversion
-		atm_pressure.push_back(adc->atm_pressure[i]*1.);
+		atm_pressure.push_back(adc.atm_pressure[i]*1.);
 
-		gain_correction_ch.push_back(vector<float>{(float)((adc->gain_correction_ch[i][0]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][1]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][2]-0.5)*2.5*37.5/4096-14), (float)((adc->gain_correction_ch[i][3]-0.5)*2.5*37.5/4096-14)});
+		gain_correction_ch.push_back(vector<float>{(float)((adc.gain_correction_ch[i][0]-0.5)*2.5*37.5/4096-14), (float)((adc.gain_correction_ch[i][1]-0.5)*2.5*37.5/4096-14), (float)((adc.gain_correction_ch[i][2]-0.5)*2.5*37.5/4096-14), (float)((adc.gain_correction_ch[i][3]-0.5)*2.5*37.5/4096-14)});
 
 		// ToDo: here should be some proper acceleration conversion when... we get some acceleration information
-		du_acceleration.push_back(vector<float>{(float)adc->du_acceleration[i][0], (float)adc->du_acceleration[i][1], (float)adc->du_acceleration[i][2]});
+		du_acceleration.push_back(vector<float>{(float)adc.du_acceleration[i][0], (float)adc.du_acceleration[i][1], (float)adc.du_acceleration[i][2]});
 	}
 //	// Merge the traces
 //	trace_ch.push_back(trace_0);
@@ -165,7 +165,7 @@ void TRawVoltage::ADCs2Real(TADC *adc, bool is_fv2)
 //	trace_ch.push_back(trace_3);
 }
 
-void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
+void TRawVoltage::TraceADC2Voltage(int du_num, TADC &adc)
 {
 	// Probably in the future adc2voltageconst will be replaced in the transform by some array_x/y/z[du_id], or corresponding function in some non-linear case
 	// Also, at the moment I assume trace_0/1/2 are x/y/z - this may also change in the future
@@ -181,11 +181,11 @@ void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
 //	transform(adc->trace_3[du_num].begin(), adc->trace_3[du_num].end(), trace_3[du_num].begin(), [adc2voltageconst](short &c){ return c*adc2voltageconst; });
 
 	// Loop through traces dimensions
-	for (int i = 0; i < adc->trace_ch[du_num].size(); ++i)
+	for (int i = 0; i < adc.trace_ch[du_num].size(); ++i)
 	{
-		trace_ch[du_num][i].resize(adc->trace_ch[du_num][i].size());
-		transform(adc->trace_ch[du_num][i].begin(), adc->trace_ch[du_num][i].end(), trace_ch[du_num][i].begin(), [adc2voltageconst](short &c) { return c * adc2voltageconst; });
-//		trace_ch[du_num][1].resize(adc->trace_ch[du_num][1].size());
+		trace_ch[du_num][i].resize(adc.trace_ch[du_num][i].size());
+		transform(adc.trace_ch[du_num][i].begin(), adc.trace_ch[du_num][i].end(), trace_ch[du_num][i].begin(), [adc2voltageconst](short &c) { return c * adc2voltageconst; });
+//		trace_ch[du_num][1].resize(adc.trace_ch[du_num][1].size());
 //		transform(adc->trace_ch[du_num][1].begin(), adc->trace_ch[du_num][1].end(), trace_ch[du_num][1].begin(), [adc2voltageconst](short &c) { return c * adc2voltageconst; });
 //		trace_ch[du_num][2].resize(adc->trace_ch[du_num][2].size());
 //		transform(adc->trace_ch[du_num][2].begin(), adc->trace_ch[du_num][2].end(), trace_ch[du_num][2].begin(), [adc2voltageconst](short &c) { return c * adc2voltageconst; });
@@ -194,33 +194,33 @@ void TRawVoltage::TraceADC2Voltage(int du_num, TADC *adc)
 	}
 }
 
-void TRawVoltage::GPSADC2Real(int du_num, TADC *adc)
+void TRawVoltage::GPSADC2Real(int du_num, TADC &adc)
 {
-		gps_long.push_back(TMath::RadToDeg()*(*(double*)&adc->gps_long[du_num]));
-		gps_lat.push_back(TMath::RadToDeg()*(*(double*)&adc->gps_lat[du_num]));
-		gps_alt.push_back(*(double*)&adc->gps_alt[du_num]);
-		gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
+		gps_long.push_back(TMath::RadToDeg()*(*(double*)&adc.gps_long[du_num]));
+		gps_lat.push_back(TMath::RadToDeg()*(*(double*)&adc.gps_lat[du_num]));
+		gps_alt.push_back(*(double*)&adc.gps_alt[du_num]);
+		gps_temp.push_back(*(float*)&adc.gps_temp[du_num]);
 }
 
-void TRawVoltage::GPSADC2Real_fv2(int du_num, TADC *adc)
+void TRawVoltage::GPSADC2Real_fv2(int du_num, TADC &adc)
 {
 	double longitude,latitude,altitude;
-	((int *)&longitude)[1] = ((int*)&adc->gps_long[du_num])[0];
-	((int *)&longitude)[0] = ((int*)&adc->gps_long[du_num])[1];
-	((int *)&latitude)[1] = ((int*)&adc->gps_lat[du_num])[0];
-	((int *)&latitude)[0] = ((int*)&adc->gps_lat[du_num])[1];
-	((int *)&altitude)[1] = ((int*)&adc->gps_alt[du_num])[0];
-	((int *)&altitude)[0] = ((int*)&adc->gps_alt[du_num])[1];
+	((int *)&longitude)[1] = ((int*)&adc.gps_long[du_num])[0];
+	((int *)&longitude)[0] = ((int*)&adc.gps_long[du_num])[1];
+	((int *)&latitude)[1] = ((int*)&adc.gps_lat[du_num])[0];
+	((int *)&latitude)[0] = ((int*)&adc.gps_lat[du_num])[1];
+	((int *)&altitude)[1] = ((int*)&adc.gps_alt[du_num])[0];
+	((int *)&altitude)[0] = ((int*)&adc.gps_alt[du_num])[1];
 
 	gps_long.push_back(57.3*longitude);
 	gps_lat.push_back(57.3*latitude);
 	gps_alt.push_back(altitude);
-	gps_temp.push_back(*(float*)&adc->gps_temp[du_num]);
+	gps_temp.push_back(*(float*)&adc.gps_temp[du_num]);
 }
 
-void TRawVoltage::BatteryADC2Voltage(int du_num, TADC *adc)
+void TRawVoltage::BatteryADC2Voltage(int du_num, TADC &adc)
 {
-		battery_level.push_back(adc->battery_level[du_num] / ((18 * 4096) / (2.5*(18+91))));
+		battery_level.push_back(adc.battery_level[du_num] / ((18 * 4096) / (2.5*(18+91))));
 }
 
 //void TRawVoltage::CalculateT0s(TADC *adc)

@@ -37,7 +37,7 @@ TRunRawVoltage::TRunRawVoltage(TFile *out_file)
 }
 
 //! Constructor computing values from tadc
-TRunRawVoltage::TRunRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRunRawVoltage(out_file)
+TRunRawVoltage::TRunRawVoltage(TADC &adc, bool is_fv2, TFile *out_file) : TRunRawVoltage(out_file)
 {
 	// Initialise metadata
 	InitialiseMetadata();
@@ -46,9 +46,9 @@ TRunRawVoltage::TRunRawVoltage(TADC *adc, bool is_fv2, TFile *out_file) : TRunRa
 }
 
 //! Compute values from tadc
-void TRunRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2=false)
+void TRunRawVoltage::ComputeFromADC(TADC &adc, bool is_fv2=false)
 {
-	auto tadc = adc->tadc;
+	auto tadc = adc.tadc;
 
 	// Exclude these branches from copying, for the values need to be modified or copied by value
 	vector<string> excluded_branches = {"integration_time_ch", "tper_ch", "tprev_ch", "ncmax_ch", "tcmax_ch", "ncmin_ch"};
@@ -74,31 +74,31 @@ void TRunRawVoltage::ComputeFromADC(TADC *adc, bool is_fv2=false)
 	// Copy from the first event
 	tadc->GetEntry(0);
 	// Copy the variables that may differ by type
-	for (size_t i=0; i<adc->trace_ch.size(); ++i)
+	for (size_t i=0; i<adc.trace_ch.size(); ++i)
 	{
 		if (is_fv2)
 		{
-			integration_time_ch.emplace_back(adc->integration_time_ch_fv2[i].begin(), adc->integration_time_ch_fv2[i].end());
-			tper_ch.emplace_back(adc->tper_ch_fv2[i].begin(), adc->tper_ch_fv2[i].end());
-			tprev_ch.emplace_back(adc->tprev_ch_fv2[i].begin(), adc->tprev_ch_fv2[i].end());
-			ncmax_ch.emplace_back(adc->ncmax_ch_fv2[i].begin(), adc->ncmax_ch_fv2[i].end());
-			tcmax_ch.emplace_back(adc->tcmax_ch_fv2[i].begin(), adc->tcmax_ch_fv2[i].end());
-			ncmin_ch.emplace_back(adc->ncmin_ch_fv2[i].begin(), adc->ncmin_ch_fv2[i].end());
+			integration_time_ch.emplace_back(adc.integration_time_ch_fv2[i].begin(), adc.integration_time_ch_fv2[i].end());
+			tper_ch.emplace_back(adc.tper_ch_fv2[i].begin(), adc.tper_ch_fv2[i].end());
+			tprev_ch.emplace_back(adc.tprev_ch_fv2[i].begin(), adc.tprev_ch_fv2[i].end());
+			ncmax_ch.emplace_back(adc.ncmax_ch_fv2[i].begin(), adc.ncmax_ch_fv2[i].end());
+			tcmax_ch.emplace_back(adc.tcmax_ch_fv2[i].begin(), adc.tcmax_ch_fv2[i].end());
+			ncmin_ch.emplace_back(adc.ncmin_ch_fv2[i].begin(), adc.ncmin_ch_fv2[i].end());
 		}
 		else
 		{
-			integration_time_ch.emplace_back(adc->integration_time_ch[i].begin(), adc->integration_time_ch[i].end());
-			tper_ch.emplace_back(adc->tper_ch[i].begin(), adc->tper_ch[i].end());
-			tprev_ch.emplace_back(adc->tprev_ch[i].begin(), adc->tprev_ch[i].end());
-			ncmax_ch.emplace_back(adc->ncmax_ch[i].begin(), adc->ncmax_ch[i].end());
-			tcmax_ch.emplace_back(adc->tcmax_ch[i].begin(), adc->tcmax_ch[i].end());
-			ncmin_ch.emplace_back(adc->ncmin_ch[i].begin(), adc->ncmin_ch[i].end());
+			integration_time_ch.emplace_back(adc.integration_time_ch[i].begin(), adc.integration_time_ch[i].end());
+			tper_ch.emplace_back(adc.tper_ch[i].begin(), adc.tper_ch[i].end());
+			tprev_ch.emplace_back(adc.tprev_ch[i].begin(), adc.tprev_ch[i].end());
+			ncmax_ch.emplace_back(adc.ncmax_ch[i].begin(), adc.ncmax_ch[i].end());
+			tcmax_ch.emplace_back(adc.tcmax_ch[i].begin(), adc.tcmax_ch[i].end());
+			ncmin_ch.emplace_back(adc.ncmin_ch[i].begin(), adc.ncmin_ch[i].end());
 		}
 
 		// The same ADC conversion for each unit, now hardcoded in GtoT
 		adc_conversion.push_back(glob_adc2voltageconst);
 
-		trace_length.push_back(adc->trace_ch[i][0].size());
+		trace_length.push_back(adc.trace_ch[i][0].size());
 	}
 
 	trunrawvoltage->Fill();

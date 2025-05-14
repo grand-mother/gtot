@@ -125,10 +125,10 @@ public:
 	TRunRawVoltage(TFile *out_file=NULL);
 
 	//! Constructor computing values from TADC
-	TRunRawVoltage(TADC *adc, bool is_fv2=false, TFile *out_file=NULL);
+	TRunRawVoltage(TADC &adc, bool is_fv2=false, TFile *out_file=NULL);
 
 	//! Compute values from tadc
-	void ComputeFromADC(TADC *adc, bool is_fv2);
+	void ComputeFromADC(TADC &adc, bool is_fv2);
 
 	//! Change the name of the file in which the TTree is stored
 	void ChangeFileName(string new_file_name, bool write=true);

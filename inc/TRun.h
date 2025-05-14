@@ -110,7 +110,7 @@ public:
 	int SetValuesFromPointers(int *pheader, string file_format="", bool init_first_last_event=true, string site_name="");
 
 	//! Set the values of t_bin_size vector from adc_sampling_frequency vector in the TADC tree
-	void SetTBinSizeFromADCSamplingFrequency(TADC *t);
+	void SetTBinSizeFromADCSamplingFrequency(TADC &t);
 
 	//! The default constructor
 	TRun();

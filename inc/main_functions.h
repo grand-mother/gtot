@@ -206,17 +206,17 @@ vector<string> parse_file_name(string &filename)
 
 
 //! Computes content of TRawVoltage from TADC, renames files for both, writes and closes
-void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, vector<string> fn_tokens, unsigned int first_event, unsigned int last_event, bool is_fv2=false, bool old_style_output=false)
+void finalise_and_close_event_trees(TADC &ADC, TRawVoltage *voltage, TRun *run, vector<string> fn_tokens, unsigned int first_event, unsigned int last_event, bool is_fv2=false, bool old_style_output=false)
 {
 	if(!old_style_output)
 	{
 		// Build the run_number/event_number index for ADC TTree
-		ADC->tadc->BuildIndex("run_number", "event_number");
+		ADC.tadc->BuildIndex("run_number", "event_number");
 
 		// Write out the ADC TTree to the file
 		cout << "Writing TADC tree" << endl;
-		ADC->tadc->GetCurrentFile()->cd();
-		ADC->tadc->Write("", TObject::kWriteDelete);
+		ADC.tadc->GetCurrentFile()->cd();
+		ADC.tadc->Write("", TObject::kWriteDelete);
 
 		// Create the TRawVoltage TTree and copying the valid TADC contents (need to do that before the change of TADC file name)
 		voltage->ComputeFromADC(ADC, is_fv2);
@@ -225,10 +225,10 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 				string("adc_") + fn_tokens[1] + string("_") + fn_tokens[2] + string("_") + to_string(first_event) +
 				"-" + to_string(last_event) + "_L1_0000.root";
 		cout << "Renaming tadc.root to " << tadc_name << endl;
-		ADC->ChangeFileName(tadc_name);
+		ADC.ChangeFileName(tadc_name);
 		// Add the Run TTree as a friend
-		ADC->tadc->AddFriend(run->trun);
-		ADC->tadc->Write("", TObject::kWriteDelete);
+		ADC.tadc->AddFriend(run->trun);
+		ADC.tadc->Write("", TObject::kWriteDelete);
 
 		// Build the run_number/event_number index for RawVoltage TTree
 		voltage->trawvoltage->BuildIndex("run_number", "event_number");
@@ -244,7 +244,7 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 //		voltage->trawvoltage->AddFriend(run->trun);
 		voltage->trawvoltage->Write("", TObject::kWriteDelete);
 
-		delete ADC->tadc->GetCurrentFile();
+		delete ADC.tadc->GetCurrentFile();
 		delete voltage->trawvoltage->GetCurrentFile();
 
 		// ADC->tadc->GetCurrentFile()->Close();
@@ -253,12 +253,12 @@ void finalise_and_close_event_trees(TADC *ADC, TRawVoltage *voltage, TRun *run, 
 	else
 	{
 		// Build the run_number/event_number index for ADC TTree
-		ADC->tadc->BuildIndex("run_number", "event_number");
+		ADC.tadc->BuildIndex("run_number", "event_number");
 
 		// Write out the ADC TTree to the file
 		cout << "Writing TADC tree" << endl;
-		ADC->tadc->GetCurrentFile()->cd();
-		ADC->tadc->Write("", TObject::kWriteDelete);
+		ADC.tadc->GetCurrentFile()->cd();
+		ADC.tadc->Write("", TObject::kWriteDelete);
 
 		// Create the TRawVoltage TTree and copying the valid TADC contents (need to do that before the change of TADC file name)
 		voltage->ComputeFromADC(ADC, is_fv2);

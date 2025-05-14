@@ -205,10 +205,10 @@ public:
 	//! General constructor
 	TRawVoltage(TFile *out_file=NULL);
 	//! Constructor computing values from TADC
-	TRawVoltage(TADC *adc, bool is_fv2=false, TFile *out_file=NULL);
+	TRawVoltage(TADC &adc, bool is_fv2=false, TFile *out_file=NULL);
 
 	//! Compute values from tadc
-	void ComputeFromADC(TADC *adc, bool is_fv2);
+	void ComputeFromADC(TADC &adc, bool is_fv2);
 
 	//! Change the name of the file in which the TTree is stored
 	void ChangeFileName(string new_file_name, bool write_tree=true);
@@ -218,19 +218,19 @@ private:
 //	void ClearVectors();
 
 	//! Converts the ADC traces from tadc into Voltage traces
-	void ADCs2Real(TADC *adc, bool is_fv2=false);
+	void ADCs2Real(TADC &adc, bool is_fv2=false);
 
 	//! Converts a specific ADC trace from tadc into a Voltage trace
-	void TraceADC2Voltage(int du_num, TADC *adc);
+	void TraceADC2Voltage(int du_num, TADC &adc);
 
 	//! Converts a specific GPS ADC values from tadc into a real values
-	void GPSADC2Real(int du_num, TADC *adc);
+	void GPSADC2Real(int du_num, TADC &adc);
 
 	//! Converts a specific GPS ADC values from tadc into a real values for firmware v2
-	void GPSADC2Real_fv2(int du_num, TADC *adc);
+	void GPSADC2Real_fv2(int du_num, TADC &adc);
 
 	//! Converts battery level from ADCs to Voltage
-	void BatteryADC2Voltage(int du_num, TADC *adc);
+	void BatteryADC2Voltage(int du_num, TADC &adc);
 
 	//! Initialises the TTree metadata fields
 	void InitialiseMetadata();
