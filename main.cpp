@@ -167,7 +167,13 @@ int main(int argc, char **argv)
 			int i, ich, ib;
 
 			fp = fopen(filename.c_str(), "r");
-			if (fp == nullptr) printf("Error opening file %s\n", filename.c_str());
+			// Can't open file - continue to the next one
+			if (fp == nullptr)
+			{
+				printf("Error opening file %s\n", filename.c_str());
+				filesystem::current_path(input_files_dir);
+				continue;
+			}
 
 			int *filehdr = nullptr;
 			unsigned short *event = nullptr;
@@ -489,10 +495,21 @@ int main(int argc, char **argv)
 						free(filehdr);
 						fp = nullptr;
 					}
+					filesystem::current_path(input_files_dir);
 					continue;
 				}
 
 			}
+			// Can't read file header - continue to the next file
+			else
+			{
+				fclose(fp); // close the file
+				free(filehdr);
+				fp = nullptr;
+				filesystem::current_path(input_files_dir);
+				continue;
+			}
+
 			if (fp != nullptr)
 			{
 				fclose(fp); // close the file
@@ -527,6 +544,8 @@ int main(int argc, char **argv)
 						first_event = event_counter;
 					}
 				}
+
+				filesystem::current_path(input_files_dir);
 
 				// delete run;
 				// delete trun_file;
