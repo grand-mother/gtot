@@ -99,8 +99,6 @@ int main(int argc, char **argv)
 		std::unique_ptr<TFile> old_trun_file;
 		// TFile* old_trun_file = nullptr;
 		TTree *old_trun = nullptr;
-		unique_ptr<TRawVoltage> voltage_up;
-
 
 		// Shows if a run tree file was already created in this directory before this run of gtot
 		bool run_file_exists = false;
@@ -501,9 +499,8 @@ int main(int argc, char **argv)
 				{
 					trawvoltage_file->cd();
 					// auto voltage = new TRawVoltage(trawvoltage_file);
-					voltage_up = make_unique<TRawVoltage>(trawvoltage_file);
-					auto voltage = voltage_up.get();
-					finalise_and_close_event_trees(*ADC, voltage, *run, fn_tokens, first_event, last_event, is_fv2,
+					auto voltage = make_unique<TRawVoltage>(trawvoltage_file);
+					finalise_and_close_event_trees(*ADC, *voltage, *run, fn_tokens, first_event, last_event, is_fv2,
 												   old_style_output);
 					// delete ADC;
 					// delete voltage;
@@ -535,10 +532,9 @@ int main(int argc, char **argv)
 
 			trawvoltage_file->cd();
 			// auto voltage = new TRawVoltage(trawvoltage_file);
-			voltage_up = make_unique<TRawVoltage>(trawvoltage_file);
-			auto voltage = voltage_up.get();
+			auto voltage = make_unique<TRawVoltage>(trawvoltage_file);
 
-			finalise_and_close_event_trees(*ADC, voltage, *run, fn_tokens, first_event, last_event, is_fv2,
+			finalise_and_close_event_trees(*ADC, *voltage, *run, fn_tokens, first_event, last_event, is_fv2,
 										   old_style_output);
 
 			// delete ADC;
