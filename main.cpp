@@ -311,6 +311,7 @@ int main(int argc, char **argv)
 					else
 						ret_val = ADC->SetValuesFromPointers(event, file_format);
 
+					// If unable to read the event, break the loop and continue to the next file
 					if (ret_val < 0)
 					{
 						free(event);
@@ -486,6 +487,7 @@ int main(int argc, char **argv)
 					{
 						fclose(fp); // close the file
 						free(filehdr);
+						fp = nullptr;
 					}
 					continue;
 				}
@@ -495,9 +497,10 @@ int main(int argc, char **argv)
 			{
 				fclose(fp); // close the file
 				free(filehdr);
+				fp = nullptr;
 			}
 
-			// In case of a bad return above, just close the file and exit
+			// In case of a bad return above, just close the file and continue to the next file
 			if (ret_val < 0)
 			{
 				if (!old_style_output)
@@ -530,7 +533,8 @@ int main(int argc, char **argv)
 				// delete tadc_file;
 				// delete trawvoltage_file;
 				// delete trunrawvoltage_file;
-				return ret_val;
+				// return ret_val;
+				continue;
 			}
 
 			if (cons_ev_num) last_event = event_counter - 1;
