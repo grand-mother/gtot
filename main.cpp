@@ -88,8 +88,8 @@ int main(int argc, char **argv)
 	{
 		unique_ptr<TRun> run;
 		// TRun *run = nullptr;
-		unique_ptr<TRunRawVoltage> runrawvoltage_up;
-		TRunRawVoltage *runrawvoltage = nullptr;
+		unique_ptr<TRunRawVoltage> runrawvoltage;
+		// TRunRawVoltage *runrawvoltage = nullptr;
 		unique_ptr<TFile> trun_file_up;
 		TFile *trun_file = nullptr;
 		std::unique_ptr<TFile> trunrawvoltage_file_up;
@@ -455,8 +455,7 @@ int main(int argc, char **argv)
 							// Fill the trunrawvoltage
 							trunrawvoltage_file->cd();
 							// runrawvoltage = new TRunRawVoltage(ADC, is_fv2, trunrawvoltage_file);
-							runrawvoltage_up = make_unique<TRunRawVoltage>(*ADC, is_fv2, trunrawvoltage_file);
-							runrawvoltage = runrawvoltage_up.get();
+							runrawvoltage = make_unique<TRunRawVoltage>(*ADC, is_fv2, trunrawvoltage_file);
 							// Write the trunrawvoltage
 							runrawvoltage->trunrawvoltage->Write("", TObject::kWriteDelete);
 							// delete runrawvoltage;
