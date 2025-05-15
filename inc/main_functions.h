@@ -206,7 +206,7 @@ vector<string> parse_file_name(string &filename)
 
 
 //! Computes content of TRawVoltage from TADC, renames files for both, writes and closes
-void finalise_and_close_event_trees(TADC &ADC, TRawVoltage *voltage, TRun *run, vector<string> fn_tokens, unsigned int first_event, unsigned int last_event, bool is_fv2=false, bool old_style_output=false)
+void finalise_and_close_event_trees(TADC &ADC, TRawVoltage *voltage, TRun &run, vector<string> fn_tokens, unsigned int first_event, unsigned int last_event, bool is_fv2=false, bool old_style_output=false)
 {
 	if(!old_style_output)
 	{
@@ -227,7 +227,7 @@ void finalise_and_close_event_trees(TADC &ADC, TRawVoltage *voltage, TRun *run, 
 		cout << "Renaming tadc.root to " << tadc_name << endl;
 		ADC.ChangeFileName(tadc_name);
 		// Add the Run TTree as a friend
-		ADC.tadc->AddFriend(run->trun);
+		ADC.tadc->AddFriend(run.trun);
 		ADC.tadc->Write("", TObject::kWriteDelete);
 
 		// Build the run_number/event_number index for RawVoltage TTree
@@ -271,7 +271,7 @@ void finalise_and_close_event_trees(TADC &ADC, TRawVoltage *voltage, TRun *run, 
 
 		// Close TFiles with the TTrees for the old style output
 		// the trun_file contains also the event trees
-		delete run->trun->GetCurrentFile();
+		delete run.trun->GetCurrentFile();
 		// run->trun->GetCurrentFile()->Close();
 	}
 
