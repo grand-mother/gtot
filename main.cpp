@@ -478,11 +478,16 @@ int main(int argc, char **argv)
 				}
 				free(out_buf);
 
-				// In case of no events, just exit
+				// In case of no events, continue
 				if (event_counter == 0)
 				{
 					cout << "No events found in the hardware file. The ROOT file will not be written." << endl;
-					exit(-1);
+					if (fp != nullptr)
+					{
+						fclose(fp); // close the file
+						free(filehdr);
+					}
+					continue;
 				}
 
 			}
