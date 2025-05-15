@@ -96,8 +96,8 @@ int main(int argc, char **argv)
 		TFile *trunrawvoltage_file = nullptr;
 		unique_ptr<TADC> ADC;
 		// TFile *old_trun_file = NULL;
-		std::unique_ptr<TFile> old_trun_file_up;
-		TFile* old_trun_file = nullptr;
+		std::unique_ptr<TFile> old_trun_file;
+		// TFile* old_trun_file = nullptr;
 		TTree *old_trun = nullptr;
 		unique_ptr<TRawVoltage> voltage_up;
 
@@ -241,8 +241,7 @@ int main(int argc, char **argv)
 				{
 					run_file_exists = true;
 					// old_trun_file = new TFile(string(trun_name).c_str(), "update");
-					old_trun_file_up = make_unique<TFile>(string(trun_name).c_str(), "update");
-					old_trun_file = old_trun_file_up.get();
+					old_trun_file = make_unique<TFile>(string(trun_name).c_str(), "update");
 					old_trun = static_cast<TTree*>(old_trun_file->Get("trun"));
 					old_trun->SetName("old_trun");
 					old_trun->GetEntry(0);
@@ -272,7 +271,7 @@ int main(int argc, char **argv)
 				run = run_up.get();
 				if (run_file_exists)
 				{
-					run->trun->SetDirectory(old_trun_file);
+					run->trun->SetDirectory(old_trun_file.get());
 				}
 			}
 
