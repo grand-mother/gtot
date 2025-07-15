@@ -271,7 +271,7 @@ void finalise_and_close_event_trees(TADC &ADC, TRawVoltage &voltage, TRun &run, 
 
 		// Close TFiles with the TTrees for the old style output
 		// the trun_file contains also the event trees
-		delete run.trun->GetCurrentFile();
+		// delete run.trun->GetCurrentFile();
 		// run->trun->GetCurrentFile()->Close();
 	}
 
