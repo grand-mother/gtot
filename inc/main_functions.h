@@ -46,74 +46,152 @@ void analyse_command_line_params(int argc, char **argv, vector<string> &filename
 
 	for(int i=1; i<argc; ++i)
 	{
+// 		// Help requested
+// 		if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-h")) || strstr(argv[i], "--help"))
+// 		{
+// 			print_help();
+// 			exit(0);
+// 		}
+// 		// Forced input file
+// 		else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-i")) || strstr(argv[i], "--input_filename"))
+// 		{
+// 			infile_forced = true;
+// 			filenames.clear();
+// //			filenames.Add((TObject *) (new TString(argv[i + 1])));
+// 			filenames.push_back(string(argv[i + 1]));
+// 		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-o")) || strstr(argv[i], "--output_filename"))
+// 		{
+// 			output_filename = argv[i + 1];
+// 			++i;
+// 		} else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-od")) || strstr(argv[i], "--output_directory"))
+// 		{
+// 			// The output filename and output directory are mutually exclusive (because I'm lazy - please give a file's full path with -o)
+// 			if(output_filename!="")
+// 			{
+// 				cout << "Output directory and output filename options are mutually exclusive. Please provide the output file with a requested path.";
+// 				exit(0);
+// 			}
+// 			output_directory = argv[i + 1];
+//             // Create the output directory
+//             filesystem::create_directory(filesystem::path(output_directory));
+// 			++i;
+// 		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-g1")) || strstr(argv[i], "--gp13v1"))
+// 		{
+// 			cout << "Switching to GP13 v1 UD/MD mode" << endl;
+// 			gp13v1 = true;
+// 			file_format = "gp13v1";
+// 		}
+// 		else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-gc")) || strstr(argv[i], "--gp13v1cd"))
+// 		{
+// 			cout << "Switching to GP13 v1 CD mode" << endl;
+// 			gp13v1 = true;
+// 			gp13v1cd = true;
+// 			file_format = "gp13v1cd";
+// 		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-e")) || strstr(argv[i], "--event_number_assignment"))
+// 		{
+// 			cout << "Assigning event numbers consecutively" << endl;
+// 			cons_ev_num = true;
+// 		} else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-rn")) || strstr(argv[i], "--run_number_assignment"))
+// 		{
+// 			cout << "Reading run numbers from files names" << endl;
+// 			file_run_num = true;
+// 		}
+// 		else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-v")) || strstr(argv[i], "--verbose"))
+// 		{
+// 			cout << "Enabled verbose output" << endl;
+// 			overbose = true;
+// 		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-f2")) || strstr(argv[i], "--firmware_v2"))
+// 		{
+// 			cout << "Switching to firmware v2 mode" << endl;
+// 			is_fv2 = true;
+// //			file_format = "gp13v1";
+// 		}
+// 		else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-os")) || strstr(argv[i], "--old_style_output"))
+// 		{
+// 			cout << "Storing trees in the old way" << endl;
+// 			old_style_output = true;
+// 		}
+// 		else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-ow")) || strstr(argv[i], "--overwrite"))
+// 		{
+// 			cout << "Overwriting ROOT files if they exist" << endl;
+// 			overwrite_files = true;
+// 		}
+
+		std::string arg = argv[i];
+
 		// Help requested
-		if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-h")) || strstr(argv[i], "--help"))
+		if (arg == "-h" || arg == "--help")
 		{
 			print_help();
 			exit(0);
 		}
-			// Forced input file
-		else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-i")) || strstr(argv[i], "--input_filename"))
+		// Forced input file
+		else if (arg == "-i" || arg == "--input_filename")
 		{
 			infile_forced = true;
 			filenames.clear();
-//			filenames.Add((TObject *) (new TString(argv[i + 1])));
-			filenames.push_back(string(argv[i + 1]));
-		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-o")) || strstr(argv[i], "--output_filename"))
+			filenames.push_back(std::string(argv[i + 1]));
+			++i;
+		}
+		else if (arg == "-o" || arg == "--output_filename")
 		{
 			output_filename = argv[i + 1];
 			++i;
-		} else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-od")) || strstr(argv[i], "--output_directory"))
+		}
+		else if (arg == "-od" || arg == "--output_directory")
 		{
-			// The output filename and output directory are mutually exclusive (because I'm lazy - please give a file's full path with -o)
-			if(output_filename!="")
+			// The output filename and output directory are mutually exclusive
+			if (!output_filename.empty())
 			{
-				cout << "Output directory and output filename options are mutually exclusive. Please provide the output file with a requested path.";
+				std::cout << "Output directory and output filename options are mutually exclusive. "
+					"Please provide the output file with a requested path.";
 				exit(0);
 			}
 			output_directory = argv[i + 1];
-            // Create the output directory
-            filesystem::create_directory(filesystem::path(output_directory));
+			filesystem::create_directory(filesystem::path(output_directory));
 			++i;
-		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-g1")) || strstr(argv[i], "--gp13v1"))
+		}
+		else if (arg == "-g1" || arg == "--gp13v1")
 		{
-			cout << "Switching to GP13 v1 UD/MD mode" << endl;
+			std::cout << "Switching to GP13 v1 UD/MD mode" << std::endl;
 			gp13v1 = true;
 			file_format = "gp13v1";
 		}
-		else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-gc")) || strstr(argv[i], "--gp13v1cd"))
+		else if (arg == "-gc" || arg == "--gp13v1cd")
 		{
-			cout << "Switching to GP13 v1 CD mode" << endl;
+			std::cout << "Switching to GP13 v1 CD mode" << std::endl;
 			gp13v1 = true;
 			gp13v1cd = true;
 			file_format = "gp13v1cd";
-		} else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-e")) || strstr(argv[i], "--event_number_assignment"))
+		}
+		else if (arg == "-e" || arg == "--event_number_assignment")
 		{
-			cout << "Assigning event numbers consecutively" << endl;
+			std::cout << "Assigning event numbers consecutively" << std::endl;
 			cons_ev_num = true;
-		} else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-rn")) || strstr(argv[i], "--run_number_assignment"))
+		}
+		else if (arg == "-rn" || arg == "--run_number_assignment")
 		{
-			cout << "Reading run numbers from files names" << endl;
+			std::cout << "Reading run numbers from file names" << std::endl;
 			file_run_num = true;
 		}
-		else if ((strlen(argv[i]) == 2 && strstr(argv[i], "-v")) || strstr(argv[i], "--verbose"))
+		else if (arg == "-v" || arg == "--verbose")
 		{
-			cout << "Enabled verbose output" << endl;
+			std::cout << "Enabled verbose output" << std::endl;
 			overbose = true;
-		} else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-f2")) || strstr(argv[i], "--firmware_v2"))
-		{
-			cout << "Switching to firmware v2 mode" << endl;
-			is_fv2 = true;
-//			file_format = "gp13v1";
 		}
-		else if ((strlen(argv[i]) >= 2 && strstr(argv[i], "-os")) || strstr(argv[i], "--old_style_output"))
+		else if (arg == "-f2" || arg == "--firmware_v2")
 		{
-			cout << "Storing trees in the old way" << endl;
+			std::cout << "Switching to firmware v2 mode" << std::endl;
+			is_fv2 = true;
+		}
+		else if (arg == "-os" || arg == "--old_style_output")
+		{
+			std::cout << "Storing trees in the old way" << std::endl;
 			old_style_output = true;
 		}
-		else if ((strlen(argv[i]) == 3 && strstr(argv[i], "-ow")) || strstr(argv[i], "--overwrite"))
+		else if (arg == "-ow" || arg == "--overwrite")
 		{
-			cout << "Overwriting ROOT files if they exist" << endl;
+			std::cout << "Overwriting ROOT files if they exist" << std::endl;
 			overwrite_files = true;
 		}
 
