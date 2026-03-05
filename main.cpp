@@ -164,6 +164,7 @@ int main(int argc, char **argv)
 
 			//! File reading
 			FILE *fp;
+			std::unique_ptr<char, decltype(&free)> out_buf(nullptr, &free);
 			int i, ich, ib;
 
 			fp = fopen(filename.c_str(), "r");
@@ -306,8 +307,7 @@ int main(int argc, char **argv)
 				// For GP13 move in the file
 				if (gp13v1) fseek(fp, 256, 0);
 
-				char *out_buf = nullptr;
-				if(gp13v1cd) out_buf = read_order_file_in_memory(&fp);
+				if(gp13v1cd) out_buf.reset(read_order_file_in_memory(&fp));
 
 				// Loop-read the events
 				while (grand_read_event_ptr(fp, &event, file_format.c_str()) > 0)
@@ -483,7 +483,7 @@ int main(int argc, char **argv)
 					cout << "\rFilled event " << event_counter;
 					event_counter++;
 				}
-				free(out_buf);
+				// out_buf is automatically freed by unique_ptr when it goes out of scope
 
 				// In case of no events, continue
 				if (event_counter == 0)
