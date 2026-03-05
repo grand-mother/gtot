@@ -574,7 +574,7 @@ int main(int argc, char **argv)
 		}
 
 		// For the new style output fill, write and close the run after all the files
-		if (!old_style_output)
+		if (!old_style_output && trun_file)
 		{
 			filesystem::current_path(dir_name);
 			run->trun->SetDirectory(trun_file);
