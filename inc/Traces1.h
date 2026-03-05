@@ -87,7 +87,7 @@ namespace fv1
 		int isize, return_code;
 
 		if (gp13v1) vout << "Tag!!!\n";
-		if (!fread(&isize, INTSIZE, 1, fp))
+		if (!fread(&isize, INTSIZE, 1, fp) || isize<2)
 		{
 			if(feof(fp)) printf("\nReached the end of file\n");
 			else printf("\nCannot read the Event length\n");
