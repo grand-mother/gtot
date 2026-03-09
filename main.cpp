@@ -83,6 +83,14 @@ int main(int argc, char **argv)
 	vector<vector<string>> file_groups;
 	group_files_and_directories(all_filenames, file_groups, output_directory);
 
+	// Counters for progress
+	int total_files_processed = 0;
+	int total_files_count = 0;
+	// First, get the grand total if you don't have it
+	for (const auto& group : file_groups) {
+		total_files_count += group.size();
+	}
+
 	// Loop through groups of files that go into the same directory
 	for(auto filenames : file_groups)
 	{
@@ -120,6 +128,9 @@ int main(int argc, char **argv)
 		// Loop through the input files
 		for (int j = 0; j < filenames.size(); ++j)
 		{
+			// Advance the overall files counter
+			total_files_processed++;
+
 			string filename = filenames[j];
 
 			fn_tokens = parse_file_name(filename);
@@ -160,7 +171,7 @@ int main(int argc, char **argv)
 			}
 
 			// Assume the file to analyse is the last parameter
-			cout << "\n*** Analysing " << filename << endl;
+			cout << "\n*** Analysing " << filename << " (" << total_files_processed << "/" << total_files_count << ")" << endl;
 
 			//! File reading
 			FILE *fp;
