@@ -591,7 +591,7 @@ int main(int argc, char **argv)
 			run->trun->SetDirectory(trun_file);
 			trun_file->cd();
 			// Update event counters if requested, but only if anything was written to the new TADC
-			if (cons_ev_num && ADC && ADC->tadc && ADC->tadc->GetEntries()>0)
+			if (cons_ev_num && ADC && ADC->du_seconds.size()>0)
 			{
 				last_event = event_counter - 1;
 				if (gp13v1) last_event_time = *min_element(ADC->du_seconds.begin(), ADC->du_seconds.end());
