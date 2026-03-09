@@ -584,13 +584,14 @@ int main(int argc, char **argv)
 			if (!old_style_output) filesystem::current_path(input_files_dir);
 		}
 
-		// For the new style output fill, write and close the run after all the files
-		if (!old_style_output && trun_file)
+		// For the new style output fill, write and close the run after all the files, if any file was read in the group
+		if (!old_style_output && trun_file && run && run->trun)
 		{
 			filesystem::current_path(dir_name);
 			run->trun->SetDirectory(trun_file);
 			trun_file->cd();
-			if (cons_ev_num)
+			// Update event counters if requested, but only if anything was written to the new TADC
+			if (cons_ev_num && ADC && ADC->tadc && ADC->tadc->GetEntries()>0)
 			{
 				last_event = event_counter - 1;
 				if (gp13v1) last_event_time = *min_element(ADC->du_seconds.begin(), ADC->du_seconds.end());
