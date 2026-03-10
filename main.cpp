@@ -511,8 +511,9 @@ int main(int argc, char **argv)
 				}
 
 			}
-			// Can't read file header - continue to the next file
-			else
+			// Can't read file header or none of the events were filled - continue to the next file
+			// else
+			if (ADC->du_seconds.size()==0)
 			{
 				fclose(fp); // close the file
 				free(filehdr);
